@@ -10,14 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/api/env-test", (req, res) => {
-    res.json({
-        mongoUriExists: !!process.env.MONGO_URI,
-        mongoUriLength: process.env.MONGO_URI
-            ? process.env.MONGO_URI.length
-            : 0
-    });
-});
+
 /* =========================
    MONGODB
 ========================= */
