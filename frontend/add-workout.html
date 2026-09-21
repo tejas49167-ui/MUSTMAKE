@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Add Workout - No Excuse</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="topbar">
+
+        <div class="logo">Tika muchkond madu</div>
+
+        <nav>
+            <a href="index.html">Today</a>
+            <a href="add-workout.html" class="active">
+                Add Workout
+            </a>
+            <a href="app.html">History</a>
+        </nav>
+
+    </header>
+
+
+    <main class="container narrow">
+
+        <section class="page-heading">
+            
+            <h1>Add Workout</h1>
+            <p class="subtitle">
+                This is your growth, keep it real . 
+        </section>
+
+
+        <form id="workoutForm" class="workout-form">
+
+
+            <!-- PERSON -->
+
+            <div class="form-group">
+
+                <label for="person">
+                    Who worked out?
+                </label>
+
+                <select id="person" required>
+
+                    <option value="">
+                        Select person
+                    </option>
+
+                    <option value="Tejas">
+                        Tejas
+                    </option>
+
+                    <option value="Pakiresh">
+                        Pakiresh
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- SECRET CODE -->
+
+            <div class="form-group">
+
+                <label for="secretCode">
+                    Secret code
+                </label>
+
+                <input
+                    type="password"
+                    id="secretCode"
+                    placeholder="Enter secret code"
+                    autocomplete="off"
+                    required
+                >
+
+            </div>
+
+
+            <!-- EXERCISE -->
+
+            <div class="form-group">
+
+                <label for="exercise">
+                    Exercise
+                </label>
+
+                <select id="exercise" required>
+
+                    <option value="">
+                        Select exercise
+                    </option>
+
+                    <option value="Push-ups">
+                        Push-ups
+                    </option>
+
+                    <option value="Pull-ups">
+                        Pull-ups
+                    </option>
+
+                    <option value="Dumbbell">
+                        Dumbbell
+                    </option>
+
+                    <option value="Squats">
+                        Squats
+                    </option>
+
+                    <option value="Skipping Rope">
+                        Skipping Rope
+                    </option>
+
+                    <option value="Running">
+                        Running
+                    </option>
+
+                    <option value="Walking">
+                        Walking
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- DYNAMIC FIELDS -->
+
+            <div id="exerciseFields"></div>
+
+
+            <div
+                id="totalDisplay"
+                class="total-display"
+                style="display: none;"
+            >
+            </div>
+
+
+            <button
+                type="submit"
+                class="main-button submit-button"
+            >
+                Save Workout
+            </button>
+
+
+            <p id="formMessage" class="form-message"></p>
+
+        </form>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,445 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0b0b0b;
+    color: #ffffff;
+    min-height: 100vh;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.topbar {
+    height: 70px;
+    border-bottom: 1px solid #222;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 6%;
+
+    position: sticky;
+    top: 0;
+
+    background: rgba(11, 11, 11, 0.95);
+
+    z-index: 10;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 3px;
+}
+
+nav {
+    display: flex;
+    gap: 25px;
+}
+
+nav a {
+    color: #888;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+nav a:hover,
+nav a.active {
+    color: #fff;
+}
+
+
+/* =========================
+   CONTAINER
+========================= */
+
+.container {
+    width: 88%;
+    max-width: 1100px;
+    margin: auto;
+    padding: 60px 0;
+}
+
+.narrow {
+    max-width: 650px;
+}
+
+
+/* =========================
+   HERO
+========================= */
+
+.hero {
+    margin-bottom: 50px;
+}
+
+.small-title {
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: #777;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.hero h1,
+.page-heading h1 {
+    font-size: 48px;
+    line-height: 1.1;
+}
+
+.subtitle {
+    color: #777;
+    margin-top: 12px;
+    font-size: 16px;
+}
+
+
+/* =========================
+   PEOPLE
+========================= */
+
+.people-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
+.person-card {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 14px;
+    padding: 28px;
+}
+
+.person-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    padding-bottom: 25px;
+    border-bottom: 1px solid #222;
+}
+
+.person-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.person-top h2 {
+    font-size: 30px;
+}
+
+
+/* =========================
+   STREAK
+========================= */
+
+.streak {
+    text-align: right;
+}
+
+.streak span {
+    font-size: 18px;
+}
+
+.streak strong {
+    font-size: 28px;
+    display: block;
+}
+
+.streak small {
+    color: #666;
+    font-size: 11px;
+}
+
+
+/* =========================
+   WORKOUTS
+========================= */
+
+.workout-section {
+    padding-top: 25px;
+}
+
+.workout-section h3 {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 15px;
+}
+
+.workout-item {
+    background: #181818;
+    border-radius: 9px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.workout-name {
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.workout-details {
+    color: #888;
+    font-size: 13px;
+}
+
+.no-workout {
+    color: #555;
+    font-size: 14px;
+}
+
+
+/* =========================
+   BUTTONS
+========================= */
+
+.actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 35px;
+}
+
+.main-button,
+.secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 15px 25px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    border: none;
+}
+
+.main-button {
+    background: #fff;
+    color: #000;
+}
+
+.main-button:hover {
+    background: #ddd;
+}
+
+.secondary-button {
+    background: #171717;
+    color: #fff;
+    border: 1px solid #2b2b2b;
+}
+
+.secondary-button:hover {
+    background: #222;
+}
+
+
+/* =========================
+   PAGE HEADING
+========================= */
+
+.page-heading {
+    margin-bottom: 40px;
+}
+
+
+/* =========================
+   FORM
+========================= */
+
+.workout-form {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 14px;
+    padding: 30px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 9px;
+}
+
+input,
+select {
+    width: 100%;
+
+    background: #181818;
+    color: #fff;
+
+    border: 1px solid #292929;
+    border-radius: 8px;
+
+    padding: 14px;
+
+    font-size: 15px;
+
+    outline: none;
+}
+
+input:focus,
+select:focus {
+    border-color: #666;
+}
+
+
+/* =========================
+   DYNAMIC FORM
+========================= */
+
+#exerciseFields {
+    margin-top: 5px;
+}
+
+.dynamic-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.field {
+    margin-bottom: 15px;
+}
+
+.field label {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 7px;
+}
+
+
+/* =========================
+   TOTAL
+========================= */
+
+.total-display {
+    background: #181818;
+    border: 1px solid #292929;
+    padding: 16px;
+    border-radius: 8px;
+
+    margin-bottom: 20px;
+
+    font-size: 15px;
+    font-weight: bold;
+}
+
+
+/* =========================
+   SUBMIT
+========================= */
+
+.submit-button {
+    width: 100%;
+}
+
+.form-message {
+    margin-top: 15px;
+    font-size: 14px;
+    text-align: center;
+}
+
+
+/* =========================
+   HISTORY
+========================= */
+
+.history-day {
+    margin-bottom: 35px;
+}
+
+.history-date {
+    font-size: 20px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #222;
+    padding-bottom: 12px;
+}
+
+.history-person {
+    margin-bottom: 20px;
+}
+
+.history-person h3 {
+    font-size: 15px;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+.history-workout {
+    background: #111;
+    border: 1px solid #222;
+
+    padding: 15px;
+
+    border-radius: 8px;
+
+    margin-bottom: 8px;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 700px) {
+
+    .topbar {
+        height: auto;
+        padding: 20px 6%;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    nav {
+        gap: 15px;
+    }
+
+    .container {
+        width: 92%;
+        padding: 40px 0;
+    }
+
+    .hero h1,
+    .page-heading h1 {
+        font-size: 36px;
+    }
+
+    .people-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
+
+    .dynamic-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .workout-form {
+        padding: 22px;
+    }
+}
