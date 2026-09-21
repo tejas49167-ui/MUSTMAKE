@@ -1,5 +1,4 @@
-const API_URL = "https://backend-three-delta.vercel.app/";
-
+const API_URL = "https://justdoitbackend-89x3asiw4-tejas49167-uis-projects.vercel.app/"
 
 // ==========================================
 // GENERAL HELPERS
