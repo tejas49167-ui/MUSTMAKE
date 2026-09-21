@@ -1,4 +1,5 @@
-const API_URL = "https://justdoitbackend.vercel.app/"
+const API_URL = "https://justdoitbackend.vercel.app";
+const APP_TIME_ZONE = "Asia/Kolkata";
 // ==========================================
 // GENERAL HELPERS
 // ==========================================
@@ -18,17 +19,25 @@ function formatDate(dateString) {
 
 function getToday() {
 
-    const now = new Date();
+    const parts =
+        new Intl.DateTimeFormat("en-GB", {
+            timeZone: APP_TIME_ZONE,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).formatToParts(new Date());
 
-    const year = now.getFullYear();
+    const values = {};
 
-    const month =
-        String(now.getMonth() + 1).padStart(2, "0");
+    parts.forEach(part => {
 
-    const day =
-        String(now.getDate()).padStart(2, "0");
+        if (part.type !== "literal") {
+            values[part.type] = part.value;
+        }
 
-    return `${year}-${month}-${day}`;
+    });
+
+    return `${values.year}-${values.month}-${values.day}`;
 }
 
 
@@ -207,25 +216,23 @@ async function loadStreaks() {
 
         const response =
             await fetch(
-                `${API_URL}/api/workouts/history`
+                `${API_URL}/api/workouts/streaks`
             );
 
-        const workouts =
+        if (!response.ok) {
+            throw new Error("Could not load streaks");
+        }
+
+        const streaks =
             await response.json();
 
 
         tejasElement.textContent =
-            calculateStreak(
-                workouts,
-                "Tejas"
-            );
+            streaks.Tejas || 0;
 
 
         pakireshElement.textContent =
-            calculateStreak(
-                workouts,
-                "Pakiresh"
-            );
+            streaks.Pakiresh || 0;
 
     } catch (error) {
 
@@ -257,28 +264,10 @@ function calculateStreak(workouts, person) {
 
     let streak = 0;
 
-    let date = new Date();
+    let dateString = getToday();
 
 
     while (true) {
-
-        const year =
-            date.getFullYear();
-
-        const month =
-            String(
-                date.getMonth() + 1
-            ).padStart(2, "0");
-
-        const day =
-            String(
-                date.getDate()
-            ).padStart(2, "0");
-
-
-        const dateString =
-            `${year}-${month}-${day}`;
-
 
         if (!dates.has(dateString)) {
             break;
@@ -287,13 +276,27 @@ function calculateStreak(workouts, person) {
 
         streak++;
 
-        date.setDate(
-            date.getDate() - 1
-        );
+        dateString =
+            previousDateString(dateString);
     }
 
 
     return streak;
+}
+
+
+function previousDateString(dateString) {
+
+    const date =
+        new Date(`${dateString}T00:00:00.000Z`);
+
+    date.setUTCDate(
+        date.getUTCDate() - 1
+    );
+
+    return date
+        .toISOString()
+        .split("T")[0];
 }
 
 

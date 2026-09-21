@@ -15,17 +15,133 @@ app.use(express.json());
    MONGODB
 ========================= */
 
-mongoose
-    .connect(process.env.MONGO_URI)
-    .then(() => {
-        console.log("MongoDB connected");
-    })
-    .catch((error) => {
+let mongoConnection = null;
+
+async function connectDB() {
+
+    if (!process.env.MONGO_URI) {
+        throw new Error("MONGO_URI is missing.");
+    }
+
+    if (mongoose.connection.readyState === 1) {
+        return;
+    }
+
+    if (!mongoConnection) {
+
+        mongoConnection = mongoose
+            .connect(process.env.MONGO_URI, {
+                serverSelectionTimeoutMS: 10000
+            })
+            .catch((error) => {
+
+                mongoConnection = null;
+
+                throw error;
+
+            });
+    }
+
+    await mongoConnection;
+}
+
+async function requireDB(req, res, next) {
+
+    try {
+
+        await connectDB();
+
+        next();
+
+    } catch (error) {
+
         console.error(
             "MongoDB connection error:",
             error.message
         );
+
+        res.status(503).json({
+            message:
+                "Database is waking up. Please try again."
+        });
+
+    }
+}
+
+app.use("/api", requireDB);
+
+
+/* =========================
+   DATE HELPERS
+========================= */
+
+const APP_TIME_ZONE =
+    process.env.APP_TIME_ZONE || "Asia/Kolkata";
+
+function getDateString(date = new Date()) {
+
+    const parts =
+        new Intl.DateTimeFormat("en-GB", {
+            timeZone: APP_TIME_ZONE,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).formatToParts(date);
+
+    const values = {};
+
+    parts.forEach(part => {
+
+        if (part.type !== "literal") {
+            values[part.type] = part.value;
+        }
+
     });
+
+    return `${values.year}-${values.month}-${values.day}`;
+}
+
+function previousDateString(dateString) {
+
+    const date =
+        new Date(`${dateString}T00:00:00.000Z`);
+
+    date.setUTCDate(
+        date.getUTCDate() - 1
+    );
+
+    return date
+        .toISOString()
+        .split("T")[0];
+}
+
+function calculateStreak(workouts, person) {
+
+    const dates =
+        new Set(
+            workouts
+                .filter(workout =>
+                    workout.person === person
+                )
+                .map(workout => workout.date)
+        );
+
+    let streak = 0;
+
+    let dateString =
+        getDateString();
+
+    while (dates.has(dateString)) {
+
+        streak++;
+
+        dateString =
+            previousDateString(dateString);
+
+    }
+
+    return streak;
+}
 
 
 /* =========================
@@ -143,9 +259,7 @@ app.post("/api/workouts", async (req, res) => {
 
 
         const today =
-            new Date()
-                .toISOString()
-                .split("T")[0];
+            getDateString();
 
 
         const workout =
@@ -198,9 +312,7 @@ app.get(
         try {
 
             const today =
-                new Date()
-                    .toISOString()
-                    .split("T")[0];
+                getDateString();
 
 
             const workouts =
@@ -220,6 +332,54 @@ app.get(
             res.status(500).json({
                 message:
                     "Could not load workouts."
+            });
+
+        }
+
+    }
+);
+
+
+/* =========================
+   STREAKS
+========================= */
+
+app.get(
+    "/api/workouts/streaks",
+    async (req, res) => {
+
+        try {
+
+            const workouts =
+                await Workout.find(
+                    {},
+                    {
+                        person: 1,
+                        date: 1
+                    }
+                );
+
+
+            res.json({
+                Tejas: calculateStreak(
+                    workouts,
+                    "Tejas"
+                ),
+                Pakiresh: calculateStreak(
+                    workouts,
+                    "Pakiresh"
+                )
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            res.status(500).json({
+                message:
+                    "Could not load streaks."
             });
 
         }
