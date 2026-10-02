@@ -757,7 +757,7 @@ app.get(
         "google",
         {
             failureRedirect:
-                "http://127.0.0.1:5500/frontend/pages/login.html",
+                "https://perspiration.vercel.app/frontend/pages/login.html",
 
             session: false
         }
@@ -814,7 +814,7 @@ app.get(
 
 
             res.redirect(
-                `http://127.0.0.1:5500/frontend/pages/google-callback.html#${params.toString()}`
+                `https://perspiration.vercel.app/frontend/pages/google-callback.html#${params.toString()}`
             );
 
 
@@ -827,7 +827,7 @@ app.get(
 
 
             res.redirect(
-                "http://127.0.0.1:5500/frontend/pages/login.html"
+                "https://perspiration.vercel.app/frontend/pages/login.html"
             );
         }
     }
