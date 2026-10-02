@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile | Just Do It</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+    <div id="navbar"></div>
+
+    <main class="profile-container">
+
+        <section class="profile-card">
+
+            <h1>Edit Profile</h1>
+
+            <form id="profileForm">
+
+                <div class="form-group">
+                    <label for="dateOfBirth">Date of Birth</label>
+                    <input
+                        type="date"
+                        id="dateOfBirth"
+                        required
+                        onkeydown="return false"
+                        onpaste="return false"
+                        placeholder="Click the Calender"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="height">Height (cm)</label>
+                    <input type="number" id="height" min="50" max="300" placeholder="Example: 175">
+                </div>
+
+                <div class="form-group">
+                    <label for="weight">Weight (kg)</label>
+                    <input type="number" id="weight" min="20" max="500" step="0.1" placeholder="Example: 68">
+                </div>
+
+                <div class="form-group">
+                    <label for="profilePicture">Profile Photo</label>
+                    <div class="profile-upload">
+                        <img id="photoPreview" src="" alt="Profile preview" class="profile-photo">
+                        <input type="file" id="profilePicture" accept="image/jpeg,image/png,image/webp">
+                    </div>
+                    <small>JPG, PNG or WebP. Maximum 2 MB.</small>
+                </div>
+
+                <h2>Socials</h2>
+
+                <div class="form-group">
+                    <label for="instagram">Instagram</label>
+                    <input type="url" id="instagram" placeholder="https://instagram.com/...">
+                </div>
+
+                <div class="form-group">
+                    <label for="youtube">YouTube</label>
+                    <input type="url" id="youtube" placeholder="https://youtube.com/...">
+                </div>
+
+                <div class="form-group">
+                    <label for="github">GitHub</label>
+                    <input type="url" id="github" placeholder="https://github.com/...">
+                </div>
+
+                <div class="form-group">
+                    <label for="x">X</label>
+                    <input type="url" id="x" placeholder="https://x.com/...">
+                </div>
+
+                <button type="submit" class="main-button">Save Profile</button>
+
+            </form>
+
+            <p id="profileMessage" class="auth-message"></p>
+
+        </section>
+
+    </main>
+
+    <script src="../js/navbar.js"></script>
+    <script src="../js/edit-profile.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | Just Do It</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+    <div id="navbar"></div>
+
+    <main class="profile-container">
+        <section class="profile-card">
+            <div class="profile-photo-container">
+                <img id="profilePhoto" src="" alt="Profile Photo" class="profile-photo" decoding="async">
+            </div>
+
+            <h1 id="profileName">Loading...</h1>
+            <p id="profileUsername" class="profile-username">@username</p>
+
+            <div class="profile-details">
+                <div class="profile-detail">
+                    <span>Age</span>
+                    <strong id="profileAge">—</strong>
+                </div>
+                <div class="profile-detail">
+                    <span>Height</span>
+                    <strong id="profileHeight">—</strong>
+                </div>
+                <div class="profile-detail">
+                    <span>Weight</span>
+                    <strong id="profileWeight">—</strong>
+                </div>
+            </div>
+
+            <div class="social-section">
+                <h2>Socials</h2>
+                <div id="socialLinks" class="social-links">Loading...</div>
+            </div>
+
+            <a href="edit-profile.html" class="main-button">Edit Profile</a>
+        </section>
+
+        <button id="logoutButton" class="logoutBtn" type="button">Logout</button>
+
+        <section class="public-workout-history">
+            <h2>Workout history</h2>
+            <div id="history">Loading...</div>
+        </section>
+    </main>
+
+    <script src="../js/navbar.js"></script>
+    <script src="../js/script.js"></script>
+    <script src="../js/profile.js"></script>
+</body>
+
+</html>

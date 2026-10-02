@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Just Do It</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+    <main class="auth-container">
+
+        <div class="auth-card">
+
+            <h1>Just Do It</h1>
+            <p class="auth-subtitle">Welcome back. Keep going.</p>
+
+            <form id="loginForm">
+
+                <div class="form-group">
+                    <label for="login">Username or Email</label>
+                    <input type="text" id="login" placeholder="Enter username or email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+
+                <button type="submit" class="main-button">Login</button>
+
+                <div class="auth-divider">
+                    <span>OR</span>
+                </div>
+
+                <a href="http://localhost:4000/api/auth/google" class="google-button">
+                    Continue with Google
+                </a>
+
+            </form>
+
+            <p id="loginMessage" class="auth-message"></p>
+
+            <p class="auth-footer">
+                Don't have an account?
+                <a href="signup.html">Create account</a>
+            </p>
+
+        </div>
+
+    </main>
+
+    <script src="../js/auth.js"></script>
+
+</body>
+
+</html>

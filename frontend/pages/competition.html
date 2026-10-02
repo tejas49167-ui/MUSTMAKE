@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competition | Just Do It</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+    <div id="navbar"></div>
+
+    <main class="container">
+
+        <section class="hero">
+            <h1>Competition</h1>
+            <p class="subtitle">Find someone. Add them. Compete.</p>
+        </section>
+
+        <section class="competition-search">
+            <h2>Add Competitor</h2>
+
+            <div class="search-box">
+                <input
+                    type="text"
+                    id="usernameSearch"
+                    placeholder="Search username..."
+                    autocomplete="off"
+                >
+            </div>
+
+            <div id="searchResults" class="competition-results"></div>
+        </section>
+
+        <section class="competition-section">
+            <h2>Your Competitors</h2>
+            <div id="competitionList" class="competition-grid">Loading...</div>
+        </section>
+
+    </main>
+
+    <script src="../js/navbar.js"></script>
+    <script src="../js/competition.js"></script>
+
+</body>
+
+</html>

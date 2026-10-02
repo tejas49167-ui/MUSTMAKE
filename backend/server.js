@@ -9,6 +9,7 @@ const GoogleStrategy =
     require("passport-google-oauth20").Strategy;
 
 require("dotenv").config();
+const cloudinary = require("cloudinary").v2;
 
 const User = require("./models/User");
 const Workout = require("./models/Workout");
@@ -24,7 +25,19 @@ const app = express();
 // BASIC CONFIGURATION
 // =====================================================
 
-app.use(express.json());
+const jsonParser = express.json({ limit: "3mb" });
+app.use((req, res, next) => {
+    jsonParser(req, res, error => {
+        if (!error) return next();
+
+        const tooLarge = error.type === "entity.too.large";
+        return res.status(tooLarge ? 413 : 400).json({
+            message: tooLarge
+                ? "Request body is too large."
+                : "Request body must be valid JSON."
+        });
+    });
+});
 
 app.use(
     cors({
@@ -158,19 +171,22 @@ function calculateStreak(
     }
 
 
-    const dates =
-        new Set(
-            workouts.map(
-                workout =>
-                    workout.date
-            )
-        );
+    const dates = new Set(
+        workouts
+            .map(workout => String(workout.date || "").slice(0, 10))
+            .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date))
+    );
 
 
     let streak = 0;
 
     let currentDate =
         getDateString();
+
+    // Keep yesterday's streak alive until the current app-local day ends.
+    if (!dates.has(currentDate)) {
+        currentDate = previousDateString(currentDate);
+    }
 
 
     while (true) {
@@ -199,6 +215,34 @@ function calculateStreak(
 
 function escapeRegex(value) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function isPlainObject(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isValidDateOnly(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return false;
+    }
+
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function parseWorkoutNumber(value, { integer = false, min = 0 } = {}) {
+    if (
+        (typeof value !== "number" && typeof value !== "string") ||
+        (typeof value === "string" && value.trim() === "")
+    ) {
+        return { valid: false, value: null };
+    }
+
+    const number = Number(value);
+    const valid = Number.isFinite(number) && number >= min &&
+        (integer ? Number.isSafeInteger(number) : true);
+
+    return { valid, value: valid ? number : null };
 }
 
 
@@ -275,38 +319,19 @@ passport.use(
 
                 if (!user) {
 
-                    let username =
+                    const baseUsername =
                         email
                             .split("@")[0]
                             .toLowerCase()
-                            .replace(
-                                /[^a-z0-9_]/g,
-                                ""
-                            );
+                            .replace(/[^a-z0-9_]/g, "")
+                            .slice(0, 30) || "user";
 
-
-                    if (!username) {
-                        username = "user";
-                    }
-
-
-                    const baseUsername =
-                        username;
-
-
+                    let username = baseUsername;
                     let counter = 1;
 
-
-                    while (
-                        await User.findOne({
-                            username
-                        })
-                    ) {
-
-                        username =
-                            `${baseUsername}${counter}`;
-
-                        counter++;
+                    while (await User.findOne({ username })) {
+                        const suffix = String(counter++);
+                        username = `${baseUsername.slice(0, 30 - suffix.length)}${suffix}`;
                     }
 
 
@@ -343,6 +368,7 @@ passport.use(
 
 
                     if (
+                        !user.profilePicture &&
                         profile.photos &&
                         profile.photos[0]
                     ) {
@@ -393,19 +419,19 @@ app.post(
             await connectDB();
 
 
-            const {
-                name,
-                username,
-                email,
-                password
-            } = req.body;
+            const body = isPlainObject(req.body) ? req.body : {};
+            const { name, username, email, password } = body;
 
 
             if (
                 !name ||
                 !username ||
                 !email ||
-                !password
+                !password ||
+                typeof name !== "string" ||
+                typeof username !== "string" ||
+                typeof email !== "string" ||
+                typeof password !== "string"
             ) {
 
                 return res.status(400).json({
@@ -415,27 +441,37 @@ app.post(
             }
 
 
-            if (
-                password.length < 6
-            ) {
+            if (password.length < 6 || Buffer.byteLength(password, "utf8") > 72) {
 
                 return res.status(400).json({
                     message:
-                        "Password must be at least 6 characters."
+                        "Password must be at least 6 characters and no more than 72 bytes."
                 });
             }
 
 
-            const cleanUsername =
-                username
-                    .toLowerCase()
-                    .trim();
+            const cleanName = name.trim();
+            const cleanUsername = username.trim().toLowerCase();
+            const cleanEmail = email.trim().toLowerCase();
 
+            if (!cleanName || cleanName.length > 100) {
+                return res.status(400).json({
+                    message: "Name must contain 1 to 100 characters."
+                });
+            }
 
-            const cleanEmail =
-                email
-                    .toLowerCase()
-                    .trim();
+            if (!/^[a-z0-9_]{3,30}$/.test(cleanUsername)) {
+                return res.status(400).json({
+                    message: "Username must be 3 to 30 characters and use only letters, numbers or underscores."
+                });
+            }
+
+            if (
+                cleanEmail.length > 254 ||
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)
+            ) {
+                return res.status(400).json({ message: "Enter a valid email address." });
+            }
 
 
             const existingUsername =
@@ -481,7 +517,7 @@ app.post(
                 await User.create({
 
                     name:
-                        name.trim(),
+                        cleanName,
 
                     username:
                         cleanUsername,
@@ -519,6 +555,14 @@ app.post(
 
         } catch (error) {
 
+            if (error.code === 11000) {
+                const duplicateField = Object.keys(error.keyPattern || {})[0];
+                const message = duplicateField === "username"
+                    ? "Username already exists."
+                    : "Email already registered.";
+                return res.status(409).json({ message });
+            }
+
             console.error(
                 "Signup error:",
                 error
@@ -547,15 +591,15 @@ app.post(
             await connectDB();
 
 
-            const {
-                login,
-                password
-            } = req.body;
+            const body = isPlainObject(req.body) ? req.body : {};
+            const { login, password } = body;
 
 
             if (
                 !login ||
-                !password
+                !password ||
+                typeof login !== "string" ||
+                typeof password !== "string"
             ) {
 
                 return res.status(400).json({
@@ -770,7 +814,7 @@ app.get(
 
 
             res.redirect(
-                `http://127.0.0.1:5500/frontend/pages/google-callback.html?${params.toString()}`
+                `http://127.0.0.1:5500/frontend/pages/google-callback.html#${params.toString()}`
             );
 
 
@@ -867,15 +911,9 @@ app.get(
                 });
             }
 
-            const workoutHistory = await Workout.find({ user: user._id })
-                .select("exercise reps sets weight amount unit date createdAt")
-                .sort({ date: -1, createdAt: -1 })
-                .lean();
-
             res.json({
                 success: true,
-                user,
-                workoutHistory
+                user
             });
 
         } catch (error) {
@@ -902,6 +940,10 @@ app.put(
         try {
             await connectDB();
 
+            if (!isPlainObject(req.body)) {
+                return res.status(400).json({ message: "Profile data must be an object." });
+            }
+
             const {
                 name,
                 dateOfBirth,
@@ -910,6 +952,77 @@ app.put(
                 profilePicture,
                 socials
             } = req.body;
+
+            let normalizedName;
+            if (name !== undefined) {
+                if (typeof name !== "string" || !name.trim() || name.trim().length > 100) {
+                    return res.status(400).json({ message: "Name must contain 1 to 100 characters." });
+                }
+                normalizedName = name.trim();
+            }
+
+            let normalizedDateOfBirth;
+            if (dateOfBirth !== undefined) {
+                if (dateOfBirth === null || dateOfBirth === "") {
+                    normalizedDateOfBirth = null;
+                } else if (
+                    !isValidDateOnly(dateOfBirth) ||
+                    dateOfBirth > getDateString()
+                ) {
+                    return res.status(400).json({ message: "Enter a valid date of birth that is not in the future." });
+                } else {
+                    normalizedDateOfBirth = new Date(`${dateOfBirth}T00:00:00.000Z`);
+                }
+            }
+
+            function profileMetric(value, min, max) {
+                if (value === "" || value === null) return { valid: true, value: null };
+                if (typeof value !== "number" && typeof value !== "string") {
+                    return { valid: false, value: null };
+                }
+                const number = Number(value);
+                return {
+                    valid: Number.isFinite(number) && number >= min && number <= max,
+                    value: number
+                };
+            }
+
+            const normalizedHeight = height === undefined ? null : profileMetric(height, 50, 300);
+            const normalizedWeight = weight === undefined ? null : profileMetric(weight, 20, 500);
+            if (normalizedHeight && !normalizedHeight.valid) {
+                return res.status(400).json({ message: "Height must be between 50 and 300 cm." });
+            }
+            if (normalizedWeight && !normalizedWeight.valid) {
+                return res.status(400).json({ message: "Weight must be between 20 and 500 kg." });
+            }
+
+            let normalizedSocials;
+            if (socials !== undefined) {
+                if (!isPlainObject(socials)) {
+                    return res.status(400).json({ message: "Social links must be an object." });
+                }
+
+                normalizedSocials = {};
+                for (const key of ["instagram", "youtube", "github", "x"]) {
+                    const value = socials[key];
+                    if (value === undefined || value === null || value === "") {
+                        normalizedSocials[key] = null;
+                        continue;
+                    }
+                    if (typeof value !== "string" || value.trim().length > 500) {
+                        return res.status(400).json({ message: "Social links must be valid HTTP or HTTPS URLs." });
+                    }
+                    try {
+                        const url = new URL(value.trim());
+                        if (!["http:", "https:"].includes(url.protocol) || !url.hostname) {
+                            throw new Error("Unsupported URL protocol.");
+                        }
+                        normalizedSocials[key] = url.href;
+                    } catch {
+                        return res.status(400).json({ message: "Social links must be valid HTTP or HTTPS URLs." });
+                    }
+                }
+            }
 
             const user =
                 await User.findById(
@@ -923,52 +1036,53 @@ app.put(
                 });
             }
 
-            if (name !== undefined) {
-                user.name =
-                    name.trim();
+            let profilePictureUrl;
+            if (profilePicture !== undefined) {
+                if (!profilePicture) {
+                    profilePictureUrl = null;
+                } else if (typeof profilePicture === "string" && profilePicture.startsWith("data:image/")) {
+                    const match = profilePicture.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
+                    if (!match) {
+                        return res.status(400).json({ message: "Profile photo must be a JPG, PNG or WebP image." });
+                    }
+
+                    const imageBytes = Buffer.from(match[2], "base64");
+                    if (imageBytes.length > 2 * 1024 * 1024) {
+                        return res.status(413).json({ message: "Profile photo must be smaller than 2 MB." });
+                    }
+
+                    const upload = await cloudinary.uploader.upload(profilePicture, {
+                        folder: "just-do-it/profile-pictures",
+                        public_id: `user_${req.userId}`,
+                        overwrite: true,
+                        resource_type: "image"
+                    });
+                    profilePictureUrl = upload.secure_url;
+                } else if (typeof profilePicture === "string" && /^https?:\/\//i.test(profilePicture)) {
+                    profilePictureUrl = profilePicture;
+                } else {
+                    return res.status(400).json({ message: "Invalid profile photo." });
+                }
             }
 
-            if (dateOfBirth !== undefined) {
-                user.dateOfBirth =
-                    dateOfBirth || null;
-            }
+            if (normalizedName !== undefined) user.name = normalizedName;
 
-            if (height !== undefined) {
-                user.height =
-                    height === ""
-                        ? null
-                        : Number(height);
-            }
+            if (normalizedDateOfBirth !== undefined) user.dateOfBirth = normalizedDateOfBirth;
 
-            if (weight !== undefined) {
-                user.weight =
-                    weight === ""
-                        ? null
-                        : Number(weight);
-            }
+            if (normalizedHeight) user.height = normalizedHeight.value;
+
+            if (normalizedWeight) user.weight = normalizedWeight.value;
 
             if (
                 profilePicture !== undefined
             ) {
                 user.profilePicture =
-                    profilePicture || null;
+                    profilePictureUrl;
             }
 
             if (socials !== undefined) {
 
-                user.socials = {
-                    instagram:
-                        socials.instagram || null,
-
-                    youtube:
-                        socials.youtube || null,
-
-                    github:
-                        socials.github || null,
-
-                    x:
-                        socials.x || null
-                };
+                user.socials = normalizedSocials;
             }
 
             await user.save();
@@ -1012,8 +1126,9 @@ app.get(
 
             await connectDB();
 
-            const query =
-                req.query.q?.trim();
+            const query = typeof req.query.q === "string"
+                ? req.query.q.trim().slice(0, 100)
+                : "";
 
             if (!query) {
 
@@ -1080,6 +1195,10 @@ app.get(
     async (req, res) => {
 
         try {
+
+            if (!mongoose.isValidObjectId(req.params.id)) {
+                return res.status(400).json({ message: "Invalid user ID." });
+            }
 
             await connectDB();
 
@@ -1255,6 +1374,9 @@ app.post(
 // Remove only a competitor relationship owned by the authenticated account.
 app.delete("/api/competition/:userId", auth, async (req, res) => {
     try {
+        if (!mongoose.isValidObjectId(req.params.userId)) {
+            return res.status(400).json({ message: "Invalid competitor ID." });
+        }
         await connectDB();
         const removed = await Competition.findOneAndDelete({ owner: req.userId, competitor: req.params.userId });
         if (!removed) return res.status(404).json({ message: "Competitor not found." });
@@ -1298,14 +1420,24 @@ app.get(
                 });
             const ids = competitions.map(item => item.competitor?._id).filter(Boolean);
             const today = getDateString();
-            // Workout dates are stored as strings. Match the calendar-day
-            // prefix so records stored as either YYYY-MM-DD or an ISO date
-            // timestamp are included.
-            const records = await Workout.find({ user: { $in: ids }, date: new RegExp(`^${today}`) })
-                .select("user exercise reps sets weight amount unit date")
+            // Include recent records as well as today's date key. Some older
+            // records may have a date key from a different timezone setting;
+            // their createdAt timestamp still identifies the app-local day.
+            const recentCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+            const records = await Workout.find({
+                user: { $in: ids },
+                $or: [
+                    { date: new RegExp(`^${today}`) },
+                    { createdAt: { $gte: recentCutoff } }
+                ]
+            })
+                .select("user exercise reps sets weight amount unit date createdAt")
                 .sort({ createdAt: 1 });
             const byUser = new Map();
             for (const record of records) {
+                if (!String(record.date || "").startsWith(today) && getDateString(record.createdAt) !== today) {
+                    continue;
+                }
                 const id = record.user.toString();
                 if (!byUser.has(id)) byUser.set(id, []);
                 byUser.get(id).push(record);
@@ -1353,22 +1485,54 @@ app.post(
             await connectDB();
 
 
-            const {
-                exercise,
-                reps,
-                sets,
-                weight,
-                amount,
-                unit
-            } = req.body;
+            if (!isPlainObject(req.body)) {
+                return res.status(400).json({ message: "Workout data must be an object." });
+            }
 
+            const { exercise, reps, sets, weight, amount } = req.body;
+            const supportedExercises = new Set([
+                "Push-ups", "Pull-ups", "Dumbbell", "Squats",
+                "Skipping Rope", "Running", "Walking"
+            ]);
 
-            if (!exercise) {
+            if (typeof exercise !== "string" || !supportedExercises.has(exercise)) {
+                return res.status(400).json({ message: "Select a supported exercise." });
+            }
 
-                return res.status(400).json({
-                    message:
-                        "Exercise is required."
+            let workoutValues = { reps: null, sets: null, weight: null, amount: null, unit: null };
+            if (["Push-ups", "Pull-ups", "Squats"].includes(exercise)) {
+                const parsedReps = parseWorkoutNumber(reps, { integer: true, min: 1 });
+                const parsedSets = parseWorkoutNumber(sets, { integer: true, min: 1 });
+                if (!parsedReps.valid || !parsedSets.valid || !Number.isSafeInteger(parsedReps.value * parsedSets.value)) {
+                    return res.status(400).json({ message: "Reps and sets must be positive whole numbers." });
+                }
+                workoutValues = { ...workoutValues, reps: parsedReps.value, sets: parsedSets.value };
+            } else if (exercise === "Dumbbell") {
+                const parsedWeight = parseWorkoutNumber(weight, { min: 0 });
+                const parsedReps = parseWorkoutNumber(reps, { integer: true, min: 1 });
+                const parsedSets = parseWorkoutNumber(sets, { integer: true, min: 1 });
+                if (!parsedWeight.valid || !parsedReps.valid || !parsedSets.valid || !Number.isSafeInteger(parsedReps.value * parsedSets.value)) {
+                    return res.status(400).json({ message: "Enter a valid weight, reps and sets." });
+                }
+                workoutValues = {
+                    ...workoutValues,
+                    weight: parsedWeight.value,
+                    reps: parsedReps.value,
+                    sets: parsedSets.value
+                };
+            } else {
+                const parsedAmount = parseWorkoutNumber(amount, {
+                    integer: exercise === "Skipping Rope",
+                    min: exercise === "Skipping Rope" ? 1 : 0
                 });
+                if (!parsedAmount.valid) {
+                    return res.status(400).json({ message: "Enter a valid workout amount." });
+                }
+                workoutValues = {
+                    ...workoutValues,
+                    amount: parsedAmount.value,
+                    unit: exercise === "Skipping Rope" ? "jumps" : "km"
+                };
             }
 
 
@@ -1387,32 +1551,7 @@ app.post(
 
                     exercise,
 
-                    reps:
-                        reps !== undefined &&
-                        reps !== ""
-                            ? Number(reps)
-                            : null,
-
-                    sets:
-                        sets !== undefined &&
-                        sets !== ""
-                            ? Number(sets)
-                            : null,
-
-                    weight:
-                        weight !== undefined &&
-                        weight !== ""
-                            ? Number(weight)
-                            : null,
-
-                    amount:
-                        amount !== undefined &&
-                        amount !== ""
-                            ? Number(amount)
-                            : null,
-
-                    unit:
-                        unit || null,
+                    ...workoutValues,
 
                     date
                 });
@@ -1615,6 +1754,10 @@ app.delete(
 
         try {
 
+            if (!mongoose.isValidObjectId(req.params.id)) {
+                return res.status(400).json({ message: "Invalid workout ID." });
+            }
+
             await connectDB();
 
 
@@ -1678,6 +1821,13 @@ app.get(
         });
     }
 );
+
+app.use((error, req, res, next) => {
+    if (res.headersSent) return next(error);
+
+    console.error("Unhandled request error:", req.method, req.path, error.message);
+    return res.status(500).json({ message: "Internal server error." });
+});
 
 
 // =====================================================

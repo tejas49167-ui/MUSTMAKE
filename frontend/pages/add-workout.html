@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Workout | Just Do It</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+
+<body>
+
+    <div id="navbar"></div>
+
+    <main class="container narrow">
+
+        <section class="page-heading">
+            <h1>Add Workout</h1>
+            <p class="subtitle">This is your growth, keep it real.</p>
+        </section>
+
+        <form id="workoutForm" class="workout-form">
+
+            <div class="form-group">
+                <label for="exercise">Exercise</label>
+                <select id="exercise" required>
+                    <option value="">Select exercise</option>
+                    <option value="Push-ups">Push-ups</option>
+                    <option value="Pull-ups">Pull-ups</option>
+                    <option value="Dumbbell">Dumbbell</option>
+                    <option value="Squats">Squats</option>
+                    <option value="Skipping Rope">Skipping Rope</option>
+                    <option value="Running">Running</option>
+                    <option value="Walking">Walking</option>
+                </select>
+            </div>
+
+            <div id="exerciseFields"></div>
+
+            <div id="totalDisplay" class="total-display" style="display: none;"></div>
+
+            <button type="submit" class="main-button submit-button">Save Workout</button>
+
+            <p id="formMessage" class="form-message"></p>
+
+        </form>
+
+    </main>
+
+    <script src="../js/navbar.js"></script>
+    <script src="../js/script.js"></script>
+
+</body>
+
+</html>
