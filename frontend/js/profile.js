@@ -1,4 +1,4 @@
-const PROFILE_API_URL = "http://localhost:4000";
+const PROFILE_API_URL = "https://justdoitbackend.vercel.app/";
 
 function getToken() {
     return localStorage.getItem("token");
