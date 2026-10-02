@@ -1,4 +1,4 @@
-const API_URL = "https://justdoitbackend.vercel.app/";
+const API_URL = "https://justdoitbackend.vercel.app";
 const APP_TIME_ZONE = "Asia/Kolkata";
 
 function getToken() {

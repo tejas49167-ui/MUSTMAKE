@@ -1,4 +1,4 @@
-const PROFILE_API_URL = "https://justdoitbackend.vercel.app/";
+const PROFILE_API_URL = "https://justdoitbackend.vercel.app";
 
 function getToken() {
     return localStorage.getItem("token");
