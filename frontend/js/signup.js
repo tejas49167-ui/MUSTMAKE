@@ -1,5 +1,24 @@
 const API_URL = "https://justdoitbackend.vercel.app";
 
+const loginLink = document.getElementById("loginLink");
+
+if (loginLink) {
+    loginLink.addEventListener("click", (event) => {
+        if (
+            event.button !== 0 ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.shiftKey ||
+            event.altKey
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        window.location.replace(loginLink.href);
+    });
+}
+
 
 const signupForm =
     document.getElementById("signupForm");
@@ -92,8 +111,9 @@ if (signupForm) {
                     "Account created! Redirecting...";
 
 
-                window.location.href =
-                    "login.html";
+                window.location.replace(
+                    "login.html"
+                );
 
 
             } catch (error) {

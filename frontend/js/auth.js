@@ -1,5 +1,62 @@
 const API_URL = "https://justdoitbackend.vercel.app";
 
+// Finish Google sign-in in this tab after the OAuth tab writes the credentials.
+window.addEventListener("storage", (event) => {
+    if (event.key !== "googleLoginComplete" || !event.newValue) {
+        return;
+    }
+
+    localStorage.removeItem("googleLoginComplete");
+
+    if (localStorage.getItem("token") && localStorage.getItem("user")) {
+        window.location.replace("../index.html");
+    }
+});
+
+const googleLoginLink = document.getElementById("googleLoginLink");
+const signupLink = document.getElementById("signupLink");
+
+if (signupLink) {
+    signupLink.addEventListener("click", (event) => {
+        if (
+            event.button !== 0 ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.shiftKey ||
+            event.altKey
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        window.location.replace(signupLink.href);
+    });
+}
+
+if (googleLoginLink) {
+    googleLoginLink.addEventListener("click", (event) => {
+        if (
+            event.button !== 0 ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.shiftKey ||
+            event.altKey
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const oauthWindow = window.open(googleLoginLink.href, "_blank");
+
+        if (oauthWindow) {
+            oauthWindow.opener = null;
+        } else {
+            // Continue to support sign-in if the browser blocks the new tab.
+            window.location.replace(googleLoginLink.href);
+        }
+    });
+}
 
 const loginForm =
     document.getElementById("loginForm");
@@ -87,8 +144,9 @@ if (loginForm) {
                     "Login successful!";
 
 
-                window.location.href =
-                    "index.html";
+                window.location.replace(
+                    "../index.html"
+                );
 
             }
 

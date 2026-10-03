@@ -16,7 +16,17 @@ try {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
 
-    window.location.replace("../index.html");
+    // Let the original login tab replace itself so OAuth pages stay out of its history.
+    localStorage.setItem("googleLoginComplete", `${Date.now()}-${Math.random()}`);
+
+    // target=_blank opens a separate OAuth tab. If the browser refuses to close it,
+    // continue to the app in that tab as a fallback.
+    window.close();
+
+    if (!window.closed) {
+        localStorage.removeItem("googleLoginComplete");
+        window.location.replace("../index.html");
+    }
 } catch (error) {
     window.history.replaceState(null, "", window.location.pathname);
     console.error(error);
