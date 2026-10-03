@@ -16,7 +16,7 @@ try {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
 
-    window.location.replace("index.html");
+    window.location.replace("../index.html");
 } catch (error) {
     window.history.replaceState(null, "", window.location.pathname);
     console.error(error);

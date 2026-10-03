@@ -15,9 +15,8 @@ const navbarHTML = `
     <div class="logo">JUST beat IT</div>
     <nav>
         ${navLink("index.html", "Today", currentPage)}
-        ${navLink("add-workout.html", "Add Workout", currentPage)}
-        ${navLink("app.html", "History", currentPage)}
-        ${navLink("competition.html", "Competition", currentPage)}
+        
+        ${navLink("competition.html", "Others", currentPage)}
         ${navLink("profile.html", "Profile", currentPage)}
     </nav>
 </header>
