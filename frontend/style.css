@@ -24,12 +24,58 @@ body {
         Helvetica,
         sans-serif;
 
-    background: #0b0b0b;
+    background:
+        linear-gradient(rgba(182, 184, 189, 0.38), rgba(203, 207, 211, 0.58)),
+        url("images/1.jpeg") center / cover fixed no-repeat;
     color: #ffffff;
 
     min-height: 100vh;
 
     line-height: 1.5;
+}
+.app-page {
+    min-height: 100vh;
+}
+
+/* Each screen gets its own background image while keeping the same glass UI. */
+.page-today {
+    background-image: linear-gradient(rgba(5, 8, 12, 0.38), rgba(5, 8, 12, 0.58)), url("images/1.jpeg");
+}
+
+.page-add-workout {
+    background-image: linear-gradient(rgba(5, 8, 12, 0.38), rgba(5, 8, 12, 0.58)), url("images/2.jpeg");
+}
+
+.page-history {
+    background-image: linear-gradient(rgba(5, 8, 12, 0.38), rgba(5, 8, 12, 0.58)), url("images/3.jpeg");
+}
+
+.page-competition {
+    background-image: linear-gradient(rgba(5, 8, 12, 0.38), rgba(5, 8, 12, 0.58)), url("images/4.jpeg");
+}
+
+.page-edit-profile {
+    background-image: linear-gradient(rgba(5, 8, 12, 0.38), rgba(5, 8, 12, 0.58)), url("images/5.jpeg");
+}
+
+.page-google-callback {
+    background-image: linear-gradient(rgba(5, 8, 12, 0.38), rgba(5, 8, 12, 0.58)), url("images/6.jpeg");
+}
+
+.page-login {
+    background-image: linear-gradient(rgba(5, 8, 12, 0.38), rgba(5, 8, 12, 0.58)), url("images/c.jpeg");
+}
+
+.page-profile {
+    background-image: linear-gradient(rgba(5, 8, 12, 0.38), rgba(5, 8, 12, 0.58)), url("images/e.jpeg");
+}
+
+.page-signup {
+    background-image: linear-gradient(rgba(5, 8, 12, 0.38), rgba(5, 8, 12, 0.58)), url("images/f.jpeg");
+}
+
+.page-user-profile {
+    background-image: linear-gradient(rgba(5, 8, 12, 0.38), rgba(5, 8, 12, 0.58)), url("images/q.jpeg");
 }
 
 button,
@@ -63,9 +109,11 @@ a {
     align-items: center;
     justify-content: space-between;
 
-    border-bottom: 1px solid #222;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 
-    background: rgba(11, 11, 11, 0.96);
+    background: rgba(12, 16, 24, 0.38);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 
     position: sticky;
     top: 0;
@@ -196,10 +244,17 @@ a {
 .card,
 .person-card,
 .profile-card,
-.workout-form {
-    background: #111;
+.workout-form,
+.competition-search,
+.competition-section,
+.competition-card,
+.auth-card {
+    background: rgba(12, 16, 24, 0.42);
 
-    border: 1px solid #222;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 
     border-radius: 14px;
 }
@@ -300,10 +355,18 @@ a {
 }
 
 .workout-item,
-.history-workout {
-    background: #181818;
+.history-workout,
+.competition-result,
+.profile-detail,
+.profile-upload,
+.public-workout,
+.total-display {
+    background: rgba(12, 16, 24, 0.3);
 
-    border: 1px solid #222;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 
     border-radius: 9px;
 
@@ -375,25 +438,30 @@ a {
 }
 
 .main-button {
-    background: #fff;
+    background: rgba(255, 255, 255, 0.22);
 
-    color: #000;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.34);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .main-button:hover {
-    background: #ddd;
+    background: rgba(255, 255, 255, 0.34);
 }
 
 .secondary-button {
-    background: #171717;
+    background: rgba(12, 16, 24, 0.3);
 
     color: #fff;
 
-    border-color: #292929;
+    border-color: rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .secondary-button:hover {
-    background: #202020;
+    background: rgba(12, 16, 24, 0.5);
 }
 
 
@@ -425,11 +493,14 @@ select,
 textarea {
     width: 100%;
 
-    background: #181818;
+    background: rgba(12, 16, 24, 0.34);
 
     color: #fff;
 
-    border: 1px solid #292929;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 
     border-radius: 8px;
 
@@ -454,7 +525,7 @@ select:focus,
 textarea:focus {
     border-color: #555;
 
-    background: #1a1a1a;
+    background: rgba(12, 16, 24, 0.52);
 }
 
 textarea {
@@ -490,9 +561,9 @@ textarea {
 ========================================================= */
 
 .total-display {
-    background: #181818;
+    background: rgba(12, 16, 24, 0.3);
 
-    border: 1px solid #292929;
+    border: 1px solid rgba(255, 255, 255, 0.16);
 
     border-radius: 8px;
 
@@ -561,9 +632,9 @@ textarea {
 
 .competition-search,
 .competition-section {
-    background: #111;
+    background: rgba(12, 16, 24, 0.42);
 
-    border: 1px solid #222;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 
     border-radius: 14px;
 
@@ -620,9 +691,9 @@ textarea {
 
     padding: 13px;
 
-    background: #181818;
+    background: rgba(12, 16, 24, 0.3);
 
-    border: 1px solid #222;
+    border: 1px solid rgba(255, 255, 255, 0.16);
 
     border-radius: 9px;
 }
@@ -700,8 +771,8 @@ textarea {
 
 .competition-card {
     padding: 18px;
-    background: #111;
-    border: 1px solid #222;
+    background: rgba(12, 16, 24, 0.42);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 14px;
 }
 
@@ -745,7 +816,7 @@ textarea {
 .competition-avatar.placeholder {
     display: grid;
     place-items: center;
-    background: #292929;
+    background: rgba(255, 255, 255, 0.16);
     color: #fff;
     font-weight: 700;
 }
@@ -820,8 +891,11 @@ textarea {
     color: #ddd;
     text-decoration: none;
     padding: 0.55rem 0.8rem;
-    border: 1px solid #292929;
+    background: rgba(12, 16, 24, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .profile-header {
@@ -876,9 +950,9 @@ textarea {
 }
 
 .profile-detail {
-    background: #181818;
+    background: rgba(12, 16, 24, 0.3);
 
-    border: 1px solid #222;
+    border: 1px solid rgba(255, 255, 255, 0.16);
 
     border-radius: 9px;
 
@@ -952,9 +1026,9 @@ textarea {
 
     padding: 20px;
 
-    background: #181818;
+    background: rgba(12, 16, 24, 0.3);
 
-    border: 1px solid #292929;
+    border: 1px solid rgba(255, 255, 255, 0.16);
 
     border-radius: 9px;
 }
@@ -966,7 +1040,7 @@ textarea {
 .profile-upload input[type="file"] {
     padding: 10px;
 
-    background: #111;
+    background: rgba(12, 16, 24, 0.34);
 }
 
 
@@ -1017,8 +1091,8 @@ textarea {
 
 .public-workout {
     padding: 14px;
-    background: #181818;
-    border: 1px solid #292929;
+    background: rgba(12, 16, 24, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 9px;
 }
 
@@ -1078,9 +1152,9 @@ textarea {
 
 .auth-card {
     width: 100%;
-    background: #111;
+    background: rgba(12, 16, 24, 0.42);
 
-    border: 1px solid #222;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 
     border-radius: 14px;
 
@@ -1166,11 +1240,14 @@ textarea {
 
     gap: 10px;
 
-    background: #181818;
+    background: rgba(12, 16, 24, 0.3);
 
     color: #fff;
 
-    border: 1px solid #292929;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 
     border-radius: 8px;
 
@@ -1180,7 +1257,7 @@ textarea {
 }
 
 .google-button:hover {
-    background: #202020;
+    background: rgba(12, 16, 24, 0.5);
 }
 
 

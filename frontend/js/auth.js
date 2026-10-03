@@ -1,6 +1,5 @@
 const API_URL = "https://justdoitbackend.vercel.app";
 
-// Finish Google sign-in in this tab after the OAuth tab writes the credentials.
 window.addEventListener("storage", (event) => {
     if (event.key !== "googleLoginComplete" || !event.newValue) {
         return;
