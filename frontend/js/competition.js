@@ -38,7 +38,7 @@ usernameSearch.addEventListener("input", () => {
         return;
     }
 
-    searchResults.innerHTML = `<p class="search-status">Searching...</p>`;
+    searchResults.innerHTML = `<p class="search-status">just a min..</p>`;
 
     searchTimer = setTimeout(() => {
         searchUsers(username);
@@ -85,7 +85,7 @@ function displaySearchResults(users) {
 
         return `
             <div class="competition-result">
-                <div class="competition-user">
+                <a class="competition-user competition-user-link" href="user-profile.html?id=${encodeURIComponent(user._id)}">
                     ${
                         user.profilePicture
                             ? `<img src="${escapeHTML(user.profilePicture)}" alt="" class="competition-avatar">`
@@ -95,9 +95,8 @@ function displaySearchResults(users) {
                         <strong>${name}</strong>
                         <span>@${username}</span>
                     </div>
-                </div>
-                <a class="secondary-button" href="user-profile.html?id=${encodeURIComponent(user._id)}">View profile</a>
-                <button class="main-button add-competitor-button" data-user-id="${user._id}">Add</button>
+                </a>
+                <button class="main-button add-competitor-button" data-user-id="${user._id}">+</button>
             </div>
         `;
     }).join("");
@@ -140,6 +139,45 @@ async function addCompetitor(competitorId, button) {
         console.error("Add competitor error:", error);
         button.disabled = false;
         button.textContent = "Add";
+        alert("Could not connect to server.");
+    }
+}
+
+async function removeCompetitor(competitorId, button) {
+    button.disabled = true;
+    
+
+    try {
+        const response = await fetch(`${API_URL}/api/competition/${encodeURIComponent(competitorId)}`, {
+            method: "DELETE",
+            headers: authHeaders()
+        });
+
+        if (response.status === 401) {
+            logout();
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            button.disabled = false;
+            button.textContent = "−";
+            alert(data.message || "Could not remove competitor.");
+            return;
+        }
+
+        searchResults.querySelectorAll(".add-competitor-button").forEach(addButton => {
+            if (addButton.dataset.userId === competitorId) {
+                addButton.textContent = "+";
+            }
+        });
+
+        await loadCompetition();
+    } catch (error) {
+        console.error("Remove competitor error:", error);
+        button.disabled = false;
+        button.textContent = "−";
         alert("Could not connect to server.");
     }
 }
@@ -188,16 +226,22 @@ async function loadCompetition() {
 
             card.innerHTML = `
                 <div class="competition-card-header">
-                    ${photo}
-                    <div>
-                        <h3>${safeName}</h3>
-                        <p>@${safeUsername}</p>
-                    </div>
+                    <a class="competition-card-profile competition-user-link" href="user-profile.html?id=${encodeURIComponent(competitor.id)}">
+                        ${photo}
+                        <div>
+                            <h3>${safeName}</h3>
+                            <p>@${safeUsername}</p>
+                        </div>
+                    </a>
+                    <button type="button" class="main-button remove-competitor-button" data-user-id="${encodeURIComponent(competitor.id)}" aria-label="Remove competitor" title="Remove competitor">−</button>
                 </div>
                 <h4>Today's workouts</h4>
                 <div class="today-workouts">${workoutsMarkup}</div>
-                <a class="secondary-button" href="user-profile.html?id=${encodeURIComponent(competitor.id)}">View profile</a>
             `;
+
+            card.querySelector(".remove-competitor-button").addEventListener("click", event => {
+                removeCompetitor(event.currentTarget.dataset.userId, event.currentTarget);
+            });
 
             competitionList.appendChild(card);
         }
