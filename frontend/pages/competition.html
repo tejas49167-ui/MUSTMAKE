@@ -6,35 +6,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/x-icon" href="favicon.jpeg">
     <title>Competition | Just Do It</title>
+    <script src="../js/theme.js"></script>
     <link rel="stylesheet" href="../style.css">
 </head>
 
-<body class="page-competition">
+<body>
 
     <div id="navbar"></div>
 
     <main class="container">
 
-        
-            <p class="subtitle">The others...they don't care about us .</p>
- 
+        <section class="page-heading">
+            <h1>Competition</h1>
+            <p class="subtitle">The others...they don't care about us.</p>
+        </section>
 
-
-            <div class="search-box">
-                <input
-                    type="text"
-                    id="usernameSearch"
-                    placeholder="Add people"
-                    autocomplete="off"
+        <section class="competition-search-area" aria-label="Find people">
+            <div class="search-control" id="peopleSearch">
+                <button
+                    class="search-trigger"
+                    id="searchToggle"
+                    type="button"
+                    aria-label="Search people"
+                    aria-expanded="false"
+                    aria-controls="peopleSearchOverlay"
                 >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <circle cx="10.8" cy="10.8" r="6.8"></circle>
+                        <path d="m16 16 4.2 4.2"></path>
+                    </svg>
+                </button>
+                <div class="search-overlay" id="peopleSearchOverlay" aria-hidden="true">
+                    <label class="visually-hidden" for="usernameSearch">Search people</label>
+                    <input
+                        type="search"
+                        id="usernameSearch"
+                        placeholder="Search people"
+                        autocomplete="off"
+                    >
+                    <button class="search-close" id="searchClose" type="button" aria-label="Close search">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="m6 6 12 12M18 6 6 18"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
-              
-            <div id="searchResults" class="competition-results"></div>
-        
+            <div id="searchResults" class="competition-results" aria-live="polite"></div>
+        </section>
 
-            <p class="subtitle">People you knew</p>
+        <section class="competition-people">
+            <h2>People you knew</h2>
             <div id="competitionList" class="competition-grid">Loading...</div>
-        
+        </section>
 
     </main>
 
