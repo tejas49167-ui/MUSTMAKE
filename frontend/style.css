@@ -499,6 +499,10 @@ a {
     padding: 30px;
 }
 
+.auth-card [hidden] {
+    display: none !important;
+}
+
 .form-group {
     margin-bottom: 23px;
 }
@@ -1249,6 +1253,33 @@ textarea {
     text-decoration: underline;
 }
 
+.auth-text-button {
+    display: block;
+    width: max-content;
+    margin: 12px auto 0;
+    padding: 4px 8px;
+    border: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.auth-text-button:hover {
+    color: var(--text-primary);
+}
+
+.auth-card strong {
+    overflow-wrap: anywhere;
+}
+
+.auth-card button:disabled {
+    cursor: wait;
+    opacity: 0.58;
+    transform: none;
+}
+
 
 /* =========================================================
    GOOGLE LOGIN
@@ -1847,6 +1878,7 @@ small,
 .main-button:focus-visible,
 .secondary-button:focus-visible,
 .google-button:focus-visible,
+.auth-text-button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {

@@ -418,10 +418,44 @@ function generateOTP() {
 }
 
 function hashOTP(otp) {
+    const secret = process.env.OTP_SECRET || process.env.JWT_SECRET;
+    if (!secret) {
+        throw new Error("OTP_SECRET or JWT_SECRET is missing.");
+    }
+
     return crypto
-        .createHash("sha256")
+        .createHmac("sha256", secret)
         .update(otp)
         .digest("hex");
+}
+
+function isValidEmail(value) {
+    return typeof value === "string" &&
+        value.length <= 254 &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function createAuthSession(user) {
+    if (!process.env.JWT_SECRET) {
+        throw new Error("JWT_SECRET is missing.");
+    }
+
+    const token = jwt.sign(
+        { userId: user._id.toString() },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+    );
+
+    return {
+        token,
+        user: {
+            id: user._id,
+            name: user.name,
+            username: user.username,
+            email: user.email,
+            profilePicture: user.profilePicture
+        }
+    };
 }
 
 async function sendOTPEmail(email, otp, purpose) {
@@ -516,10 +550,7 @@ app.post(
                     ? req.body
                     : {};
 
-            const {
-                email,
-                purpose
-            } = body;
+            const { email, purpose } = body;
 
             if (
                 typeof email !== "string" ||
@@ -534,11 +565,7 @@ app.post(
             const cleanEmail =
                 email.trim().toLowerCase();
 
-            if (
-                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                    cleanEmail
-                )
-            ) {
+            if (!isValidEmail(cleanEmail)) {
                 return res.status(400).json({
                     message:
                         "Enter a valid email address."
@@ -556,10 +583,7 @@ app.post(
                 });
             }
 
-            const existingUser =
-                await User.findOne({
-                    email: cleanEmail
-                });
+            const existingUser = await User.findOne({ email: cleanEmail });
 
             // -------------------------------------------------
             // SIGNUP
@@ -593,23 +617,78 @@ app.post(
             // Prevent rapid OTP spam
             // -------------------------------------------------
 
-            const recentOTP =
-                await OTP.findOne({
-                    email: cleanEmail,
-                    purpose,
-                    createdAt: {
-                        $gt:
-                            new Date(
-                                Date.now() - 60 * 1000
-                            )
-                    }
-                });
+            const previousOTP = await OTP.findOne({
+                email: cleanEmail,
+                purpose
+            });
+
+            const recentOTP = previousOTP &&
+                previousOTP.createdAt > new Date(Date.now() - 60 * 1000);
 
             if (recentOTP) {
                 return res.status(429).json({
                     message:
                         "Please wait 60 seconds before requesting another OTP."
                 });
+            }
+
+            let signupData = null;
+
+            if (purpose === "signup") {
+                const hasSignupFields =
+                    typeof body.name === "string" ||
+                    typeof body.username === "string" ||
+                    typeof body.password === "string";
+
+                if (hasSignupFields) {
+                    const name = typeof body.name === "string" ? body.name.trim() : "";
+                    const username = typeof body.username === "string"
+                        ? body.username.trim().toLowerCase()
+                        : "";
+                    const password = typeof body.password === "string" ? body.password : "";
+
+                    if (!name || name.length > 100) {
+                        return res.status(400).json({
+                            message: "Name must contain 1 to 100 characters."
+                        });
+                    }
+
+                    if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+                        return res.status(400).json({
+                            message: "Username must be 3 to 30 characters and use only letters, numbers or underscores."
+                        });
+                    }
+
+                    if (password.length < 6 || Buffer.byteLength(password, "utf8") > 72) {
+                        return res.status(400).json({
+                            message: "Password must be at least 6 characters and no more than 72 bytes."
+                        });
+                    }
+
+                    signupData = {
+                        name,
+                        username,
+                        passwordHash: await bcrypt.hash(password, 12)
+                    };
+                } else if (
+                    previousOTP &&
+                    previousOTP.expiresAt > new Date() &&
+                    previousOTP.signupData?.passwordHash
+                ) {
+                    // A page refresh should not discard a still-valid signup draft.
+                    signupData = previousOTP.signupData.toObject
+                        ? previousOTP.signupData.toObject()
+                        : previousOTP.signupData;
+                } else {
+                    return res.status(400).json({
+                        message: "Signup details expired. Please enter your details again."
+                    });
+                }
+
+                const usernameOwner = await User.findOne({ username: signupData.username });
+                if (usernameOwner) {
+                    return res.status(409).json({ message: "Username already exists." });
+                }
             }
 
             const otp =
@@ -626,24 +705,24 @@ app.post(
                     1000
                 );
 
-            // Remove previous OTPs
-            await OTP.deleteMany({
-                email: cleanEmail,
-                purpose
-            });
+            if (previousOTP) {
+                await OTP.deleteOne({ _id: previousOTP._id });
+            }
 
-            await OTP.create({
+            const otpRecord = await OTP.create({
                 email: cleanEmail,
                 otpHash,
                 purpose,
-                expiresAt
+                expiresAt,
+                ...(signupData ? { signupData } : {})
             });
 
-            await sendOTPEmail(
-                cleanEmail,
-                otp,
-                purpose
-            );
+            try {
+                await sendOTPEmail(cleanEmail, otp, purpose);
+            } catch (error) {
+                await OTP.deleteOne({ _id: otpRecord._id });
+                throw error;
+            }
 
             return res.json({
                 success: true,
@@ -689,11 +768,7 @@ app.post(
                 purpose
             } = body;
 
-            if (
-                typeof email !== "string" ||
-                typeof otp !== "string" ||
-                typeof purpose !== "string"
-            ) {
+            if (typeof email !== "string" || typeof otp !== "string" || typeof purpose !== "string") {
                 return res.status(400).json({
                     message:
                         "Email, OTP and purpose are required."
@@ -705,6 +780,10 @@ app.post(
 
             const cleanOTP =
                 otp.trim();
+
+            if (!isValidEmail(cleanEmail)) {
+                return res.status(400).json({ message: "Enter a valid email address." });
+            }
 
             if (!/^\d{6}$/.test(cleanOTP)) {
                 return res.status(400).json({
@@ -724,11 +803,7 @@ app.post(
                 });
             }
 
-            const otpRecord =
-                await OTP.findOne({
-                    email: cleanEmail,
-                    purpose
-                });
+            const otpRecord = await OTP.findOne({ email: cleanEmail, purpose });
 
             if (!otpRecord) {
                 return res.status(400).json({
@@ -765,72 +840,89 @@ app.post(
                 });
             }
 
-            const submittedHash =
-                hashOTP(cleanOTP);
+            if (purpose === "signup" && !otpRecord.signupData?.passwordHash) {
+                await OTP.deleteOne({ _id: otpRecord._id });
+                return res.status(400).json({
+                    message: "Signup details expired. Please start signup again."
+                });
+            }
+
+            const submittedHash = Buffer.from(hashOTP(cleanOTP), "hex");
+            const storedHash = Buffer.from(otpRecord.otpHash, "hex");
 
             if (
-                submittedHash !==
-                otpRecord.otpHash
+                submittedHash.length !== storedHash.length ||
+                !crypto.timingSafeEqual(submittedHash, storedHash)
             ) {
+                const updatedRecord = await OTP.findOneAndUpdate(
+                    {
+                        _id: otpRecord._id,
+                        attempts: { $lt: OTP_MAX_ATTEMPTS },
+                        expiresAt: { $gt: new Date() }
+                    },
+                    { $inc: { attempts: 1 } },
+                    { new: true }
+                );
 
-                otpRecord.attempts += 1;
+                if (updatedRecord?.attempts >= OTP_MAX_ATTEMPTS) {
+                    await OTP.deleteOne({ _id: updatedRecord._id });
+                    return res.status(429).json({
+                        message: "Too many incorrect attempts. Please request a new OTP."
+                    });
+                }
 
-                await otpRecord.save();
-
-                return res.status(401).json({
-                    message:
-                        "Invalid OTP."
-                });
+                return res.status(401).json({ message: "Invalid OTP." });
             }
 
-            // OTP is correct.
-            await OTP.deleteOne({
-                _id: otpRecord._id
+            // Atomically consume the code so two requests cannot use it twice.
+            const consumedOTP = await OTP.findOneAndDelete({
+                _id: otpRecord._id,
+                otpHash: otpRecord.otpHash,
+                expiresAt: { $gt: new Date() },
+                attempts: { $lt: OTP_MAX_ATTEMPTS }
             });
 
-            const user =
-                await User.findOne({
-                    email: cleanEmail
-                });
-
-            if (!user) {
-                return res.status(404).json({
-                    message:
-                        "Account not found."
+            if (!consumedOTP) {
+                return res.status(400).json({
+                    message: "OTP expired or already used. Please request a new OTP."
                 });
             }
 
-            const token =
-                jwt.sign(
-                    {
-                        userId:
-                            user._id.toString()
-                    },
+            let user;
 
-                    process.env.JWT_SECRET,
-
-                    {
-                        expiresIn:
-                            "7d"
+            if (purpose === "signup") {
+                try {
+                    user = await User.create({
+                        name: consumedOTP.signupData.name,
+                        username: consumedOTP.signupData.username,
+                        email: cleanEmail,
+                        passwordHash: consumedOTP.signupData.passwordHash
+                    });
+                } catch (error) {
+                    if (error.code === 11000) {
+                        const field = Object.keys(error.keyPattern || {})[0];
+                        return res.status(409).json({
+                            message: field === "username"
+                                ? "Username already exists. Please restart signup with a different username."
+                                : "Email already registered. Please login instead."
+                        });
                     }
-                );
+                    throw error;
+                }
+            } else {
+                user = await User.findOne({ email: cleanEmail });
+                if (!user) {
+                    return res.status(404).json({ message: "Account not found." });
+                }
+            }
+
+            const session = createAuthSession(user);
 
             return res.json({
                 success: true,
-
                 message:
                     "OTP verified successfully.",
-
-                token,
-
-                user: {
-                    id: user._id,
-                    name: user.name,
-                    username: user.username,
-                    email: user.email,
-                    profilePicture:
-                        user.profilePicture
-                }
+                ...session
             });
 
         } catch (error) {
@@ -854,169 +946,9 @@ app.post(
 
 app.post(
     "/api/auth/signup",
-    async (req, res) => {
-
-        try {
-
-            await connectDB();
-
-
-            const body = isPlainObject(req.body) ? req.body : {};
-            const { name, username, email, password } = body;
-
-
-            if (
-                !name ||
-                !username ||
-                !email ||
-                !password ||
-                typeof name !== "string" ||
-                typeof username !== "string" ||
-                typeof email !== "string" ||
-                typeof password !== "string"
-            ) {
-
-                return res.status(400).json({
-                    message:
-                        "All fields are required."
-                });
-            }
-
-
-            if (password.length < 6 || Buffer.byteLength(password, "utf8") > 72) {
-
-                return res.status(400).json({
-                    message:
-                        "Password must be at least 6 characters and no more than 72 bytes."
-                });
-            }
-
-
-            const cleanName = name.trim();
-            const cleanUsername = username.trim().toLowerCase();
-            const cleanEmail = email.trim().toLowerCase();
-
-            if (!cleanName || cleanName.length > 100) {
-                return res.status(400).json({
-                    message: "Name must contain 1 to 100 characters."
-                });
-            }
-
-            if (!/^[a-z0-9_]{3,30}$/.test(cleanUsername)) {
-                return res.status(400).json({
-                    message: "Username must be 3 to 30 characters and use only letters, numbers or underscores."
-                });
-            }
-
-            if (
-                cleanEmail.length > 254 ||
-                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)
-            ) {
-                return res.status(400).json({ message: "Enter a valid email address." });
-            }
-
-
-            const existingUsername =
-                await User.findOne({
-                    username:
-                        cleanUsername
-                });
-
-
-            if (existingUsername) {
-
-                return res.status(409).json({
-                    message:
-                        "Username already exists."
-                });
-            }
-
-
-            const existingEmail =
-                await User.findOne({
-                    email:
-                        cleanEmail
-                });
-
-
-            if (existingEmail) {
-
-                return res.status(409).json({
-                    message:
-                        "Email already registered."
-                });
-            }
-
-
-            const passwordHash =
-                await bcrypt.hash(
-                    password,
-                    12
-                );
-
-
-            const user =
-                await User.create({
-
-                    name:
-                        cleanName,
-
-                    username:
-                        cleanUsername,
-
-                    email:
-                        cleanEmail,
-
-                    passwordHash
-                });
-
-
-            res.status(201).json({
-
-                success: true,
-
-                message:
-                    "Account created successfully.",
-
-                user: {
-
-                    id:
-                        user._id,
-
-                    name:
-                        user.name,
-
-                    username:
-                        user.username,
-
-                    email:
-                        user.email
-                }
-            });
-
-
-        } catch (error) {
-
-            if (error.code === 11000) {
-                const duplicateField = Object.keys(error.keyPattern || {})[0];
-                const message = duplicateField === "username"
-                    ? "Username already exists."
-                    : "Email already registered.";
-                return res.status(409).json({ message });
-            }
-
-            console.error(
-                "Signup error:",
-                error
-            );
-
-
-            res.status(500).json({
-                message:
-                    "Could not create account."
-            });
-        }
-    }
+    (req, res) => res.status(410).json({
+        message: "Email verification is required. Request a signup code to create an account."
+    })
 );
 
 

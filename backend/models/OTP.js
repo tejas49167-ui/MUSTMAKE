@@ -21,6 +21,12 @@ const otpSchema = new mongoose.Schema(
             required: true
         },
 
+        signupData: {
+            name: { type: String, trim: true },
+            username: { type: String, lowercase: true, trim: true },
+            passwordHash: { type: String }
+        },
+
         expiresAt: {
             type: Date,
             required: true,

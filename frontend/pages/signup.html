@@ -41,11 +41,37 @@
                     <input type="password" id="password" placeholder="At least 6 characters" minlength="6" required>
                 </div>
 
-                <button type="submit" class="main-button">Create Account</button>
+                <button type="submit" class="main-button">Send verification code</button>
 
             </form>
 
-            <p id="signupMessage" class="auth-message"></p>
+            <form id="signupOtpForm" hidden>
+                <p class="auth-subtitle">
+                    Enter the 6-digit code sent to <strong id="signupOtpEmail"></strong>.
+                </p>
+
+                <div class="form-group">
+                    <label for="signupOtp">Verification code</label>
+                    <input
+                        type="text"
+                        id="signupOtp"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                        pattern="[0-9]{6}"
+                        maxlength="6"
+                        placeholder="6-digit code"
+                        aria-describedby="signupResendStatus"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="main-button">Verify email and create account</button>
+                <button type="button" id="signupResend" class="google-button">Resend code</button>
+                <p id="signupResendStatus" class="auth-message" aria-live="polite"></p>
+                <button type="button" id="editSignupDetails" class="auth-text-button">Change signup details</button>
+            </form>
+
+            <p id="signupMessage" class="auth-message" role="status" aria-live="polite"></p>
 
             <p class="auth-footer">
                 Already have an account?
