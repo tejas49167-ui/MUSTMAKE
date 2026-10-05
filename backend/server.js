@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -12,6 +13,7 @@ require("dotenv").config();
 const cloudinary = require("cloudinary").v2;
 
 const User = require("./models/User");
+const OTP = require("./models/OTP");
 const Workout = require("./models/Workout");
 const Competition =
     require("./models/Competition");
@@ -404,7 +406,447 @@ passport.use(
         }
     )
 );
+// =====================================================
+// OTP HELPERS
+// =====================================================
 
+const OTP_EXPIRY_MINUTES = 5;
+const OTP_MAX_ATTEMPTS = 5;
+
+function generateOTP() {
+    return crypto.randomInt(100000, 1000000).toString();
+}
+
+function hashOTP(otp) {
+    return crypto
+        .createHash("sha256")
+        .update(otp)
+        .digest("hex");
+}
+
+async function sendOTPEmail(email, otp, purpose) {
+    if (!process.env.RESEND_API_KEY) {
+        throw new Error("RESEND_API_KEY is missing.");
+    }
+
+    const action =
+        purpose === "signup"
+            ? "create your Just Do It account"
+            : "login to your Just Do It account";
+
+    const response = await fetch(
+        "https://api.resend.com/emails",
+        {
+            method: "POST",
+
+            headers: {
+                "Authorization":
+                    `Bearer ${process.env.RESEND_API_KEY}`,
+
+                "Content-Type":
+                    "application/json"
+            },
+
+            body: JSON.stringify({
+                from:
+                    process.env.EMAIL_FROM ||
+                    "onboarding@resend.dev",
+
+                to: [email],
+
+                subject:
+                    "Your Just Do It verification code",
+
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
+                        <h2>Just Do It</h2>
+
+                        <p>
+                            Use this verification code to ${action}:
+                        </p>
+
+                        <div style="
+                            font-size: 32px;
+                            font-weight: bold;
+                            letter-spacing: 8px;
+                            padding: 20px 0;
+                        ">
+                            ${otp}
+                        </div>
+
+                        <p>
+                            This code expires in ${OTP_EXPIRY_MINUTES} minutes.
+                        </p>
+
+                        <p>
+                            If you did not request this code, you can safely ignore this email.
+                        </p>
+                    </div>
+                `
+            })
+        }
+    );
+
+    if (!response.ok) {
+        const errorText = await response.text();
+
+        console.error(
+            "Resend email error:",
+            errorText
+        );
+
+        throw new Error("Could not send OTP email.");
+    }
+}
+
+// =====================================================
+// SEND OTP
+// =====================================================
+
+app.post(
+    "/api/auth/send-otp",
+    async (req, res) => {
+
+        try {
+
+            await connectDB();
+
+            const body =
+                isPlainObject(req.body)
+                    ? req.body
+                    : {};
+
+            const {
+                email,
+                purpose
+            } = body;
+
+            if (
+                typeof email !== "string" ||
+                typeof purpose !== "string"
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Email and OTP purpose are required."
+                });
+            }
+
+            const cleanEmail =
+                email.trim().toLowerCase();
+
+            if (
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                    cleanEmail
+                )
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Enter a valid email address."
+                });
+            }
+
+            if (
+                !["login", "signup"].includes(
+                    purpose
+                )
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Invalid OTP purpose."
+                });
+            }
+
+            const existingUser =
+                await User.findOne({
+                    email: cleanEmail
+                });
+
+            // -------------------------------------------------
+            // SIGNUP
+            // -------------------------------------------------
+
+            if (
+                purpose === "signup" &&
+                existingUser
+            ) {
+                return res.status(409).json({
+                    message:
+                        "Email already registered. Please login instead."
+                });
+            }
+
+            // -------------------------------------------------
+            // LOGIN
+            // -------------------------------------------------
+
+            if (
+                purpose === "login" &&
+                !existingUser
+            ) {
+                return res.status(404).json({
+                    message:
+                        "No account exists with this email."
+                });
+            }
+
+            // -------------------------------------------------
+            // Prevent rapid OTP spam
+            // -------------------------------------------------
+
+            const recentOTP =
+                await OTP.findOne({
+                    email: cleanEmail,
+                    purpose,
+                    createdAt: {
+                        $gt:
+                            new Date(
+                                Date.now() - 60 * 1000
+                            )
+                    }
+                });
+
+            if (recentOTP) {
+                return res.status(429).json({
+                    message:
+                        "Please wait 60 seconds before requesting another OTP."
+                });
+            }
+
+            const otp =
+                generateOTP();
+
+            const otpHash =
+                hashOTP(otp);
+
+            const expiresAt =
+                new Date(
+                    Date.now() +
+                    OTP_EXPIRY_MINUTES *
+                    60 *
+                    1000
+                );
+
+            // Remove previous OTPs
+            await OTP.deleteMany({
+                email: cleanEmail,
+                purpose
+            });
+
+            await OTP.create({
+                email: cleanEmail,
+                otpHash,
+                purpose,
+                expiresAt
+            });
+
+            await sendOTPEmail(
+                cleanEmail,
+                otp,
+                purpose
+            );
+
+            return res.json({
+                success: true,
+                message:
+                    "OTP sent successfully."
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Send OTP error:",
+                error
+            );
+
+            return res.status(500).json({
+                message:
+                    "Could not send OTP."
+            });
+        }
+    }
+);
+
+// =====================================================
+// VERIFY OTP
+// =====================================================
+
+app.post(
+    "/api/auth/verify-otp",
+    async (req, res) => {
+
+        try {
+
+            await connectDB();
+
+            const body =
+                isPlainObject(req.body)
+                    ? req.body
+                    : {};
+
+            const {
+                email,
+                otp,
+                purpose
+            } = body;
+
+            if (
+                typeof email !== "string" ||
+                typeof otp !== "string" ||
+                typeof purpose !== "string"
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Email, OTP and purpose are required."
+                });
+            }
+
+            const cleanEmail =
+                email.trim().toLowerCase();
+
+            const cleanOTP =
+                otp.trim();
+
+            if (!/^\d{6}$/.test(cleanOTP)) {
+                return res.status(400).json({
+                    message:
+                        "OTP must be 6 digits."
+                });
+            }
+
+            if (
+                !["login", "signup"].includes(
+                    purpose
+                )
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Invalid OTP purpose."
+                });
+            }
+
+            const otpRecord =
+                await OTP.findOne({
+                    email: cleanEmail,
+                    purpose
+                });
+
+            if (!otpRecord) {
+                return res.status(400).json({
+                    message:
+                        "OTP expired or not found. Please request a new OTP."
+                });
+            }
+
+            if (
+                otpRecord.expiresAt <
+                new Date()
+            ) {
+                await OTP.deleteOne({
+                    _id: otpRecord._id
+                });
+
+                return res.status(400).json({
+                    message:
+                        "OTP expired. Please request a new OTP."
+                });
+            }
+
+            if (
+                otpRecord.attempts >=
+                OTP_MAX_ATTEMPTS
+            ) {
+                await OTP.deleteOne({
+                    _id: otpRecord._id
+                });
+
+                return res.status(429).json({
+                    message:
+                        "Too many incorrect attempts. Please request a new OTP."
+                });
+            }
+
+            const submittedHash =
+                hashOTP(cleanOTP);
+
+            if (
+                submittedHash !==
+                otpRecord.otpHash
+            ) {
+
+                otpRecord.attempts += 1;
+
+                await otpRecord.save();
+
+                return res.status(401).json({
+                    message:
+                        "Invalid OTP."
+                });
+            }
+
+            // OTP is correct.
+            await OTP.deleteOne({
+                _id: otpRecord._id
+            });
+
+            const user =
+                await User.findOne({
+                    email: cleanEmail
+                });
+
+            if (!user) {
+                return res.status(404).json({
+                    message:
+                        "Account not found."
+                });
+            }
+
+            const token =
+                jwt.sign(
+                    {
+                        userId:
+                            user._id.toString()
+                    },
+
+                    process.env.JWT_SECRET,
+
+                    {
+                        expiresIn:
+                            "7d"
+                    }
+                );
+
+            return res.json({
+                success: true,
+
+                message:
+                    "OTP verified successfully.",
+
+                token,
+
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    username: user.username,
+                    email: user.email,
+                    profilePicture:
+                        user.profilePicture
+                }
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Verify OTP error:",
+                error
+            );
+
+            return res.status(500).json({
+                message:
+                    "Could not verify OTP."
+            });
+        }
+    }
+);
 
 // =====================================================
 // SIGN UP
