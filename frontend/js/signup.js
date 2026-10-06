@@ -1,4 +1,4 @@
-const API_URL = "https://justdoitbackend.vercel.app";
+const API_URL = "https://mustmakebackend.vercel.app";
 const SIGNUP_EMAIL_KEY = "pendingSignupEmail";
 const SIGNUP_SENT_AT_KEY = "pendingSignupOtpSentAt";
 const OTP_COOLDOWN_MS = 60 * 1000;
@@ -127,7 +127,7 @@ if (signupForm && signupOtpForm) {
         submitButton.disabled = true;
 
         try {
-            await postAuth("/api/auth/send-otp", {
+            const result = await postAuth("/api/auth/send-otp", {
                 name,
                 username,
                 email,
@@ -135,8 +135,8 @@ if (signupForm && signupOtpForm) {
                 purpose: "signup"
             });
 
-            setSignupStep(email);
-            signupMessage.textContent = "Verification code sent. Check your inbox and spam folder.";
+            setSignupStep(email, result.sentAt || Date.now());
+            signupMessage.textContent = result.message || "Verification code sent. Check your inbox and spam folder.";
         } catch (error) {
             const savedEmail = sessionStorage.getItem(SIGNUP_EMAIL_KEY);
             if (

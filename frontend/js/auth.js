@@ -1,4 +1,4 @@
-const API_URL = "https://justdoitbackend.vercel.app";
+const API_URL = "https://mustmakebackend.vercel.app";
 const LOGIN_EMAIL_KEY = "pendingLoginOtpEmail";
 const LOGIN_SENT_AT_KEY = "pendingLoginOtpSentAt";
 const OTP_COOLDOWN_MS = 60 * 1000;

@@ -1,4 +1,4 @@
-const API_URL = "https://justdoitbackend.vercel.app";
+const API_URL = "https://mustmakebackend.vercel.app";
 
 const profileRoot = document.getElementById("publicProfile");
 const profileToken = localStorage.getItem("token");

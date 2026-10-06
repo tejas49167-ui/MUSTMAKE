@@ -613,29 +613,16 @@ app.post(
                 });
             }
 
-            // -------------------------------------------------
-            // Prevent rapid OTP spam
-            // -------------------------------------------------
-
             const previousOTP = await OTP.findOne({
                 email: cleanEmail,
                 purpose
             });
 
-            const recentOTP = previousOTP &&
-                previousOTP.createdAt > new Date(Date.now() - 60 * 1000);
-
-            if (recentOTP) {
-                return res.status(429).json({
-                    message:
-                        "Please wait 60 seconds before requesting another OTP."
-                });
-            }
-
             let signupData = null;
+            let hasSignupFields = false;
 
             if (purpose === "signup") {
-                const hasSignupFields =
+                hasSignupFields =
                     typeof body.name === "string" ||
                     typeof body.username === "string" ||
                     typeof body.password === "string";
@@ -689,6 +676,33 @@ app.post(
                 if (usernameOwner) {
                     return res.status(409).json({ message: "Username already exists." });
                 }
+            }
+
+            // Keep the existing code valid during the resend cooldown. A
+            // signup form retry can refresh its saved details without sending
+            // another email, which also lets a refreshed page resume signup.
+            const recentOTP = previousOTP &&
+                previousOTP.createdAt > new Date(Date.now() - 60 * 1000);
+
+            if (recentOTP) {
+                if (purpose === "signup" && signupData) {
+                    if (hasSignupFields) {
+                        previousOTP.signupData = signupData;
+                        await previousOTP.save();
+                    }
+
+                    return res.json({
+                        success: true,
+                        codeAlreadySent: true,
+                        sentAt: previousOTP.createdAt.getTime(),
+                        message: "A code was sent recently. Use the current code from your email."
+                    });
+                }
+
+                return res.status(429).json({
+                    message:
+                        "Please wait 60 seconds before requesting another OTP."
+                });
             }
 
             const otp =
@@ -1131,7 +1145,7 @@ app.get(
         "google",
         {
             failureRedirect:
-                "https://perspiration.vercel.app/pages/login.html",
+                "https://mustmake.vercel.app/pages/login.html",
 
             session: false
         }
@@ -1188,7 +1202,7 @@ app.get(
 
 
             res.redirect(
-                `https://perspiration.vercel.app/pages/google-callback.html#${params.toString()}`
+                `https://mustmake.vercel.app/pages/google-callback.html#${params.toString()}`
             );
 
 
@@ -1201,7 +1215,7 @@ app.get(
 
 
             res.redirect(
-                "https://perspiration.vercel.app/pages/login.html"
+                "https://mustmake.vercel.app/pages/login.html"
             );
         }
     }
@@ -2191,7 +2205,7 @@ app.get(
         res.json({
             success: true,
             message:
-                "Just Do It backend is running."
+                "MUSTMAKE backend is running."
         });
     }
 );

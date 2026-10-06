@@ -1,4 +1,4 @@
-const API_URL = "https://justdoitbackend.vercel.app";
+const API_URL = "https://mustmakebackend.vercel.app";
 
 function getToken() {
     return localStorage.getItem("token");
