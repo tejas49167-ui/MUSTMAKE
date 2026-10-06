@@ -1,5 +1,3 @@
-const API_URL = "https://mustmakebackend.vercel.app";
-
 const profileRoot = document.getElementById("publicProfile");
 const profileToken = localStorage.getItem("token");
 const profileId = new URLSearchParams(window.location.search).get("id");
@@ -130,7 +128,7 @@ async function loadPublicProfile() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/api/users/${encodeURIComponent(profileId)}`, {
+        const response = await fetch(`${window.API_URL}/api/users/${encodeURIComponent(profileId)}`, {
             headers: { Authorization: `Bearer ${profileToken}` }
         });
         if (response.status === 401) {

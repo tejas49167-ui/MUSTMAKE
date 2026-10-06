@@ -1,4 +1,3 @@
-const API_URL = "https://mustmakebackend.vercel.app";
 const SIGNUP_EMAIL_KEY = "pendingSignupEmail";
 const SIGNUP_SENT_AT_KEY = "pendingSignupOtpSentAt";
 const OTP_COOLDOWN_MS = 60 * 1000;
@@ -28,7 +27,7 @@ if (loginLink) {
 }
 
 async function postAuth(path, payload) {
-    const response = await fetch(`${API_URL}${path}`, {
+    const response = await fetch(`${window.API_URL}${path}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

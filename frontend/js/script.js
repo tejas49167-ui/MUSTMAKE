@@ -1,4 +1,3 @@
-const API_URL = "https://mustmakebackend.vercel.app";
 const APP_TIME_ZONE = "Asia/Kolkata";
 
 function getToken() {
@@ -121,7 +120,7 @@ async function loadToday() {
     document.getElementById("userUsername").textContent = `@${user.username}`;
 
     try {
-        const response = await fetch(`${API_URL}/api/workouts/today`, {
+        const response = await fetch(`${window.API_URL}/api/workouts/today`, {
             headers: {
                 "Authorization": `Bearer ${getToken()}`
             }
@@ -169,7 +168,7 @@ async function loadStreaks() {
     if (!streakElement) return;
 
     try {
-        const response = await fetch(`${API_URL}/api/workouts/streaks`, {
+        const response = await fetch(`${window.API_URL}/api/workouts/streaks`, {
             headers: {
                 "Authorization": `Bearer ${getToken()}`
             }
@@ -338,7 +337,7 @@ async function saveWorkout(event) {
             return;
         }
 
-        const response = await fetch(`${API_URL}/api/workouts`, {
+        const response = await fetch(`${window.API_URL}/api/workouts`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -386,7 +385,7 @@ async function loadHistory() {
     }
 
     try {
-        const response = await fetch(`${API_URL}/api/workouts/history`, {
+        const response = await fetch(`${window.API_URL}/api/workouts/history`, {
             headers: {
                 "Authorization": `Bearer ${getToken()}`
             }

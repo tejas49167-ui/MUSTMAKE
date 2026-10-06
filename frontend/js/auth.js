@@ -1,4 +1,3 @@
-const API_URL = "https://mustmakebackend.vercel.app";
 const LOGIN_EMAIL_KEY = "pendingLoginOtpEmail";
 const LOGIN_SENT_AT_KEY = "pendingLoginOtpSentAt";
 const OTP_COOLDOWN_MS = 60 * 1000;
@@ -64,7 +63,7 @@ if (googleLoginLink) {
 }
 
 async function postAuth(path, payload) {
-    const response = await fetch(`${API_URL}${path}`, {
+    const response = await fetch(`${window.API_URL}${path}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

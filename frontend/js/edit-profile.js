@@ -1,5 +1,3 @@
-const API_URL = "https://mustmakebackend.vercel.app";
-
 function getToken() {
     return localStorage.getItem("token");
 }
@@ -39,7 +37,7 @@ profilePictureInput.addEventListener("change", () => {
 
 async function loadProfile() {
     try {
-        const response = await fetch(`${API_URL}/api/profile`, {
+        const response = await fetch(`${window.API_URL}/api/profile`, {
             headers: {
                 "Authorization": `Bearer ${getToken()}`
             }
@@ -117,7 +115,7 @@ profileForm.addEventListener("submit", async event => {
             });
         }
 
-        const response = await fetch(`${API_URL}/api/profile`, {
+        const response = await fetch(`${window.API_URL}/api/profile`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

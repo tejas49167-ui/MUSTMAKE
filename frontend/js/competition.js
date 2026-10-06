@@ -1,5 +1,3 @@
-const API_URL = "https://mustmakebackend.vercel.app";
-
 function getToken() {
     return localStorage.getItem("token");
 }
@@ -96,7 +94,7 @@ usernameSearch.addEventListener("input", () => {
 async function searchUsers(username) {
     try {
         const response = await fetch(
-            `${API_URL}/api/users/search?q=${encodeURIComponent(username)}`,
+            `${window.API_URL}/api/users/search?q=${encodeURIComponent(username)}`,
             { headers: authHeaders() }
         );
 
@@ -161,7 +159,7 @@ async function addCompetitor(competitorId, button) {
     button.textContent = "Adding...";
 
     try {
-        const response = await fetch(`${API_URL}/api/competition/add`, {
+        const response = await fetch(`${window.API_URL}/api/competition/add`, {
             method: "POST",
             headers: authHeaders(),
             body: JSON.stringify({ competitorId })
@@ -196,7 +194,7 @@ async function removeCompetitor(competitorId, button) {
     
 
     try {
-        const response = await fetch(`${API_URL}/api/competition/${encodeURIComponent(competitorId)}`, {
+        const response = await fetch(`${window.API_URL}/api/competition/${encodeURIComponent(competitorId)}`, {
             method: "DELETE",
             headers: authHeaders()
         });
@@ -232,7 +230,7 @@ async function removeCompetitor(competitorId, button) {
 
 async function loadCompetition() {
     try {
-        const response = await fetch(`${API_URL}/api/competition`, {
+        const response = await fetch(`${window.API_URL}/api/competition`, {
             headers: authHeaders()
         });
 

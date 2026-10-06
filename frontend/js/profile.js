@@ -1,5 +1,3 @@
-const PROFILE_API_URL = "https://mustmakebackend.vercel.app";
-
 function getToken() {
     return localStorage.getItem("token");
 }
@@ -65,7 +63,7 @@ function optimizeCloudinaryImage(url) {
 
 async function loadProfile() {
     try {
-        const response = await fetch(`${PROFILE_API_URL}/api/profile`, {
+        const response = await fetch(`${window.API_URL}/api/profile`, {
             headers: {
                 "Authorization": `Bearer ${getToken()}`
             }
