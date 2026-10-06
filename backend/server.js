@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
 const passport = require("passport");
 const GoogleStrategy =
@@ -459,39 +460,28 @@ function createAuthSession(user) {
 }
 
 async function sendOTPEmail(email, otp, purpose) {
-    if (!process.env.RESEND_API_KEY) {
-        throw new Error("RESEND_API_KEY is missing.");
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+        throw new Error("GMAIL_USER and GMAIL_APP_PASSWORD are required.");
     }
+
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD
+        }
+    });
 
     const action =
         purpose === "signup"
             ? "create your Just Do It account"
             : "login to your Just Do It account";
 
-    const response = await fetch(
-        "https://api.resend.com/emails",
-        {
-            method: "POST",
-
-            headers: {
-                "Authorization":
-                    `Bearer ${process.env.RESEND_API_KEY}`,
-
-                "Content-Type":
-                    "application/json"
-            },
-
-            body: JSON.stringify({
-                from:
-                    process.env.EMAIL_FROM ||
-                    "onboarding@resend.dev",
-
-                to: [email],
-
-                subject:
-                    "Your Just Do It verification code",
-
-                html: `
+    await transporter.sendMail({
+        from: process.env.GMAIL_USER,
+        to: email,
+        subject: "Your Just Do It verification code",
+        html: `
                     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
                         <h2>Just Do It</h2>
 
@@ -517,20 +507,7 @@ async function sendOTPEmail(email, otp, purpose) {
                         </p>
                     </div>
                 `
-            })
-        }
-    );
-
-    if (!response.ok) {
-        const errorText = await response.text();
-
-        console.error(
-            "Resend email error:",
-            errorText
-        );
-
-        throw new Error("Could not send OTP email.");
-    }
+    });
 }
 
 // =====================================================
