@@ -30,6 +30,8 @@ The application provides workout tracking, user authentication, and a backend AP
 - Google OAuth 2.0
 - Vercel
 
+### The project is being developed incrementally, with future plans for additional fitness, automation, and AI-related functionality.
+
 ## Project Structure
 
 ```text
@@ -45,4 +47,3 @@ MustMake/
 │
 └── README.md
 
-##The project is being developed incrementally, with future plans for additional fitness, automation, and AI-related functionality.
