@@ -116,8 +116,7 @@ async function loadToday() {
     }
 
     document.getElementById("todayDate").textContent = formatDate(getToday());
-    document.getElementById("userName").textContent = user.name;
-    document.getElementById("userUsername").textContent = `@${user.username}`;
+    document.getElementById("userName").textContent = `Hello ${user.name}`;
 
     try {
         const response = await fetch(`${window.API_URL}/api/workouts/today`, {

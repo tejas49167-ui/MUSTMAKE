@@ -25,7 +25,7 @@ try {
 
     if (!window.closed) {
         localStorage.removeItem("googleLoginComplete");
-        window.location.replace("../index.html");
+        window.redirectAfterAuthentication(user);
     }
 } catch (error) {
     window.history.replaceState(null, "", window.location.pathname);

@@ -1,3 +1,5 @@
 backend/.env
-backend/node_modulesbackend/.env
 backend/node_modules/
+.DS_Store 
+*.log 
+.vercel/

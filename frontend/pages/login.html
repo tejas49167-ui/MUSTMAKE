@@ -4,56 +4,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <script src="../js/change_backend_url.js"></script>
-        <link rel="icon" type="image/x-icon" href="favicon.jpeg">
+    <link rel="icon" type="image/x-icon" href="favicon.jpeg">
 
     <title>Login | MUSTMAKE</title>
+
     <script src="../js/theme.js"></script>
     <link rel="stylesheet" href="../style.css">
 </head>
 
 <body>
 
+    <p  class="auth-brand">MUSTMAKE</p>
+
     <main class="auth-container">
 
-        <div class="auth-card">
+        <div class="auth-content">
 
-            <h1>MUSTMAKE</h1>
-            <p class="auth-subtitle">Welcome back. Keep going.</p>
+            <h1>Check in</h1>
+            <p class="auth-subtitle">Keep going.</p>
 
             <form id="loginForm">
 
                 <div class="form-group">
                     <label for="login">Username or Email</label>
-                    <input type="text" id="login" placeholder="Enter username or email" required>
+                    <input
+                        type="text"
+                        id="login"
+                        placeholder="Enter username or email"
+                        required
+                    >
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Enter password" required>
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter password"
+                        required
+                    >
                 </div>
 
                 <button type="submit" class="main-button">Login</button>
-                <button type="button" id="showOtpLogin" class="auth-text-button">Sign in with an email code</button>
+
+                <button
+                    type="button"
+                    id="showOtpLogin"
+                    class="auth-text-button"
+                >
+                    Sign in with an email code
+                </button>
+
             </form>
 
             <form id="otpLoginRequestForm" hidden>
+
                 <div class="form-group">
                     <label for="otpLoginEmail">Email</label>
-                    <input type="email" id="otpLoginEmail" maxlength="254" autocomplete="email" placeholder="you@example.com" required>
+
+                    <input
+                        type="email"
+                        id="otpLoginEmail"
+                        maxlength="254"
+                        autocomplete="email"
+                        placeholder="you@example.com"
+                        required
+                    >
                 </div>
 
-                <button type="submit" class="main-button">Send sign-in code</button>
-                <button type="button" id="backToPasswordLogin" class="auth-text-button">Use password instead</button>
+                <button type="submit" class="main-button">
+                    Send sign-in code
+                </button>
+
+                <button
+                    type="button"
+                    id="backToPasswordLogin"
+                    class="auth-text-button"
+                >
+                    Use password instead
+                </button>
+
             </form>
 
             <form id="otpLoginVerifyForm" hidden>
+
                 <p class="auth-subtitle">
-                    Enter the 6-digit code sent to <strong id="otpLoginEmailLabel"></strong>.
+                    Enter the 6-digit code sent to
+                    <strong id="otpLoginEmailLabel"></strong>.
                 </p>
 
                 <div class="form-group">
-                    <label for="loginOtp">Verification code</label>
+
+                    <label for="loginOtp">
+                        Verification code
+                    </label>
+
                     <input
                         type="text"
                         id="loginOtp"
@@ -64,12 +111,35 @@
                         placeholder="6-digit code"
                         required
                     >
+
                 </div>
 
-                <button type="submit" class="main-button">Verify and sign in</button>
-                <button type="button" id="loginOtpResend" class="google-button">Resend code</button>
-                <p id="loginOtpResendStatus" class="auth-message" aria-live="polite"></p>
-                <button type="button" id="changeOtpLoginEmail" class="auth-text-button">Use a different email</button>
+                <button type="submit" class="main-button">
+                    Verify and sign in
+                </button>
+
+                <button
+                    type="button"
+                    id="loginOtpResend"
+                    class="google-button"
+                >
+                    Resend code
+                </button>
+
+                <p
+                    id="loginOtpResendStatus"
+                    class="auth-message"
+                    aria-live="polite"
+                ></p>
+
+                <button
+                    type="button"
+                    id="changeOtpLoginEmail"
+                    class="auth-text-button"
+                >
+                    Use a different email
+                </button>
+
             </form>
 
             <div class="auth-divider">
@@ -86,17 +156,25 @@
                 Continue with Google
             </a>
 
-            <p id="loginMessage" class="auth-message" role="status" aria-live="polite"></p>
+            <p
+                id="loginMessage"
+                class="auth-message"
+                role="status"
+                aria-live="polite"
+            ></p>
 
             <p class="auth-footer">
-                Don't have an account?
-                <a id="signupLink" href="signup.html">Create account</a>
+                New to MUSTMAKE?
+                <a id="signupLink" href="signup.html">
+                    Create account
+                </a>
             </p>
 
         </div>
 
     </main>
 
+    <script src="../js/auth-redirect.js"></script>
     <script src="../js/auth.js"></script>
 
 </body>

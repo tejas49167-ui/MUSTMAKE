@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="../js/change_backend_url.js"></script>
-        <link rel="icon" type="image/x-icon" href="favicon.jpeg">
+    <link rel="icon" type="image/x-icon" href="favicon.jpeg">
 
     <title>Sign Up | MUSTMAKE</title>
     <link rel="stylesheet" href="../style.css">
@@ -13,46 +13,80 @@
 
 <body>
 
+    <p class="auth-brand">MUSTMAKE</p> 
+
     <main class="auth-container">
 
-        <div class="auth-card">
+        <div class="auth-content">
 
-            <h1>MUSTMAKE</h1>
-            <p class="auth-subtitle">Create your account.</p>
+            <h1>Create your account.</h1>
+
+            <p class="auth-subtitle"></p>
 
             <form id="signupForm">
 
                 <div class="form-group">
                     <label for="name">Name</label>
-                    <input type="text" id="name" maxlength="100" placeholder="Your name" required>
+                    <input
+                        type="text"
+                        id="name"
+                        maxlength="100"
+                        placeholder="Your name"
+                        required
+                    >
                 </div>
 
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" placeholder="Choose a username" required>
+                    <input
+                        type="text"
+                        id="username"
+                        minlength="3"
+                        maxlength="30"
+                        pattern="[A-Za-z0-9_]{3,30}"
+                        placeholder="Choose a username"
+                        required
+                    >
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" maxlength="254" placeholder="you@example.com" required>
+                    <input
+                        type="email"
+                        id="email"
+                        maxlength="254"
+                        placeholder="you@example.com"
+                        required
+                    >
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="At least 6 characters" minlength="6" required>
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="At least 6 characters"
+                        minlength="6"
+                        required
+                    >
                 </div>
 
-                <button type="submit" class="main-button">Send verification code</button>
+                <button type="submit" class="main-button">
+                    Send verification code
+                </button>
 
             </form>
 
             <form id="signupOtpForm" hidden>
+
                 <p class="auth-subtitle">
-                    Enter the 6-digit code sent to <strong id="signupOtpEmail"></strong>.
+                    Enter the 6-digit code sent to
+                    <strong id="signupOtpEmail"></strong>.
                 </p>
 
                 <div class="form-group">
                     <label for="signupOtp">Verification code</label>
+
                     <input
                         type="text"
                         id="signupOtp"
@@ -66,13 +100,40 @@
                     >
                 </div>
 
-                <button type="submit" class="main-button">Verify email and create account</button>
-                <button type="button" id="signupResend" class="google-button">Resend code</button>
-                <p id="signupResendStatus" class="auth-message" aria-live="polite"></p>
-                <button type="button" id="editSignupDetails" class="auth-text-button">Change signup details</button>
+                <button type="submit" class="main-button">
+                    Verify email and create account
+                </button>
+
+                <button
+                    type="button"
+                    id="signupResend"
+                    class="google-button"
+                >
+                    Resend code
+                </button>
+
+                <p
+                    id="signupResendStatus"
+                    class="auth-message"
+                    aria-live="polite"
+                ></p>
+
+                <button
+                    type="button"
+                    id="editSignupDetails"
+                    class="auth-text-button"
+                >
+                    Change signup details
+                </button>
+
             </form>
 
-            <p id="signupMessage" class="auth-message" role="status" aria-live="polite"></p>
+            <p
+                id="signupMessage"
+                class="auth-message"
+                role="status"
+                aria-live="polite"
+            ></p>
 
             <p class="auth-footer">
                 Already have an account?
@@ -83,6 +144,7 @@
 
     </main>
 
+    <script src="../js/auth-redirect.js"></script>
     <script src="../js/signup.js"></script>
 
 </body>

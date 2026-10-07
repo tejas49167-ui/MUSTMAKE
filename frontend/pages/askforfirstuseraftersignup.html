@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../js/change_backend_url.js"></script>
+    <link rel="icon" type="image/x-icon" href="favicon.jpeg">
+    <title>Set Up Your Profile | MUSTMAKE</title>
+    <script src="../js/theme.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    
+</head>
+
+<body id="firstSetupPage">
+    <div class="setup-shell">
+        <header class="setup-header">
+            <div class="wordmark" aria-label="MUSTMAKE">
+                MUSTMAKE
+            </div>
+           
+        </header>
+
+        <main class="setup-layout">
+           
+                <p class="intro-copy">
+                    A few details help make your profile feel like you. You can update them any time.
+                </p>
+         
+
+            <section>
+                <div class="card-heading">
+                    <h2 id="setupFormTitle">Let’s set up your profile</h2>
+                
+                </div>
+
+                <form id="profileForm" class="setup-form">
+                    <div class="setup-field">
+                        <label for="dateOfBirth">Date of birth <span class="required-mark" aria-hidden="true">*</span></label>
+                        <input
+                            type="date"
+                            id="dateOfBirth"
+                            autocomplete="bday"
+                            aria-describedby="dateOfBirthHint"
+                            required
+                        >
+                        <small id="dateOfBirthHint" class="field-hint">Your age can be shown on your profile. Your full birth date is not displayed.</small>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="setup-field">
+                            <label for="height">Height </label>
+                            <input type="number" id="height" min="50" max="300" inputmode="decimal" placeholder="e.g. 175 cm">
+                        </div>
+
+                        <div class="setup-field">
+                            <label for="weight">Weight </label>
+                            <input type="number" id="weight" min="20" max="500" step="0.1" inputmode="decimal" placeholder="e.g. 68 kg">
+                        </div>
+                    </div>
+
+                    <div class="setup-field photo-field">
+                        <label for="profilePicture">Profile photo <span class="optional-label">Optional</span></label>
+                        <div class="photo-control">
+                            <div class="photo-preview-wrap">
+                                <svg class="photo-placeholder" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5" />
+                                    <path d="M5.5 20c.5-3.3 2.7-5 6.5-5s6 1.7 6.5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                </svg>
+                                <img id="photoPreview" src="" alt="Profile photo preview" class="profile-photo">
+                            </div>
+                            <div class="photo-picker">
+                                <input type="file" id="profilePicture" accept="image/jpeg,image/png,image/webp" aria-describedby="photoHint">
+                                <small id="photoHint">JPG, PNG or WebP · up to 2 MB</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <details class="socials-details">
+                        <summary>
+                            <span>Social links <span>Optional</span></span>
+                        </summary>
+                        <div class="socials-content">
+                            <div class="socials-grid">
+                                <div class="setup-field">
+                                    <label for="instagram">Instagram</label>
+                                    <input type="url" id="instagram" autocomplete="url" placeholder="https://instagram.com/…">
+                                </div>
+                                <div class="setup-field">
+                                    <label for="youtube">YouTube</label>
+                                    <input type="url" id="youtube" autocomplete="url" placeholder="https://youtube.com/…">
+                                </div>
+                                <div class="setup-field">
+                                    <label for="github">GitHub</label>
+                                    <input type="url" id="github" autocomplete="url" placeholder="https://github.com/…">
+                                </div>
+                                <div class="setup-field">
+                                    <label for="x">X</label>
+                                    <input type="url" id="x" autocomplete="url" placeholder="https://x.com/…">
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <button type="submit" class="main-button save-button">
+                        Save profile and continue
+                        <svg class="save-arrow" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                    <p id="profileMessage" class="auth-message setup-message" role="status" aria-live="polite"></p>
+                </form>
+
+                <p class="setup-footer">You can edit these details later from your profile.</p>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/edit-profile.js"></script>
+</body>
+
+</html>

@@ -432,7 +432,8 @@ function createAuthSession(user) {
             name: user.name,
             username: user.username,
             email: user.email,
-            profilePicture: user.profilePicture
+            profilePicture: user.profilePicture,
+            dateOfBirth: user.dateOfBirth
         }
     };
 }
@@ -1035,7 +1036,10 @@ app.post(
                         user.email,
 
                     profilePicture:
-                        user.profilePicture
+                        user.profilePicture,
+
+                    dateOfBirth:
+                        user.dateOfBirth
                 }
             });
 
@@ -1124,7 +1128,10 @@ app.get(
                     req.user.email,
 
                 profilePicture:
-                    req.user.profilePicture
+                    req.user.profilePicture,
+
+                dateOfBirth:
+                    req.user.dateOfBirth
             };
 
 

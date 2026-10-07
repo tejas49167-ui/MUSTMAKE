@@ -46,7 +46,7 @@ function saveSession(data) {
     localStorage.setItem("user", JSON.stringify(data.user));
     sessionStorage.removeItem(SIGNUP_EMAIL_KEY);
     sessionStorage.removeItem(SIGNUP_SENT_AT_KEY);
-    window.location.replace("../index.html");
+    window.redirectAfterAuthentication(data.user);
 }
 
 function setSignupStep(email, sentAt = Date.now()) {

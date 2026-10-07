@@ -15,7 +15,12 @@ window.addEventListener("storage", (event) => {
     localStorage.removeItem("googleLoginComplete");
 
     if (localStorage.getItem("token") && localStorage.getItem("user")) {
-        window.location.replace("../index.html");
+        try {
+            window.redirectAfterAuthentication(JSON.parse(localStorage.getItem("user")));
+        } catch (error) {
+            console.error("Could not read the signed-in user.", error);
+            window.location.replace("../index.html");
+        }
     }
 });
 
@@ -82,7 +87,7 @@ function finishLogin(data) {
     localStorage.setItem("user", JSON.stringify(data.user));
     sessionStorage.removeItem(LOGIN_EMAIL_KEY);
     sessionStorage.removeItem(LOGIN_SENT_AT_KEY);
-    window.location.replace("../index.html");
+    window.redirectAfterAuthentication(data.user);
 }
 
 function showOtpRequest(email = "") {
