@@ -1,12 +1,6 @@
-/* =========================================================
-   JUST DO IT
-   Global Stylesheet
-========================================================= */
+/* JUST DO IT Global Stylesheet */
 
-
-/* =========================================================
-   RESET
-========================================================= */
+/* RESET */
 
 * {
     box-sizing: border-box;
@@ -110,10 +104,7 @@ a {
     color: inherit;
 }
 
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
+/* NAVIGATION */
 
 .topbar {
     width: min(calc(100% - 40px), 1160px);
@@ -193,10 +184,7 @@ a {
     color: var(--text-primary);
 }
 
-
-/* =========================================================
-   GENERAL LAYOUT
-========================================================= */
+/* GENERAL LAYOUT */
 
 .container {
     width: 88%;
@@ -212,10 +200,7 @@ a {
     max-width: 680px;
 }
 
-
-/* =========================================================
-   HERO / PAGE HEADING
-========================================================= */
+/* HERO / PAGE HEADING */
 
 .hero {
     margin-bottom: 45px;
@@ -261,10 +246,7 @@ a {
     max-width: 650px;
 }
 
-
-/* =========================================================
-   CARDS
-========================================================= */
+/* CARDS */
 
 .card,
 .person-card,
@@ -273,22 +255,8 @@ a {
 .competition-search,
 .competition-section,
 .competition-card,
-.auth-card {
-    background: var(--glass-panel);
 
-    border: 1px solid var(--glass-border);
-
-    box-shadow: var(--shadow-card);
-    backdrop-filter: blur(22px) saturate(145%);
-    -webkit-backdrop-filter: blur(22px) saturate(145%);
-
-    border-radius: 14px;
-}
-
-
-/* =========================================================
-   TODAY PAGE
-========================================================= */
+/* TODAY PAGE */
 
 .people-grid {
     display: grid;
@@ -328,10 +296,7 @@ a {
     font-size: 14px;
 }
 
-
-/* =========================================================
-   STREAK
-========================================================= */
+/* STREAK */
 
 .streak {
     text-align: right;
@@ -355,10 +320,7 @@ a {
     font-size: 11px;
 }
 
-
-/* =========================================================
-   WORKOUTS
-========================================================= */
+/* WORKOUTS */
 
 .workout-section {
     padding-top: 24px;
@@ -425,10 +387,7 @@ a {
     padding: 10px 0;
 }
 
-
-/* =========================================================
-   BUTTONS
-========================================================= */
+/* BUTTONS */
 
 .actions {
     display: flex;
@@ -492,16 +451,13 @@ a {
     transform: translateY(-1px);
 }
 
-
-/* =========================================================
-   FORMS
-========================================================= */
+/* FORMS */
 
 .workout-form {
     padding: 30px;
 }
 
-.auth-card [hidden] {
+.auth-content [hidden] {
     display: none !important;
 }
 
@@ -567,10 +523,7 @@ textarea {
     resize: vertical;
 }
 
-
-/* =========================================================
-   DYNAMIC FORM
-========================================================= */
+/* DYNAMIC FORM */
 
 #exerciseFields {
     margin-top: 5px;
@@ -588,10 +541,7 @@ textarea {
     margin-bottom: 15px;
 }
 
-
-/* =========================================================
-   TOTAL
-========================================================= */
+/* TOTAL */
 
 .total-display {
     background: rgba(12, 16, 24, 0.3);
@@ -611,10 +561,7 @@ textarea {
     font-weight: 600;
 }
 
-
-/* =========================================================
-   FORM MESSAGE
-========================================================= */
+/* FORM MESSAGE */
 
 .form-message {
     min-height: 20px;
@@ -632,10 +579,7 @@ textarea {
     width: 100%;
 }
 
-
-/* =========================================================
-   HISTORY
-========================================================= */
+/* HISTORY */
 
 .history-day {
     margin-bottom: 38px;
@@ -659,9 +603,7 @@ textarea {
     margin-bottom: 8px;
 }
 
-/* =========================================================
-   COMPETITION
-========================================================= */
+/* COMPETITION */
 
 .competition-search,
 .competition-section {
@@ -789,10 +731,7 @@ textarea {
     font-size: 12px;
 }
 
-
-/* =========================================================
-   COMPETITION GRID
-========================================================= */
+/* COMPETITION GRID */
 
 .competition-grid {
     display: grid;
@@ -854,10 +793,7 @@ textarea {
     font-weight: 700;
 }
 
-
-/* =========================================================
-   PROFILE
-========================================================= */
+/* PROFILE */
 
 .profile-card {
     padding: 30px;
@@ -967,10 +903,7 @@ textarea {
     font-size: 14px;
 }
 
-
-/* =========================================================
-   PROFILE DETAILS
-========================================================= */
+/* PROFILE DETAILS */
 
 .profile-details {
     display: grid;
@@ -1010,10 +943,7 @@ textarea {
     font-size: 17px;
 }
 
-
-/* =========================================================
-   SOCIALS
-========================================================= */
+/* SOCIALS */
 
 .profile-socials {
     border-top: 1px solid #222;
@@ -1043,10 +973,7 @@ textarea {
     color: #fff;
 }
 
-
-/* =========================================================
-   PROFILE UPLOAD
-========================================================= */
+/* PROFILE UPLOAD */
 
 .profile-upload {
     display: flex;
@@ -1076,10 +1003,7 @@ textarea {
     background: rgba(12, 16, 24, 0.34);
 }
 
-
-/* =========================================================
-   PUBLIC PROFILE
-========================================================= */
+/* PUBLIC PROFILE */
 
 .public-profile-header {
     text-align: center;
@@ -1144,110 +1068,134 @@ textarea {
     margin: 8px 0 0;
 }
 
-/* =========================================================
-   LOGIN / SIGNUP
-========================================================= */
+/* LOGIN / SIGNUP */
 
 .auth-page {
     min-height: 100vh;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     padding: 30px;
+}
+
+.auth-brand {
+    position: fixed;
+    top: 28px;
+    left: 32px;
+    z-index: 100;
+    color: var(--text-primary);
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-decoration: none;
+}
+
+.auth-brand:hover {
+    opacity: 0.8;
 }
 
 .auth-container {
-    width: calc(100% - 2rem);
-    max-width: 440px;
+    width: 100%;
+    max-width: 520px;
     min-height: 100vh;
     margin: 0 auto;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: clamp(1rem, 4vh, 2.5rem) 0;
+    align-items: center;
+    padding: 100px 24px 60px;
 }
 
-.auth-logo {
-    text-align: center;
-
-    font-size: 22px;
-
-    font-weight: 800;
-
-    letter-spacing: 4px;
-
-    margin-bottom: 35px;
-}
-
-.auth-card {
+.auth-content {
     width: 100%;
-    background: rgba(12, 16, 24, 0.42);
-
-    border: 1px solid rgba(255, 255, 255, 0.2);
-
-    border-radius: 14px;
-
-    padding: 30px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
 }
 
-.auth-card h1 {
-    font-size: 28px;
-
-    margin-bottom: 8px;
+.auth-content h1 {
+    font-size: clamp(2.25rem, 5vw, 3rem);
+    font-weight: 600;
+    line-height: 1.06;
+    letter-spacing: -0.04em;
+    margin-bottom: 10px;
 }
 
-.auth-card form > .main-button,
-.auth-card form > .google-button {
+.auth-content form > .main-button,
+.auth-content form > .google-button {
     width: 100%;
 }
 
 .auth-subtitle {
-    color: #777;
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin-bottom: 42px;
+}
 
-    font-size: 14px;
-
+.auth-form .form-group,
+.auth-content .form-group {
     margin-bottom: 28px;
 }
 
-.auth-form .form-group {
-    margin-bottom: 18px;
+.auth-content .form-group label {
+    display: block;
+    color: var(--text-primary);
+    font-size: 14px;
+    margin-bottom: 9px;
+}
+
+.auth-content .form-group input {
+    width: 100%;
+    padding: 13px 2px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 15px;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.auth-content .form-group input:focus {
+    border-bottom-color: var(--text-primary);
+    background: transparent;
+    box-shadow: none;
+}
+
+.auth-content .form-group input::placeholder {
+    color: var(--text-muted);
 }
 
 .auth-button {
     width: 100%;
-
     margin-top: 5px;
+}
+
+.auth-content .main-button {
+    width: 100%;
+    margin-top: 8px;
 }
 
 .auth-message {
     min-height: 20px;
-
-    color: #888;
-
+    color: var(--text-secondary);
     text-align: center;
-
     font-size: 13px;
-
-    margin-top: 15px;
+    margin-top: 18px;
 }
 
 .auth-footer {
     text-align: center;
-
-    margin-top: 22px;
-
-    color: #666;
-
+    margin-top: 32px;
+    color: var(--text-secondary);
     font-size: 13px;
 }
 
 .auth-footer a {
-    color: #fff;
-
+    color: var(--text-primary);
     text-decoration: none;
 }
 
@@ -1258,102 +1206,74 @@ textarea {
 .auth-text-button {
     display: block;
     width: max-content;
-    margin: 12px auto 0;
-    padding: 4px 8px;
+    margin: 20px auto 0;
+    padding: 0;
     border: 0;
     background: transparent;
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: 14px;
     text-decoration: underline;
-    text-underline-offset: 3px;
+    text-underline-offset: 4px;
+    cursor: pointer;
 }
 
 .auth-text-button:hover {
     color: var(--text-primary);
 }
 
-.auth-card strong {
+.auth-content strong {
     overflow-wrap: anywhere;
 }
 
-.auth-card button:disabled {
+.auth-content button:disabled {
     cursor: wait;
     opacity: 0.58;
     transform: none;
 }
 
-
-/* =========================================================
-   GOOGLE LOGIN
-========================================================= */
+/* GOOGLE LOGIN */
 
 .google-button {
     width: 100%;
-
     min-height: 46px;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     gap: 10px;
-
-    background: rgba(12, 16, 24, 0.3);
-
-    color: #fff;
-
-    border: 1px solid rgba(255, 255, 255, 0.22);
-
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-
-    border-radius: 8px;
-
+    background: transparent;
+    color: var(--text-primary);
+    border: none;
+    border-radius: 0;
     font-size: 14px;
-
-    margin-top: 15px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    margin-top: 0;
+    cursor: pointer;
 }
 
 .google-button:hover {
-    background: rgba(12, 16, 24, 0.5);
+    background: transparent;
+    opacity: 0.7;
 }
 
-
-/* =========================================================
-   DIVIDER
-========================================================= */
+/* DIVIDER */
 
 .auth-divider {
     display: flex;
-
     align-items: center;
-
+    justify-content: center;
     gap: 12px;
-
-    margin: 22px 0;
-
-    color: #555;
-
+    margin: 24px 0;
+    color: var(--text-secondary);
     font-size: 12px;
 }
 
 .auth-divider::before,
 .auth-divider::after {
-    content: "";
-
-    flex: 1;
-
-    height: 1px;
-
-    background: #222;
+    display: none;
 }
 
-
-/* =========================================================
-   SMALL TEXT
-========================================================= */
+/* SMALL TEXT */
 
 small {
     color: #666;
@@ -1361,10 +1281,7 @@ small {
     font-size: 11px;
 }
 
-
-/* =========================================================
-   LOADING
-========================================================= */
+/* LOADING */
 
 .loading {
     color: #666;
@@ -1372,10 +1289,7 @@ small {
     font-size: 14px;
 }
 
-
-/* =========================================================
-   ERROR
-========================================================= */
+/* ERROR */
 
 .error-message {
     color: #aaa;
@@ -1385,26 +1299,17 @@ small {
     padding: 15px 0;
 }
 
-
-/* =========================================================
-   HIDDEN
-========================================================= */
+/* HIDDEN */
 
 .hidden {
     display: none !important;
 }
 
-/* =========================================================
-   PREMIUM GLASS REFINEMENTS
-========================================================= */
+/* PREMIUM GLASS REFINEMENTS */
 
 .competition-search,
 .competition-section,
 .competition-card,
-.auth-card {
-    background: var(--glass-panel);
-    border-color: var(--glass-border);
-}
 
 .competition-result,
 .profile-detail,
@@ -1474,10 +1379,7 @@ small,
     text-shadow: 0 0 16px rgba(216, 244, 255, 0.68);
 }
 
-
-/* =========================================================
-   MOBILE
-========================================================= */
+/* MOBILE */
 
 @media (max-width: 800px) {
 
@@ -1522,15 +1424,13 @@ small,
 
 }
 
-
 @media (max-width: 600px) {
 
     .person-card,
     .profile-card,
     .workout-form,
     .competition-search,
-    .competition-section,
-    .auth-card {
+    .competition-section {
         padding: 22px;
     }
 
@@ -1587,10 +1487,7 @@ small,
 
 }
 
-
-/* =========================================================
-   SF PRO TYPE & CONTRAST SYSTEM
-========================================================= */
+/* SF PRO TYPE & CONTRAST SYSTEM */
 
 .topbar nav button,
 .hero h1,
@@ -1604,7 +1501,7 @@ small,
 .profile-header h2,
 .public-profile-header h2,
 .profile-detail strong,
-.auth-card h1,
+.auth-content h1,
 .auth-footer a,
 .competition-user-info strong {
     color: var(--text-primary);
@@ -1646,12 +1543,6 @@ small,
 .competition-search,
 .competition-section,
 .competition-card,
-.auth-card {
-    color: var(--text-primary);
-    background: var(--glass-panel);
-    border-color: var(--glass-border);
-    box-shadow: 0 18px 45px rgba(16, 24, 32, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.82);
-}
 
 .workout-item,
 .history-workout,
@@ -1718,7 +1609,7 @@ small,
     letter-spacing: 0.12em;
 }
 
-.auth-card h1 {
+.auth-content h1 {
     font-size: clamp(2.25rem, 5vw, 3rem);
     font-weight: 600;
     line-height: 1.06;
@@ -1899,10 +1790,7 @@ textarea:focus-visible {
     }
 }
 
-
-/* =========================================================
-   MINIMAL CANVAS & QUIET MOTION
-========================================================= */
+/* MINIMAL CANVAS & QUIET MOTION */
 
 body {
     background: var(--page-bg);
@@ -1935,13 +1823,6 @@ body {
 .competition-search,
 .competition-section,
 .competition-card,
-.auth-card {
-    background: var(--glass-panel);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-card);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
 
 .workout-item,
 .history-workout,
@@ -1962,7 +1843,6 @@ body {
 .competition-search,
 .competition-section,
 .competition-card,
-.auth-card,
 .competition-result,
 .profile-detail,
 .profile-upload,
@@ -2267,10 +2147,7 @@ main.container,
     }
 }
 
-
-/* =========================================================
-   LIGHT / DARK APPEARANCE SWITCH
-========================================================= */
+/* LIGHT / DARK APPEARANCE SWITCH */
 
 .topbar-actions {
     display: flex;
@@ -2374,7 +2251,6 @@ body *::after,
 .competition-search,
 .competition-section,
 .competition-card,
-.auth-card,
 .workout-item,
 .history-workout,
 .competition-result,
@@ -2546,9 +2422,7 @@ textarea:focus {
     }
 }
 
-/* =========================================================
-   FIRST-TIME PROFILE SETUP
-========================================================= */
+/* FIRST-TIME PROFILE SETUP */
 
 #firstSetupPage {
     min-height: 100vh;
@@ -3007,11 +2881,7 @@ textarea:focus {
     }
 }
 
-
-/* =========================================================
-   GLOBAL TOPBAR - FIRST SETUP STYLE
-   Applies consistently to every page using #navbar
-========================================================= */
+/* GLOBAL TOPBAR - FIRST SETUP STYLE Applies consistently to every page using #navbar */
 
 @media (max-width: 520px) {
     .topbar {
@@ -3029,11 +2899,7 @@ textarea:focus {
     }
 }
 
-
-/* =========================================================
-   GLOBAL NAVIGATION - CLEAN BLUE SETUP STYLE
-   Same visual language as askforfirstuseraftersignup.html
-========================================================= */
+/* GLOBAL NAVIGATION - CLEAN BLUE SETUP STYLE Same visual language as askforfirstuseraftersignup.html */
 
 body {
     background:
@@ -3117,11 +2983,7 @@ body {
     }
 }
 
-
-/* =========================================================
-   GLOBAL NAVIGATION - CLEAN BLUE SETUP STYLE
-   Same visual language as askforfirstuseraftersignup.html
-========================================================= */
+/* GLOBAL NAVIGATION - CLEAN BLUE SETUP STYLE Same visual language as askforfirstuseraftersignup.html */
 
 body {
     background:
