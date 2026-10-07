@@ -12,7 +12,7 @@ const currentPage = getCurrentPage();
 
 const navbarHTML = `
 <header class="topbar">
-    <div class="logo">JUST DO IT</div>
+    <div class="logo">MUSTMAKE</div>
     <nav>
         ${navLink("index.html", "Today", currentPage)}
         ${navLink("competition.html", "Others", currentPage)}

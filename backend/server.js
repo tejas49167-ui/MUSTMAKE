@@ -23,10 +23,7 @@ const auth = require("./middleware/auth");
 
 const app = express();
 
-
-// =====================================================
 // BASIC CONFIGURATION
-// =====================================================
 
 const jsonParser = express.json({ limit: "3mb" });
 app.use((req, res, next) => {
@@ -51,10 +48,7 @@ app.use(
 
 app.use(passport.initialize());
 
-
-// =====================================================
 // MONGODB
-// =====================================================
 
 let mongoConnection = null;
 
@@ -94,9 +88,7 @@ async function connectDB() {
 }
 
 
-// =====================================================
 // TIME / DATE HELPERS
-// =====================================================
 
 const APP_TIME_ZONE =
     process.env.APP_TIME_ZONE ||
@@ -248,10 +240,7 @@ function parseWorkoutNumber(value, { integer = false, min = 0 } = {}) {
     return { valid, value: valid ? number : null };
 }
 
-
-// =====================================================
 // GOOGLE AUTHENTICATION
-// =====================================================
 
 passport.use(
     new GoogleStrategy(
@@ -301,10 +290,7 @@ passport.use(
                             profile.id
                     });
 
-
-                // -------------------------------------------------
                 // If Google ID doesn't exist, try matching email
-                // -------------------------------------------------
 
                 if (!user) {
 
@@ -315,10 +301,7 @@ passport.use(
                         });
                 }
 
-
-                // -------------------------------------------------
                 // Create new account
-                // -------------------------------------------------
 
                 if (!user) {
 
@@ -361,10 +344,7 @@ passport.use(
                         });
 
                 } else {
-
-                    // -------------------------------------------------
                     // Existing account
-                    // -------------------------------------------------
 
                     user.googleId =
                         profile.id;
@@ -407,9 +387,7 @@ passport.use(
         }
     )
 );
-// =====================================================
 // OTP HELPERS
-// =====================================================
 
 const OTP_EXPIRY_MINUTES = 5;
 const OTP_MAX_ATTEMPTS = 5;
@@ -474,16 +452,16 @@ async function sendOTPEmail(email, otp, purpose) {
 
     const action =
         purpose === "signup"
-            ? "create your Just Do It account"
-            : "login to your Just Do It account";
+            ? "create your MUSTMAKE account"
+            : "login to your MUSTMAKE account";
 
     await transporter.sendMail({
         from: process.env.GMAIL_USER,
         to: email,
-        subject: "Your Just Do It verification code",
+        subject: "Your MUSTMAKE verification code",
         html: `
                     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
-                        <h2>Just Do It</h2>
+                        <h2>MUSTMAKE</h2>
 
                         <p>
                             Use this verification code to ${action}:
@@ -509,10 +487,7 @@ async function sendOTPEmail(email, otp, purpose) {
                 `
     });
 }
-
-// =====================================================
 // SEND OTP
-// =====================================================
 
 app.post(
     "/api/auth/send-otp",
@@ -562,9 +537,7 @@ app.post(
 
             const existingUser = await User.findOne({ email: cleanEmail });
 
-            // -------------------------------------------------
             // SIGNUP
-            // -------------------------------------------------
 
             if (
                 purpose === "signup" &&
@@ -572,13 +545,11 @@ app.post(
             ) {
                 return res.status(409).json({
                     message:
-                        "Email already registered. Please login instead."
+                        "Email already registered. Please login"
                 });
             }
 
-            // -------------------------------------------------
             // LOGIN
-            // -------------------------------------------------
 
             if (
                 purpose === "login" &&
@@ -735,10 +706,7 @@ app.post(
         }
     }
 );
-
-// =====================================================
 // VERIFY OTP
-// =====================================================
 
 app.post(
     "/api/auth/verify-otp",
@@ -931,9 +899,7 @@ app.post(
     }
 );
 
-// =====================================================
 // SIGN UP
-// =====================================================
 
 app.post(
     "/api/auth/signup",
@@ -942,10 +908,7 @@ app.post(
     })
 );
 
-
-// =====================================================
 // LOGIN
-// =====================================================
 
 app.post(
     "/api/auth/login",
@@ -1093,10 +1056,7 @@ app.post(
     }
 );
 
-
-// =====================================================
 // GOOGLE LOGIN
-// =====================================================
 
 app.get(
     "/api/auth/google",
@@ -1198,11 +1158,7 @@ app.get(
     }
 );
 
-
-// =====================================================
 // GET CURRENT USER
-// =====================================================
-
 app.get(
     "/api/auth/me",
     auth,
@@ -1253,9 +1209,7 @@ app.get(
         }
     }
 );
-// ==========================================
 // USER PROFILE
-// ==========================================
 
 // GET MY PROFILE
 app.get(
@@ -1477,10 +1431,7 @@ app.put(
     }
 );
 
-
-// ==========================================
 // SEARCH USERS
-// ==========================================
 
 app.get(
     "/api/users/search",
@@ -1550,9 +1501,7 @@ app.get(
     }
 );
 
-// ==========================================
 // PUBLIC USER PROFILE
-// ==========================================
 
 app.get(
     "/api/users/:id",
@@ -1615,9 +1564,7 @@ app.get(
     }
 );
 
-// =====================================================
 // COMPETITION - ADD USER
-// =====================================================
 
 app.post(
     "/api/competition/add",
@@ -1754,9 +1701,7 @@ app.delete("/api/competition/:userId", auth, async (req, res) => {
 });
 
 
-// =====================================================
 // COMPETITION - GET MY COMPETITORS
-// =====================================================
 
 app.get(
     "/api/competition",
@@ -1836,9 +1781,7 @@ app.get(
 );
 
 
-// =====================================================
 // ADD WORKOUT
-// =====================================================
 
 app.post(
     "/api/workouts",
@@ -1943,10 +1886,7 @@ app.post(
     }
 );
 
-
-// =====================================================
 // TODAY'S WORKOUTS
-// =====================================================
 
 app.get(
     "/api/workouts/today",
@@ -1999,9 +1939,7 @@ app.get(
 );
 
 
-// =====================================================
 // STREAK
-// =====================================================
 
 app.get(
     "/api/workouts/streaks",
@@ -2056,9 +1994,7 @@ app.get(
 );
 
 
-// =====================================================
 // HISTORY
-// =====================================================
 
 app.get(
     "/api/workouts/history",
@@ -2108,9 +2044,7 @@ app.get(
 );
 
 
-// =====================================================
 // DELETE WORKOUT
-// =====================================================
 
 app.delete(
     "/api/workouts/:id",
@@ -2171,9 +2105,7 @@ app.delete(
 );
 
 
-// =====================================================
 // HEALTH CHECK
-// =====================================================
 
 app.get(
     "/",
@@ -2195,9 +2127,7 @@ app.use((error, req, res, next) => {
 });
 
 
-// =====================================================
 // SERVER
-// =====================================================
 
 const PORT =
     process.env.PORT || 4000;
