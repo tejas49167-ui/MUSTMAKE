@@ -145,7 +145,7 @@ async function loadToday() {
 
 function displayTodayWorkouts(container, workouts) {
     if (workouts.length === 0) {
-        container.innerHTML = `<p class="no-workout">No workout recorded yet.</p>`;
+        container.innerHTML = `<p class="no-workout">Nothing , please grow .</p>`;
         return;
     }
 

@@ -42,7 +42,11 @@
                             id="dateOfBirth"
                             autocomplete="bday"
                             aria-describedby="dateOfBirthHint"
+                            
                             required
+                            onkeydown="return false"
+                        onpaste="return false"
+                        placeholder="Click the Calender"
                         >
                         <small id="dateOfBirthHint" class="field-hint">Your age can be shown on your profile. Your full birth date is not displayed.</small>
                     </div>

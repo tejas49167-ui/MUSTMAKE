@@ -82,6 +82,21 @@ function calculateAge(dateOfBirth) {
 function displayProfile({ user, workoutHistory = [] }) {
     const photo = safeImageUrl(user.profilePicture) || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || "User")}&background=181818&color=ffffff`;
     const age = calculateAge(user.dateOfBirth);
+    const hasHeight = user.height !== null && user.height !== undefined &&
+        String(user.height).trim() !== "";
+    const hasWeight = user.weight !== null && user.weight !== undefined &&
+        String(user.weight).trim() !== "";
+    const profileDetails = [
+        age !== null
+            ? `<div class="profile-detail"><strong>${escapeHtml(age)}</strong><span>years old</span></div>`
+            : "",
+        hasHeight
+            ? `<div class="profile-detail"><strong>${escapeHtml(user.height)}</strong><span>cm tall</span></div>`
+            : "",
+        hasWeight
+            ? `<div class="profile-detail"><strong>${escapeHtml(user.weight)}</strong><span>kg</span></div>`
+            : ""
+    ].filter(Boolean).join("");
     const socials = Object.entries(user.socials || {})
         .map(([key, value]) => {
             const href = safeSocialUrl(value);
@@ -104,11 +119,7 @@ function displayProfile({ user, workoutHistory = [] }) {
             <h2>${escapeHtml(user.name || "User")}</h2>
             <p class="profile-username">${user.username ? `@${escapeHtml(user.username)}` : ""}</p>
         </header>
-        <div class="profile-details">
-            <div class="profile-detail"><span>Age</span><strong>${age == null ? "Not set" : `${age} years`}</strong></div>
-            <div class="profile-detail"><span>Height</span><strong>${user.height ? `${escapeHtml(user.height)} cm` : "Not set"}</strong></div>
-            <div class="profile-detail"><span>Weight</span><strong>${user.weight ? `${escapeHtml(user.weight)} kg` : "Not set"}</strong></div>
-        </div>
+        ${profileDetails ? `<p id="publicProfileIs">is</p><div class="profile-details">${profileDetails}</div>` : ""}
         ${socials ? `<section class="profile-socials"><h3>Socials</h3>${socials}</section>` : ""}
         <section class="public-workout-history">
             <h2>Workout history</h2>

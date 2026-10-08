@@ -16,7 +16,7 @@
     <div id="navbar"></div>
 
     <main class="profile-container">
-        <section class="profile-card">
+        <section >
             <div class="profile-photo-container">
                 <img id="profilePhoto" src="" alt="Profile Photo" class="profile-photo" decoding="async">
             </div>
@@ -24,18 +24,19 @@
             <h1 id="profileName">Loading...</h1>
             <p id="profileUsername" class="profile-username">@username</p>
 
-            <div class="profile-details">
-                <div class="profile-detail">
-                    <span>Age</span>
-                    <strong id="profileAge">—</strong>
+            <p id="profileIs" hidden>is</p>
+            <div class="profile-details" id="profileDetails" hidden>
+                <div class="social-sections" id="profileAgeSection" hidden>
+                    <strong id="profileAge"></strong>
+                    <span>years old</span>
                 </div>
-                <div class="profile-detail">
-                    <span>Height</span>
-                    <strong id="profileHeight">—</strong>
+                <div class="social-sections" id="profileHeightSection" hidden>
+                    <strong id="profileHeight"></strong>
+                    <span>cm tall</span>
                 </div>
-                <div class="profile-detail">
-                    <span>Weight</span>
-                    <strong id="profileWeight">—</strong>
+                <div class="social-sections" id="profileWeightSection" hidden>
+                    <strong id="profileWeight"></strong>
+                    <span>kg</span>
                 </div>
             </div>
 

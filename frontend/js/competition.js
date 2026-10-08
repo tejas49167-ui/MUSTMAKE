@@ -20,8 +20,6 @@ const searchResults = document.getElementById("searchResults");
 const competitionList = document.getElementById("competitionList");
 const searchControl = document.getElementById("peopleSearch");
 const searchToggle = document.getElementById("searchToggle");
-const searchOverlay = document.getElementById("peopleSearchOverlay");
-const searchClose = document.getElementById("searchClose");
 
 function escapeHTML(value) {
     const div = document.createElement("div");
@@ -31,49 +29,8 @@ function escapeHTML(value) {
 
 let searchTimer = null;
 
-function openPeopleSearch() {
-    searchControl.classList.add("is-open");
-    searchToggle.setAttribute("aria-expanded", "true");
-    searchOverlay.setAttribute("aria-hidden", "false");
-    requestAnimationFrame(() => usernameSearch.focus());
-}
-
-function closePeopleSearch() {
-    searchControl.classList.remove("is-open");
-    searchToggle.setAttribute("aria-expanded", "false");
-    searchOverlay.setAttribute("aria-hidden", "true");
-    usernameSearch.value = "";
-    usernameSearch.blur();
-    clearTimeout(searchTimer);
-    searchResults.innerHTML = "";
-}
-
-searchToggle.addEventListener("click", () => {
-    if (searchControl.classList.contains("is-open")) {
-        closePeopleSearch();
-    } else {
-        openPeopleSearch();
-    }
-});
-
-searchClose.addEventListener("click", closePeopleSearch);
-
-document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && searchControl.classList.contains("is-open")) {
-        closePeopleSearch();
-        searchToggle.focus();
-    }
-});
-
-document.addEventListener("click", event => {
-    if (
-        searchControl.classList.contains("is-open") &&
-        !searchControl.contains(event.target) &&
-        !searchResults.contains(event.target)
-    ) {
-        closePeopleSearch();
-    }
-});
+searchControl.classList.add("is-open");
+searchToggle.addEventListener("click", () => usernameSearch.focus());
 
 usernameSearch.addEventListener("input", () => {
     const username = usernameSearch.value.trim();

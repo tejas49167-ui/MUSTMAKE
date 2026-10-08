@@ -139,7 +139,7 @@ profileForm.addEventListener("submit", async event => {
         message.textContent = "Profile saved successfully.";
 
         setTimeout(() => {
-            window.location.href = "profile.html";
+            window.location.href = "index.html";
         }, 700);
     } catch (error) {
         console.error(error);

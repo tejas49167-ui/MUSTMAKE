@@ -1169,6 +1169,39 @@ textarea {
     color: var(--text-muted);
 }
 
+.login-method-toggle {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 20px;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    background: var(--glass-subtle);
+}
+
+.login-method-toggle button {
+    flex: 1;
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.login-method-toggle button:hover {
+    color: var(--text-primary);
+}
+
+.login-method-toggle button.is-active {
+    color: var(--text-primary);
+    background: var(--glass-panel);
+    box-shadow: var(--shadow-soft);
+}
+
 .auth-button {
     width: 100%;
     margin-top: 5px;
@@ -1772,6 +1805,8 @@ small,
 .secondary-button:focus-visible,
 .google-button:focus-visible,
 .auth-text-button:focus-visible,
+.login-method-toggle button:focus-visible,
+.otp-inline-link:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
@@ -2872,6 +2907,78 @@ textarea:focus {
     }
 }
 
+.profile-container #profileName,
+.profile-container #profileUsername,
+.profile-container #profileIs {
+    text-align: center;
+}
+
+.profile-container #profileIs {
+    margin: 1rem 0 0;
+}
+
+.profile-container .profile-details {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1.25rem;
+    padding: 1rem 0;
+}
+
+.profile-container .profile-details .social-sections {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25em;
+    text-align: center;
+}
+
+.profile-container .profile-details[hidden],
+.profile-container .profile-details [hidden] {
+    display: none !important;
+}
+
+#publicProfileIs {
+    margin: 1rem 0 0;
+    text-align: center;
+}
+
+.container.narrow #publicProfile {
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.container.narrow #publicProfile > .profile-details {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1.25rem;
+    padding: 1rem 0;
+}
+
+.container.narrow #publicProfile > .profile-details .profile-detail {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25em;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: center;
+}
+
+.container.narrow #publicProfile > .profile-details .profile-detail span {
+    display: inline;
+    margin: 0;
+    font-size: inherit;
+    color: var(--text-secondary);
+}
+
 @media (prefers-reduced-motion: reduce) {
     #firstSetupPage *,
     #firstSetupPage *::before,
@@ -2896,6 +3003,601 @@ textarea:focus {
 
     .topbar nav a {
         font-size: 12px;
+    }
+}
+
+/* ALWAYS VISIBLE PEOPLE SEARCH */
+
+.search-control {
+    width: min(100%, 620px);
+    gap: 14px;
+}
+
+.search-overlay,
+.search-control.is-open .search-overlay {
+    flex: 1 1 0;
+    width: auto;
+    max-width: 560px;
+    min-width: 0;
+    height: 44px;
+    margin-left: 0;
+    overflow: visible;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    border: 0;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transition: none;
+}
+
+.search-overlay input,
+.search-overlay input:focus {
+    height: 42px;
+    padding: 0 2px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    transition: none;
+}
+
+.search-overlay:focus-within {
+    border-bottom-color: var(--text-secondary);
+    box-shadow: none;
+}
+
+.search-trigger {
+    transition: none;
+}
+
+.competition-results:not(:empty) {
+    animation: none;
+}
+
+/* TEXT-FIRST SURFACES */
+
+.card,
+.person-card,
+.profile-card,
+.workout-form,
+.competition-search,
+.competition-section,
+.competition-card {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.workout-form {
+    padding: 12px 0 0;
+}
+
+.workout-form input,
+.workout-form select,
+.workout-form textarea,
+.profile-container .profile-card input,
+.profile-container .profile-card select,
+.profile-container .profile-card textarea {
+    padding-right: 2px;
+    padding-left: 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.workout-form input:focus,
+.workout-form select:focus,
+.workout-form textarea:focus,
+.profile-container .profile-card input:focus,
+.profile-container .profile-card select:focus,
+.profile-container .profile-card textarea:focus {
+    background: transparent;
+    border-bottom-color: var(--text-secondary);
+    box-shadow: none;
+}
+
+.workout-item,
+.history-workout {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 0;
+    padding: 14px 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.workouts {
+    gap: 0;
+}
+
+.workout-name {
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: 550;
+}
+
+.workout-details {
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.history-day {
+    margin-bottom: 42px;
+}
+
+.history-date {
+    margin: 0 0 4px;
+    padding: 0 0 10px;
+    border: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.total-display {
+    padding: 15px 0;
+    margin-bottom: 20px;
+    background: transparent;
+    border: 0;
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.competition-search,
+.competition-section {
+    padding: 0;
+    margin-bottom: 42px;
+}
+
+.competition-people h2,
+.competition-search h2,
+.competition-section h2 {
+    margin-bottom: 18px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+.competition-search-area {
+    margin-bottom: 46px;
+}
+
+.search-control {
+    min-height: 44px;
+    gap: 14px;
+}
+
+.search-trigger,
+.search-close {
+    color: var(--text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.search-trigger {
+    width: 44px;
+    height: 44px;
+}
+
+.search-trigger:hover,
+.search-close:hover {
+    color: var(--text-primary);
+    background: transparent;
+}
+
+.search-overlay,
+.search-control.is-open .search-overlay {
+    height: 44px;
+    border: 0;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.search-overlay:focus-within {
+    border-bottom-color: var(--text-secondary);
+    box-shadow: none;
+}
+
+.search-overlay input,
+.search-overlay input:focus {
+    height: 42px;
+    padding: 0 2px;
+    color: var(--text-primary);
+}
+
+.competition-results {
+    width: min(560px, 100%);
+    margin-top: 14px;
+}
+
+.competition-results {
+    gap: 0;
+}
+
+.competition-result {
+    gap: 14px;
+    padding: 15px 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.competition-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+}
+
+.competition-card {
+    padding: 22px 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.competition-card-header p,
+.recent-workouts {
+    color: var(--text-secondary);
+}
+
+.competition-card h4 {
+    margin: 14px 0 5px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.competition-card .today-workouts p {
+    margin: 5px 0;
+    font-size: 13px;
+}
+
+.competition-results .add-competitor-button,
+.competition-card .remove-competitor-button {
+    display: inline-grid;
+    flex: 0 0 42px;
+    width: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    place-items: center;
+    margin: 0;
+    padding: 0;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    box-shadow: none;
+    font-size: 23px;
+    font-weight: 400;
+}
+
+.competition-results .add-competitor-button:hover,
+.competition-card .remove-competitor-button:hover {
+    color: var(--text-primary);
+    background: var(--glass-subtle);
+    border: 0;
+    box-shadow: none;
+    transform: none;
+}
+
+.profile-detail,
+.profile-upload,
+.public-workout {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.profile-upload input[type="file"] {
+    padding: 0;
+    background: transparent;
+    border: 0;
+}
+
+.profile-upload input[type="file"]::file-selector-button,
+#firstSetupPage .photo-picker input[type="file"]::file-selector-button {
+    padding: 6px 0;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.profile-container > .profile-card,
+.container.narrow #publicProfile {
+    padding: 0;
+}
+
+.profile-details {
+    gap: 10px 22px;
+}
+
+.profile-details .profile-detail {
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.social-links a {
+    padding: 0;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    text-underline-offset: 4px;
+}
+
+.social-links a:hover {
+    color: var(--text-primary);
+    background: transparent;
+    text-decoration: underline;
+}
+
+.public-workout-list {
+    gap: 0;
+}
+
+.public-workout {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.login-method-toggle {
+    gap: 20px;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+    background: transparent;
+}
+
+.login-method-toggle button {
+    min-height: 42px;
+    padding: 8px 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.login-method-toggle button.is-active {
+    border-bottom-color: var(--text-primary);
+    background: transparent;
+    box-shadow: none;
+}
+
+.logoutBtn {
+    padding: 8px 0;
+    color: var(--danger);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+
+.logoutBtn:hover {
+    color: var(--danger);
+    background: transparent;
+    text-decoration: underline;
+    transform: none;
+}
+
+#firstSetupPage .photo-control {
+    padding: 13px 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+
+#firstSetupPage input:not([type="file"]) {
+    padding-right: 2px;
+    padding-left: 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+}
+
+#firstSetupPage input:not([type="file"]):focus-visible {
+    background: transparent;
+    border-bottom-color: var(--text-secondary);
+    box-shadow: none;
+}
+
+@media (max-width: 600px) {
+    .workout-item,
+    .history-workout {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .workout-details {
+        text-align: left;
+    }
+
+    .competition-search-area {
+        margin-bottom: 34px;
+    }
+}
+
+/* GOOGLE OAUTH BUTTON */
+
+.auth-content a.google-oauth-button {
+    width: 100%;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 0;
+    padding: 0 18px;
+    color: #3c4043;
+    background: #fff;
+    border: 1px solid #dadce0;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.18);
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.25;
+    text-decoration: none;
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.google-oauth-mark {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+}
+
+.auth-content a.google-oauth-button:hover {
+    color: #3c4043;
+    background: #f8faff;
+    border-color: #c8d8ef;
+    box-shadow: 0 2px 5px rgba(60, 64, 67, 0.2);
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+.auth-content a.google-oauth-button:active {
+    background: #f1f4f9;
+    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.18);
+    transform: translateY(0);
+}
+
+.otp-login-page .auth-container {
+    width: 100%;
+    max-width: 560px;
+    min-height: calc(100svh - 42px);
+    padding: 38px 16px 48px;
+}
+
+.otp-login-page .otp-login-form h1 {
+    margin-bottom: 12px;
+    font-size: clamp(2.25rem, 7vw, 2.6rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+    text-align: center;
+}
+
+.otp-login-subtitle {
+    max-width: 480px;
+    margin: 0 auto 30px;
+    font-size: 18px;
+    line-height: 1.45;
+    text-align: center;
+}
+
+.otp-login-subtitle strong {
+    display: block;
+    margin-top: 3px;
+    color: var(--text-primary);
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.otp-login-status {
+    margin: 12px 0 0;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.otp-resend-block {
+    margin-top: 34px;
+    text-align: center;
+}
+
+.otp-resend-prompt {
+    margin-bottom: 8px;
+    font-size: 17px;
+}
+
+.otp-resend-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+
+.otp-inline-link {
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.otp-inline-link:hover {
+    opacity: 0.72;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.otp-inline-link:disabled {
+    opacity: 0.55;
+    cursor: wait;
+    text-decoration: none;
+}
+
+.otp-login-page .auth-divider {
+    gap: 16px;
+    margin: 42px 0 24px;
+    font-size: 16px;
+}
+
+.otp-login-page .auth-divider::before,
+.otp-login-page .auth-divider::after {
+    display: block;
+    flex: 1;
+    border-top: 1px solid var(--glass-border);
+    content: "";
+}
+
+@media (max-width: 520px) {
+    .otp-login-page .auth-container {
+        padding: 32px 16px 40px;
+    }
+
+    .otp-inline-link {
+        font-size: 16px;
     }
 }
 

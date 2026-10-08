@@ -23,16 +23,14 @@
                     class="search-trigger"
                     id="searchToggle"
                     type="button"
-                    aria-label="Search people"
-                    aria-expanded="false"
-                    aria-controls="peopleSearchOverlay"
+                    aria-label="Focus people search"
                 >
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <circle cx="10.8" cy="10.8" r="6.8"></circle>
                         <path d="m16 16 4.2 4.2"></path>
                     </svg>
                 </button>
-                <div class="search-overlay" id="peopleSearchOverlay" aria-hidden="true">
+                <div class="search-overlay" id="peopleSearchOverlay">
                     <label class="visually-hidden" for="usernameSearch">Search people</label>
                     <input
                         type="search"
@@ -40,11 +38,6 @@
                         placeholder="Search people"
                         autocomplete="off"
                     >
-                    <button class="search-close" id="searchClose" type="button" aria-label="Close search">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path d="m6 6 12 12M18 6 6 18"></path>
-                        </svg>
-                    </button>
                 </div>
             </div>
             <div id="searchResults" class="competition-results" aria-live="polite"></div>

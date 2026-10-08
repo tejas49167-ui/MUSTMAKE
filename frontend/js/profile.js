@@ -85,14 +85,27 @@ async function loadProfile() {
         document.getElementById("profileUsername").textContent = `@${user.username}`;
 
         const age = calculateAge(user.dateOfBirth);
-        document.getElementById("profileAge").textContent =
-            age !== null ? `${age} years` : "Not set";
+        const hasAge = age !== null;
+        document.getElementById("profileAge").textContent = hasAge ? age : "";
+        document.getElementById("profileAgeSection").hidden = !hasAge;
 
-        document.getElementById("profileHeight").textContent =
-            user.height ? `${user.height} cm` : "Not set";
+        const hasHeight = user.height !== null && user.height !== undefined &&
+            String(user.height).trim() !== "";
+        document.getElementById("profileHeight").textContent = hasHeight
+            ? user.height
+            : "";
+        document.getElementById("profileHeightSection").hidden = !hasHeight;
 
-        document.getElementById("profileWeight").textContent =
-            user.weight ? `${user.weight} kg` : "Not set";
+        const hasWeight = user.weight !== null && user.weight !== undefined &&
+            String(user.weight).trim() !== "";
+        document.getElementById("profileWeight").textContent = hasWeight
+            ? user.weight
+            : "";
+        document.getElementById("profileWeightSection").hidden = !hasWeight;
+
+        const hasProfileDetails = hasAge || hasHeight || hasWeight;
+        document.getElementById("profileDetails").hidden = !hasProfileDetails;
+        document.getElementById("profileIs").hidden = !hasProfileDetails;
 
         const photo = document.getElementById("profilePhoto");
         if (user.profilePicture) {
