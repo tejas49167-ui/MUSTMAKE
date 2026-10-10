@@ -23,7 +23,7 @@ function saveAuth(token, user) {
 function logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    window.location.href = "login.html";
+    window.location.href = "/login";
 }
 
 function authHeaders() {
@@ -111,7 +111,7 @@ async function loadToday() {
 
     const user = getCurrentUser();
     if (!user) {
-        window.location.href = "login.html";
+        window.location.href = "/login";
         return;
     }
 
@@ -332,7 +332,7 @@ async function saveWorkout(event) {
         const token = localStorage.getItem("token");
         if (!token) {
             message.textContent = "Please login first.";
-            window.location.href = "login.html";
+            window.location.href = "/login";
             return;
         }
 
@@ -379,7 +379,7 @@ async function loadHistory() {
     if (!historyContainer) return;
 
     if (!getToken()) {
-        window.location.href = "login.html";
+        window.location.href = "/login";
         return;
     }
 

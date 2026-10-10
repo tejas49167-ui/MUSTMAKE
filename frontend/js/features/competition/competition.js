@@ -12,7 +12,7 @@ function authHeaders() {
 function logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    window.location.href = "login.html";
+    window.location.href = "/login";
 }
 
 const usernameSearch = document.getElementById("usernameSearch");
@@ -88,7 +88,7 @@ function displaySearchResults(users) {
 
         return `
             <div class="competition-result">
-                <a class="competition-user competition-user-link" href="user-profile.html?id=${encodeURIComponent(user._id)}">
+                <a class="competition-user competition-user-link" href="/user-profile?id=${encodeURIComponent(user._id)}">
                     ${
                         user.profilePicture
                             ? `<img src="${escapeHTML(user.profilePicture)}" alt="" class="competition-avatar">`
@@ -229,7 +229,7 @@ async function loadCompetition() {
 
             card.innerHTML = `
                 <div class="competition-card-header">
-                    <a class="competition-card-profile competition-user-link" href="user-profile.html?id=${encodeURIComponent(competitor.id)}">
+                    <a class="competition-card-profile competition-user-link" href="/user-profile?id=${encodeURIComponent(competitor.id)}">
                         ${photo}
                         <div>
                             <h3>${safeName}</h3>
@@ -266,7 +266,7 @@ function workoutDetails(workout) {
 }
 
 if (!getToken()) {
-    window.location.href = "login.html";
+    window.location.href = "/login";
 } else {
     loadCompetition();
 }

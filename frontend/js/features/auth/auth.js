@@ -26,7 +26,7 @@ window.addEventListener("storage", (event) => {
             window.redirectAfterAuthentication(JSON.parse(localStorage.getItem("user")));
         } catch (error) {
             console.error("Could not read the signed-in user.", error);
-            window.location.replace("../index.html");
+            window.location.replace("/today");
         }
     }
 });

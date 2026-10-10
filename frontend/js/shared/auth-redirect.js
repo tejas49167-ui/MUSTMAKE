@@ -1,7 +1,7 @@
 window.redirectAfterAuthentication = function (user) {
     const destination = user?.dateOfBirth
-        ? "../index.html"
-        : "firstdetails.html";
+        ? "/today"
+        : "/first-details";
 
     window.location.replace(destination);
 };

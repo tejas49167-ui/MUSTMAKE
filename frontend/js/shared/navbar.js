@@ -1,6 +1,12 @@
 function getCurrentPage() {
-    const path = window.location.pathname;
-    return path.substring(path.lastIndexOf("/") + 1) || "index.html";
+    const path = window.location.pathname.replace(/\.html$/, "").replace(/\/+$/, "") || "/";
+    const legacyRoutes = {
+        "/pages/index": "/today",
+        "/pages/competition": "/competition",
+        "/pages/profile": "/profile"
+    };
+
+    return legacyRoutes[path] || path;
 }
 
 function navLink(href, label, currentPage) {
@@ -14,9 +20,9 @@ const navbarHTML = `
 <header class="topbar">
     <div class="logo">MUSTMAKE</div>
     <nav>
-        ${navLink("index.html", "Today", currentPage)}
-        ${navLink("competition.html", "Others", currentPage)}
-        ${navLink("profile.html", "Profile", currentPage)}
+        ${navLink("/today", "Today", currentPage)}
+        ${navLink("/competition", "Others", currentPage)}
+        ${navLink("/profile", "Profile", currentPage)}
     </nav>
     <div class="topbar-actions">
         <button
@@ -57,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         logoutBtn.addEventListener("click", () => {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
-            window.location.href = "login.html";
+            window.location.href = "/login";
         });
     }
 });

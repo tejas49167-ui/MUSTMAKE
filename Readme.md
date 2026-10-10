@@ -38,6 +38,7 @@ The application provides workout tracking, user authentication, and a backend AP
 MUSTMAKE/
 ├── frontend/
 │   ├── index.html
+│   ├── vercel.json
 │   ├── pages/
 │   │   ├── index.html
 │   │   ├── history.html
@@ -110,3 +111,5 @@ MUSTMAKE/
 ├── Readme.md
 └── SECURITY.md
 ```
+
+The frontend Vercel project should use `frontend/` as its root directory so it loads `frontend/vercel.json`.

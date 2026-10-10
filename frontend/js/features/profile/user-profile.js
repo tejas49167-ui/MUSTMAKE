@@ -130,7 +130,7 @@ function displayProfile({ user, workoutHistory = [] }) {
 
 async function loadPublicProfile() {
     if (!profileToken) {
-        window.location.href = "login.html";
+        window.location.href = "/login";
         return;
     }
     if (!profileId) {
@@ -145,7 +145,7 @@ async function loadPublicProfile() {
         if (response.status === 401) {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
-            window.location.href = "login.html";
+            window.location.href = "/login";
             return;
         }
         const data = await response.json();

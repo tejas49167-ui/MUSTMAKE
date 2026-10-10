@@ -5,7 +5,7 @@ function getToken() {
 function logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    window.location.href = "login.html";
+    window.location.href = "/login";
 }
 
 const profilePictureInput = document.getElementById("profilePicture");
@@ -192,7 +192,7 @@ profileForm.addEventListener("submit", async event => {
         message.textContent = "Profile saved successfully.";
 
         setTimeout(() => {
-            window.location.href = "index.html";
+            window.location.href = "/today";
         }, 700);
     } catch (error) {
         console.error(error);
@@ -233,7 +233,7 @@ if (deleteAccountButton) {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             deleteAccountMessage.textContent = "Account deleted. Redirecting...";
-            window.setTimeout(() => window.location.replace("signup.html"), 600);
+            window.setTimeout(() => window.location.replace("/signup"), 600);
         } catch (error) {
             console.error(error);
             deleteAccountMessage.textContent = error instanceof TypeError

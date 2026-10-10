@@ -1,0 +1,31 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/pages/index", "destination": "/today", "permanent": true },
+    { "source": "/pages/history", "destination": "/history", "permanent": true },
+    { "source": "/pages/login", "destination": "/login", "permanent": true },
+    { "source": "/pages/signup", "destination": "/signup", "permanent": true },
+    { "source": "/pages/profile", "destination": "/profile", "permanent": true },
+    { "source": "/pages/edit-profile", "destination": "/edit-profile", "permanent": true },
+    { "source": "/pages/user-profile", "destination": "/user-profile", "permanent": true },
+    { "source": "/pages/add-workout", "destination": "/add-workout", "permanent": true },
+    { "source": "/pages/competition", "destination": "/competition", "permanent": true },
+    { "source": "/pages/google-callback", "destination": "/google-callback", "permanent": true },
+    { "source": "/pages/firstdetails", "destination": "/first-details", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/today", "destination": "/pages/index" },
+    { "source": "/history", "destination": "/pages/history" },
+    { "source": "/login", "destination": "/pages/login" },
+    { "source": "/signup", "destination": "/pages/signup" },
+    { "source": "/profile", "destination": "/pages/profile" },
+    { "source": "/edit-profile", "destination": "/pages/edit-profile" },
+    { "source": "/user-profile", "destination": "/pages/user-profile" },
+    { "source": "/add-workout", "destination": "/pages/add-workout" },
+    { "source": "/competition", "destination": "/pages/competition" },
+    { "source": "/google-callback", "destination": "/pages/google-callback" },
+    { "source": "/first-details", "destination": "/pages/firstdetails" }
+  ]
+}
