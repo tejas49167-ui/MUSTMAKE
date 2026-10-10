@@ -117,7 +117,7 @@ a {
     align-items: center;
     justify-content: space-between;
 
-    /* Same clean header style as askforfirstuseraftersignup.html */
+    /* Same clean header style as firstdetails.html */
     background: transparent;
     border: none;
     border-bottom: none;
@@ -2664,6 +2664,14 @@ textarea:focus {
     line-height: 1.5;
 }
 
+#firstSetupPage .age-validation-message {
+    color: var(--danger);
+}
+
+#firstSetupPage .age-validation-message[hidden] {
+    display: none;
+}
+
 #firstSetupPage .metrics-grid,
 #firstSetupPage .socials-grid {
     display: grid;
@@ -3415,6 +3423,27 @@ textarea:focus {
     transform: none;
 }
 
+.account-danger-zone {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.account-danger-zone .logoutBtn {
+    display: block;
+    margin: 0 auto;
+}
+
+.account-danger-zone .logoutBtn:disabled {
+    opacity: 0.55;
+    cursor: wait;
+    text-decoration: none;
+}
+
+.account-delete-message {
+    margin-top: 8px;
+}
+
 #firstSetupPage .photo-control {
     padding: 13px 0;
     background: transparent;
@@ -3601,7 +3630,7 @@ textarea:focus {
     }
 }
 
-/* GLOBAL NAVIGATION - CLEAN BLUE SETUP STYLE Same visual language as askforfirstuseraftersignup.html */
+/* GLOBAL NAVIGATION - CLEAN BLUE SETUP STYLE Same visual language as firstdetails.html */
 
 body {
     background:
@@ -3685,7 +3714,7 @@ body {
     }
 }
 
-/* GLOBAL NAVIGATION - CLEAN BLUE SETUP STYLE Same visual language as askforfirstuseraftersignup.html */
+/* GLOBAL NAVIGATION - CLEAN BLUE SETUP STYLE Same visual language as firstdetails.html */
 
 body {
     background:

@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="../js/change_backend_url.js"></script>
-    <link rel="icon" type="image/x-icon" href="favicon.jpeg">
+    <script src="../js/core/change_backend_url.js"></script>
+    <link rel="icon" type="image/x-icon" href="../assets/images/favicon.jpeg">
     <title>Set Up Your Profile | MUSTMAKE</title>
-    <script src="../js/theme.js"></script>
-    <link rel="stylesheet" href="../style.css">
+    <script src="../js/shared/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/style.css">
     
 </head>
 
@@ -41,14 +41,15 @@
                             type="date"
                             id="dateOfBirth"
                             autocomplete="bday"
-                            aria-describedby="dateOfBirthHint"
+                            aria-describedby="dateOfBirthHint dateOfBirthError"
                             
                             required
                             onkeydown="return false"
                         onpaste="return false"
                         placeholder="Click the Calender"
                         >
-                        <small id="dateOfBirthHint" class="field-hint">Your age can be shown on your profile. Your full birth date is not displayed.</small>
+                        <small id="dateOfBirthHint" class="field-hint">You must be at least 5 years old to create an account. Your age can be shown on your profile; your full birth date is not displayed.</small>
+                        <small id="dateOfBirthError" class="field-hint age-validation-message" role="alert" hidden>You must be at least 5 years old to create an account.</small>
                     </div>
 
                     <div class="metrics-grid">
@@ -120,7 +121,7 @@
         </main>
     </div>
 
-    <script src="../js/edit-profile.js"></script>
+    <script src="../js/features/profile/edit-profile.js"></script>
 </body>
 
 </html>

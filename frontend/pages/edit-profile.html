@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="../js/change_backend_url.js"></script>
-        <link rel="icon" type="image/x-icon" href="favicon.jpeg">
+    <script src="../js/core/change_backend_url.js"></script>
+        <link rel="icon" type="image/x-icon" href="../assets/images/favicon.jpeg">
 
     <title>Edit Profile | MUSTMAKE</title>
-    <script src="../js/theme.js"></script>
-    <link rel="stylesheet" href="../style.css">
+    <script src="../js/shared/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body>
@@ -83,12 +83,17 @@
 
             <p id="profileMessage" class="auth-message"></p>
 
+            <div class="account-danger-zone">
+                <button id="deleteAccountButton" class="logoutBtn" type="button">Delete account</button>
+                <p id="deleteAccountMessage" class="auth-message account-delete-message" role="status" aria-live="polite"></p>
+            </div>
+
         </section>
 
     </main>
 
-    <script src="../js/navbar.js"></script>
-    <script src="../js/edit-profile.js"></script>
+    <script src="../js/shared/navbar.js"></script>
+    <script src="../js/features/profile/edit-profile.js"></script>
 
 </body>
 
