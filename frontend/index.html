@@ -4,207 +4,592 @@
     <meta charset="UTF-8">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#080a0f">
-    <title>MUSTMAKE</title>
+    <title>MUSTMAKE - Fitness Tracking Made Simple</title>
 
-    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.jpeg">
-    <link rel="preload" as="image" href="/assets/images/favicon.jpeg">
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.jpeg">
+    <link rel="stylesheet" href="assets/css/style.css">
 
     <style>
         * {
             box-sizing: border-box;
         }
 
-        html,
-        body {
-            margin: 0;
-            min-height: 100%;
+        html {
+            scroll-behavior: smooth;
         }
 
         body {
+            margin: 0;
             min-height: 100vh;
-            min-height: 100dvh;
-            display: grid;
-            place-items: center;
-            overflow: hidden;
-            background:
-                radial-gradient(
-                    ellipse at 50% 42%,
-                    hwb(210 24% 75% / 0.12),
-                    transparent 42%
-                ),
-                oklab(13.441% 0 -0.00002);
-            color: hwb(0 100% 0%);
-            font-family:
-                Inter,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #0d0d15 50%, #0a0a0f 100%);
+            color: #ffffff;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
-        .splash {
+        .landing-page {
             width: 100%;
             min-height: 100vh;
-            min-height: 100dvh;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .navbar-logo {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .navbar-link {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-link:hover {
+            color: #ffffff;
+        }
+
+        .navbar-cta {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 24px;
+            padding: 120px 24px 60px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-      
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(37, 99, 235, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(147, 51, 234, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
 
-     
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+        }
 
-        .logo {
-            width: 70px;
-            height: 70px;
+        .hero-badge {
+            display: inline-block;
+            background: rgba(37, 99, 235, 0.15);
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #60a5fa;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+        }
+
+        .hero-logo {
+            width: 100px;
+            height: 100px;
             display: block;
             object-fit: contain;
-            border-radius: 18px;
+            border-radius: 20px;
+            margin: 0 auto 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: float 6s ease-in-out infinite;
         }
 
-        .wordmark {
-            margin: 30px 0 0;
-            padding-left: 0.19em;
-            font-size: clamp(27px, 6vw, 34px);
-            font-weight: 750;
-            letter-spacing: 0.19em;
-            line-height: 1.2;
-            animation: text-enter 750ms ease 180ms both;
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
-        .tagline {
-            margin: 12px 0 0;
-            color: hsl(220, 2%, 51%);
-            font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 0.24em;
+        .hero h1 {
+            font-size: clamp(3rem, 7vw, 5rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin: 0 0 24px;
+            background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-tagline {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: clamp(16px, 2.5vw, 20px);
+            font-weight: 400;
             line-height: 1.7;
-            animation: text-enter 750ms ease 330ms both;
+            margin: 0 0 48px;
+            max-width: 650px;
         }
 
-        .loader {
-            width: 116px;
-            height: 2px;
-            margin-top: 42px;
-            overflow: hidden;
-            border-radius: 99px;
-            background: rgba(255, 255, 255, 0.1);
-            animation: text-enter 650ms ease 400ms both;
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
-        .loader-bar {
-            width: 40%;
-            height: 100%;
-            border-radius: inherit;
-            background: linear-gradient(
-                90deg,rgba(205, 211, 221, 0.65)rgba(72, 72, 73, 0.65)rgba(72, 72, 73, 0.65)
-                #141414,
-                hsl(0, 0%, 0%)
-            );
-            animation: loading 1.65s cubic-bezier(.4, 0, .2, 1) forwards;
-        }
-
-        .status {
-            margin-top: 17px;
-            color: #626b7a;
-            font-size: 11px;
-            font-weight: 450;
-            letter-spacing: 0.03em;
-            animation: text-enter 650ms ease 480ms both;
-        }
-
-        .continue-link {
-            margin-top: 24px;
-            color: #aabbd7;
-            font-size: 12px;
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            padding: 0 36px;
+            border-radius: 12px;
             text-decoration: none;
-            transition: color 180ms ease;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            transition: all 0.3s ease;
         }
 
-        .continue-link:hover,
-        .continue-link:focus-visible {
+        .cta-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .cta-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(37, 99, 235, 0.5);
+        }
+
+        .cta-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 120px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-header h2 {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin: 0 0 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-header p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 18px;
+            line-height: 1.7;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 32px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(37, 99, 235, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0 0 16px;
             color: #ffffff;
         }
 
-        
-
-        @keyframes logo-enter {
-            from {
-                opacity: 0;
-                transform: translateY(18px) scale(0.84);
-                filter: blur(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-                filter: blur(0);
-            }
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 15px;
+            line-height: 1.7;
+            margin: 0;
         }
 
-        @keyframes text-enter {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Workflow Section */
+        .workflow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 56px;
+            max-width: 900px;
+            margin: 0 auto;
         }
 
-       
-
-        @media (max-width: 480px) {
-            
-            .logo {
-                width: 62px;
-                height: 62px;
-                border-radius: 16px;
-            }
-
-            .wordmark {
-                margin-top: 27px;
-            }
-
-            .loader {
-                margin-top: 36px;
-            }
+        .workflow-step {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
         }
 
-        
+        .workflow-step-number {
+            width: 64px;
+            height: 64px;
+            min-width: 64px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+        }
+
+        .workflow-content h3 {
+            font-size: 26px;
+            font-weight: 600;
+            margin: 0 0 16px;
+            color: #ffffff;
+        }
+
+        .workflow-content p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        /* Tech Stack */
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 48px;
+        }
+
+        .tech-badge {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .tech-badge:hover {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%);
+            border-color: rgba(37, 99, 235, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 80px 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(135deg, rgba(10, 10, 15, 0.5) 0%, rgba(13, 13, 21, 0.5) 100%);
+        }
+
+        .footer p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 15px;
+            margin: 0;
+        }
+
+        .footer a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: #93c5fd;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 16px 20px;
+            }
+
+            .navbar-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 100px 20px 60px;
+            }
+
+            .hero-logo {
+                width: 80px;
+                height: 80px;
+            }
+
+            .section {
+                padding: 80px 20px;
+            }
+
+            .workflow-step {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .workflow-step-number {
+                width: 56px;
+                height: 56px;
+                min-width: 56px;
+                font-size: 24px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <main class="splash">
-        <div >
-            <img
-                class="logo"
+    <div class="landing-page">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <a href="#" class="navbar-logo">MUSTMAKE</a>
+            <div class="navbar-links">
+                <a href="#features" class="navbar-link">Features</a>
+                <a href="#workflow" class="navbar-link">How It Works</a>
+                <a href="#tech" class="navbar-link">Technology</a>
+            </div>
+            <a href="pages/login.html" class="navbar-cta">Get Started</a>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <span class="hero-badge">Track Your Fitness Journey</span>
+                <img
+                    class="hero-logo"
                 src="assets/images/favicon.jpeg"
-                alt="MUSTMAKE logo"
-                width="70"
-                height="70"
-                fetchpriority="high"
-            >
-        </div>
+                    alt="MUSTMAKE logo"
+                    width="120"
+                    height="120"
+                >
+                <h1>MUSTMAKE</h1>
+                <p class="hero-tagline">
+                    A fitness tracking application focused on consistency, measurable progress, and long-term improvement. Track your workouts, monitor your progress, and achieve your fitness goals.
+                </p>
+                <div class="hero-buttons">
+                    <a href="pages/login.html" class="cta-button cta-primary">Get Started</a>
+                    <a href="#features" class="cta-button cta-secondary">Learn More</a>
+                </div>
+            </div>
+        </section>
 
-        <h1 class="wordmark">MUSTMAKE</h1>
+        <!-- Features Section -->
+        <section id="features" class="section">
+            <div class="section-header">
+                <h2>Powerful Features</h2>
+                <p>Everything you need to track your fitness journey and stay motivated</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Secure Authentication</h3>
+                    <p>Sign up securely with Google OAuth or OTP-based authentication. Your data is protected with industry-standard security measures.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💪</div>
+                    <h3>Workout Tracking</h3>
+                    <p>Log your workouts with detailed exercise tracking. Record sets, reps, weights, and monitor your performance over time.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Progress Tracking</h3>
+                    <p>Visualize your fitness journey with comprehensive progress tracking. See your improvements and stay motivated to reach your goals.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏆</div>
+                    <h3>Competitions</h3>
+                    <p>Compete with friends and other users. Create or join fitness competitions to push your limits and stay accountable.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📅</div>
+                    <h3>Daily Activity</h3>
+                    <p>Track your daily activities and maintain consistency. Build healthy habits with our intuitive activity logging system.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👤</div>
+                    <h3>User Profiles</h3>
+                    <p>Customize your profile, showcase your achievements, and connect with the fitness community. Share your journey with others.</p>
+                </div>
+            </div>
+        </section>
 
+        <!-- Workflow Section -->
+        <section id="workflow" class="section">
+            <div class="section-header">
+                <h2>How It Works</h2>
+                <p>Get started with MUSTMAKE in just a few simple steps</p>
+            </div>
+            <div class="workflow-steps">
+                <div class="workflow-step">
+                    <div class="workflow-step-number">1</div>
+                    <div class="workflow-content">
+                        <h3>Create Your Account</h3>
+                        <p>Sign up using your Google account or register with your email. Our secure authentication process ensures your data stays protected. Complete your profile setup to personalize your experience.</p>
+                    </div>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-number">2</div>
+                    <div class="workflow-content">
+                        <h3>Log Your Workouts</h3>
+                        <p>Choose from our extensive exercise library or create custom workouts. Record your exercises, sets, reps, and weights. Our intuitive interface makes logging quick and easy.</p>
+                    </div>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-number">3</div>
+                    <div class="workflow-content">
+                        <h3>Track Your Progress</h3>
+                        <p>View your workout history, analyze your performance trends, and celebrate your achievements. Our progress tracking tools help you identify areas for improvement and stay motivated.</p>
+                    </div>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-step-number">4</div>
+                    <div class="workflow-content">
+                        <h3>Compete & Connect</h3>
+                        <p>Join fitness competitions, challenge friends, and connect with the community. Share your progress, get inspired by others, and push your limits together.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
+        <!-- Tech Stack Section -->
+        <section id="tech" class="section">
+            <div class="section-header">
+                <h2>Built With Modern Technology</h2>
+                <p>Powered by a robust tech stack for performance and reliability</p>
+            </div>
+            <div class="tech-stack">
+                <span class="tech-badge">HTML5</span>
+                <span class="tech-badge">CSS3</span>
+                <span class="tech-badge">JavaScript</span>
+                <span class="tech-badge">Node.js</span>
+                <span class="tech-badge">Express.js</span>
+                <span class="tech-badge">MongoDB</span>
+                <span class="tech-badge">Mongoose</span>
+                <span class="tech-badge">Google OAuth 2.0</span>
+                <span class="tech-badge">Vercel</span>
+            </div>
+        </section>
 
-
-        <a id="homeLink" class="continue-link" href="/pages/gst.html"></a>
-    </main>
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Built with ❤️ for fitness enthusiasts. <a href="pages/login.html">Start your journey today</a>.</p>
+        </footer>
+    </div>
 
     <script>
         (() => {
