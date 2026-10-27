@@ -59,6 +59,7 @@ app.get("/", (req, res) => {
 const frontendRoot = path.resolve(__dirname, "../frontend");
 if (fs.existsSync(frontendRoot)) {
     const frontendPages = {
+        "/blog": "blog.html",
         "/today": "index.html",
         "/exercises": "gst.html",
         "/gst": "gst.html",

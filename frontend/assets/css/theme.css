@@ -9,11 +9,12 @@
     --text-primary: #f2f2f2;
     --text-secondary: #b8b8b8;
     --text-muted: #8d8d8d;
-    --accent: #2563eb;
-    --accent-hover: #2563eb;
-    --accent-soft: rgba(37, 99, 235, 0.12);
+    --text-on-accent: #101010;
+    --accent: #ffffff;
+    --accent-hover: #ffffff;
+    --accent-soft: rgba(255, 255, 255, 0.12);
     --danger: #ff8a80;
-    --focus-ring: rgba(37, 99, 235, 0.45);
+    --focus-ring: #ffffff;
     --shadow-card: 0 8px 28px rgba(0, 0, 0, 0.24);
     --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -300,7 +301,7 @@
 :root[data-theme="dark"] .competition-people .remove-competitor-button:hover {
     border-color: var(--accent);
     color: var(--text-primary);
-    background: rgba(37, 99, 235, 0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 @media (max-width: 600px) {

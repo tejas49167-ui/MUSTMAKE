@@ -16,6 +16,7 @@
     { "source": "/pages/firstdetails", "destination": "/first-details", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/blog", "destination": "/pages/blog" },
     { "source": "/exercises", "destination": "/pages/gst" },
     { "source": "/exercises/:slug", "destination": "/pages/exercises/:slug" },
     { "source": "/gst", "destination": "/pages/gst" },

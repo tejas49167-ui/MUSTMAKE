@@ -57,7 +57,7 @@
     align-items: center;
     gap: 14px;
     padding: 13px;
-    background: rgba(22, 10, 12, 0.34);
+  
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 9px;
     transition: background-color 160ms ease, border-color 160ms ease;

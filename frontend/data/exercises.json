@@ -3,7 +3,7 @@
         "slug": "push-ups",
         "name": "Push-ups",
         "group": "bodyweight",
-        "media": { "src": "/assets/images/pushups.mp4", "type": "video" },
+        "media": { "src": "/assets/images/pushups.jpeg", "type": "image" },
         "modes": ["ai", "manual"],
         "manualType": "sets-reps",
         "fields": [
@@ -15,7 +15,7 @@
         "slug": "pull-ups",
         "name": "Pull-ups",
         "group": "bodyweight",
-        "media": { "src": "/assets/images/pullups.mp4", "type": "video" },
+        "media": { "src": "/assets/images/pullups.jpeg", "type": "image" },
         "modes": ["ai", "manual"],
         "manualType": "sets-reps",
         "fields": [
@@ -27,7 +27,7 @@
         "slug": "squats",
         "name": "Squats",
         "group": "bodyweight",
-        "media": { "src": "/assets/images/squats.mp4", "type": "video" },
+        "media": { "src": "/assets/images/squats.jpeg", "type": "image" },
         "modes": ["ai", "manual"],
         "manualType": "sets-reps",
         "fields": [
@@ -50,7 +50,7 @@
         "slug": "jumping-jacks",
         "name": "Jumping Jacks",
         "group": "bodyweight",
-        "media": { "src": "/assets/images/jumping_jacks.mp4", "type": "video" },
+        "media": { "src": "/assets/images/jummping_jacks.jpeg", "type": "image" },
         "modes": ["ai", "manual"],
         "manualType": "sets-reps",
         "fields": [
@@ -62,7 +62,7 @@
         "slug": "skipping-rope",
         "name": "Skipping Rope",
         "group": "bodyweight",
-        "media": { "src": "/assets/images/skipping.mp4", "type": "video" },
+        "media": { "src": "/assets/images/skipping.jpeg", "type": "image" },
         "modes": ["ai", "manual"],
         "manualType": "jumps-duration",
         "fields": [
@@ -74,7 +74,7 @@
         "slug": "running",
         "name": "Running",
         "group": "bodyweight",
-        "media": { "src": "/assets/images/running.mp4", "type": "video" },
+        "media": { "src": "/assets/images/running.jpeg", "type": "image" },
         "modes": ["manual"],
         "manualType": "distance-duration",
         "fields": [
@@ -86,7 +86,7 @@
         "slug": "walking",
         "name": "Walking",
         "group": "bodyweight",
-        "media": { "src": "/assets/images/walking.mp4", "type": "video" },
+        "media": { "src": "/assets/images/walking.jpeg", "type": "image" },
         "modes": ["manual"],
         "manualType": "distance-duration",
         "fields": [
@@ -98,7 +98,7 @@
         "slug": "biceps-curls",
         "name": "Biceps Curls",
         "group": "dumbbells",
-        "media": { "src": "/assets/images/bicepcurl.mp4", "type": "video" },
+        "media": { "src": "/assets/images/dumbellcurls.jpeg", "type": "image" },
         "modes": ["ai", "manual"],
         "manualType": "weighted-sets-reps",
         "fields": [
@@ -111,7 +111,7 @@
         "slug": "shoulder-press",
         "name": "Shoulder Press",
         "group": "dumbbells",
-        "media": { "src": "/assets/images/Shoulder_press.mp4", "type": "video" },
+        "media": { "src": "/assets/images/shoulderpress.jpeg", "type": "image" },
         "modes": ["ai", "manual"],
         "manualType": "weighted-sets-reps",
         "fields": [
@@ -124,7 +124,7 @@
         "slug": "lateral-raises",
         "name": "Lateral Raises",
         "group": "dumbbells",
-        "media": { "src": "/assets/images/lateral_raises.mp4", "type": "video" },
+        "media": { "src": "/assets/images/lateral_raises.jpeg", "type": "image" },
         "modes": ["ai", "manual"],
         "manualType": "weighted-sets-reps",
         "fields": [
@@ -137,7 +137,7 @@
         "slug": "triceps-extension",
         "name": "Triceps Extension",
         "group": "dumbbells",
-        "media": { "src": "/assets/images/tricep_extension.mp4", "type": "video" },
+        "media": { "src": "/assets/images/triceps_extension.jpeg", "type": "image" },
         "modes": ["ai", "manual"],
         "manualType": "weighted-sets-reps",
         "fields": [

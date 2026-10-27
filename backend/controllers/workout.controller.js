@@ -35,11 +35,11 @@ const addWorkout = async (req, res) => {
         };
 
         if (manualType === "sets-reps" || manualType === "weighted-sets-reps") {
-            const parsedReps = parseWorkoutNumber(reps, { integer: true, min: 1 });
-            const parsedSets = parseWorkoutNumber(sets, { integer: true, min: 1 });
+            const parsedReps = parseWorkoutNumber(reps, { integer: true, min: 1, max: 150 });
+            const parsedSets = parseWorkoutNumber(sets, { integer: true, min: 1, max: 10 });
             if (!parsedReps.valid || !parsedSets.valid ||
                 !Number.isSafeInteger(parsedReps.value * parsedSets.value)) {
-                return res.status(400).json({ message: "Reps and sets must be positive whole numbers." });
+                return res.status(400).json({ message: "Reps must be 1–150 and sets must be 1–10." });
             }
 
             workoutValues.reps = parsedReps.value;
@@ -53,18 +53,18 @@ const addWorkout = async (req, res) => {
                 workoutValues.weight = parsedWeight.value;
             }
         } else if (manualType === "duration") {
-            const parsedDuration = parseWorkoutNumber(duration, { integer: true, min: 1 });
+            const parsedDuration = parseWorkoutNumber(duration, { integer: true, min: 1, max: 900 });
             if (!parsedDuration.valid) {
-                return res.status(400).json({ message: "Duration must be a positive number of seconds." });
+                return res.status(400).json({ message: "Duration must be between 1 and 900 seconds." });
             }
             workoutValues.duration = parsedDuration.value;
         } else if (manualType === "distance-duration") {
-            const parsedDistance = parseWorkoutNumber(amount, { min: 0 });
+            const parsedDistance = parseWorkoutNumber(amount, { min: 0, max: 50 });
             const parsedDuration = duration == null || duration === ""
                 ? { valid: true, value: null }
                 : parseWorkoutNumber(duration, { integer: true, min: 1 });
             if (!parsedDistance.valid || !parsedDuration.valid) {
-                return res.status(400).json({ message: "Enter a positive distance and a valid duration." });
+                return res.status(400).json({ message: "Distance must be 50 km or less, with a valid duration." });
             }
             workoutValues.amount = parsedDistance.value;
             workoutValues.duration = parsedDuration.value;

@@ -1,0 +1,25 @@
+/* ABOUT PAGE — page-specific spacing only; colors and typography use shared tokens. */
+.about-page {
+    max-width: 760px;
+    padding-top: clamp(2.5rem, 6vw, 4.5rem);
+    padding-bottom: clamp(3rem, 7vw, 5rem);
+}
+
+.about-page .about-hero {
+    max-width: 680px;
+    margin-bottom: 2.5rem;
+}
+
+.about-page section + section {
+    margin-top: 1.75rem;
+}
+
+.about-page p {
+    max-width: 70ch;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.about-page p + p {
+    margin-top: 1rem;
+}

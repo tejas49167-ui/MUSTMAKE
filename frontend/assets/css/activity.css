@@ -21,7 +21,6 @@
 
     padding-bottom: 24px;
 
-    border-bottom: 1px solid #222;
 }
 
 .person-top h2 {
@@ -173,7 +172,7 @@
 }
 
 .main-button:hover {
-    background: rgba(82, 123, 169, 0.2);
+    background: rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
 }
 
@@ -188,7 +187,7 @@
 }
 
 .secondary-button:hover {
-    background: rgba(82, 123, 169, 0.12);
+    background: rgba(255, 255, 255, 0.12);
     transform: translateY(-1px);
 }
 

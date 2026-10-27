@@ -13,8 +13,9 @@
                 JSON.parse(localStorage.getItem("user") || "null")
             );
             if (isAuthenticated) window.location.replace("/pages/index.html");
+            else window.location.replace("/blog#exercises");
         } catch {
-            // Invalid stored auth data is treated as a guest session.
+            window.location.replace("/blog#exercises");
         }
     </script>
     <script src="/js/core/change_backend_url.js"></script>

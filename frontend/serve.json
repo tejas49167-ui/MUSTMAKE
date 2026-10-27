@@ -1,0 +1,19 @@
+{
+  "public": ".",
+  "rewrites": [
+    { "source": "/blog", "destination": "/pages/blog.html" },
+    { "source": "/exercises", "destination": "/pages/gst.html" },
+    { "source": "/exercises/:slug", "destination": "/pages/exercises/:slug.html" },
+    { "source": "/gst", "destination": "/pages/gst.html" },
+    { "source": "/today", "destination": "/pages/index.html" },
+    { "source": "/history", "destination": "/pages/history.html" },
+    { "source": "/login", "destination": "/pages/login.html" },
+    { "source": "/signup", "destination": "/pages/signup.html" },
+    { "source": "/profile", "destination": "/pages/profile.html" },
+    { "source": "/edit-profile", "destination": "/pages/edit-profile.html" },
+    { "source": "/user-profile", "destination": "/pages/user-profile.html" },
+    { "source": "/competition", "destination": "/pages/competition.html" },
+    { "source": "/google-callback", "destination": "/pages/google-callback.html" },
+    { "source": "/first-details", "destination": "/pages/firstdetails.html" }
+  ]
+}

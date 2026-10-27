@@ -203,7 +203,7 @@
                 </button>
             `
             : `
-                ${navLink("/pages/gst.html", "Exercises", currentPage)}
+                ${navLink("/exercises", "Exercises", currentPage)}
                 ${navLink("/pages/about-us.html", "About us", currentPage)}
                 ${navLink("/login", "Login", currentPage)}
                 ${navLink("/signup", "Sign up", currentPage)}
@@ -241,7 +241,6 @@
         const bottomNavigationHTML = isAuthenticated
             ? `
                 <nav class="bottom-navigation" aria-label="Main navigation">
-
                     ${bottomNavLink(
                         "/today",
                         "Exercises",
@@ -287,7 +286,7 @@
                     ${menuButtonHTML}
 
                     <a class="logo"
-                        href="${isAuthenticated ? "/today" : "/pages/gst.html"}"
+                        href="${isAuthenticated ? "/today" : "/blog"}"
                         aria-label="MUSTMAKE home">
                         MUSTMAKE
                     </a>
@@ -528,7 +527,7 @@
                 window.clearPrivateCaches();
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
-                window.location.href = "/login";
+                window.location.href = "/blog";
             });
         });
 
@@ -556,7 +555,7 @@
                     window.clearPrivateCaches();
                     localStorage.removeItem("token");
                     localStorage.removeItem("user");
-                    window.location.href = "/login";
+                    window.location.href = "/blog";
                     return;
                 }
                 if (!response.ok) {
@@ -567,7 +566,7 @@
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
                 deleteAccountMessage.textContent = "Account deleted. Redirecting...";
-                window.setTimeout(() => window.location.replace("/signup"), 600);
+                window.setTimeout(() => window.location.replace("/blog"), 600);
             } catch (error) {
                 console.error("Account deletion error:", error);
                 deleteAccountMessage.textContent = error instanceof TypeError

@@ -1,4 +1,4 @@
-/* Consistent faded-white and tinted-blue theme across viewport sizes */
+/* Consistent faded-white theme across viewport sizes */
 html,
 body {
     background: var(--page-bg) !important;

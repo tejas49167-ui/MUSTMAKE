@@ -90,13 +90,7 @@
     border-radius: 50%;
 
     border: 2px solid #292929;
-
-    margin-bottom: 18px;
-
-    border: 2px solid #292929;
-
     display: block;
-
     margin: 0 auto 18px;
 }
 
@@ -263,14 +257,11 @@
 
 .public-workout-list {
     display: grid;
-    gap: 10px;
 }
 
 .public-workout {
     padding: 14px;
-    background: rgba(22, 10, 12, 0.34);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 9px;
+    
 }
 
 .public-workout > div {
@@ -363,13 +354,25 @@
     min-width: 0;
     min-height: 44px;
     height: 44px;
-    padding: 0.25rem 0.4rem;
-    border: 1px solid var(--glass-border);
-    border-radius: 6px;
+    padding: 0.25rem 0;
+    border: 0;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
     color: var(--text-primary);
-    background: var(--glass-panel);
+    background: transparent;
+    box-shadow: none;
     font: inherit;
     font-variant-numeric: tabular-nums;
+}
+
+.profile-metric-editor input:focus {
+    border-bottom-color: var(--text-primary);
+    background: transparent;
+    box-shadow: none;
+}
+
+.profile-metric-editor input:focus-visible {
+    outline: none;
 }
 
 .profile-metric-actions {

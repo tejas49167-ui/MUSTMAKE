@@ -6,7 +6,7 @@ function isPlainObject(value) {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function parseWorkoutNumber(value, { integer = false, min = 0 } = {}) {
+function parseWorkoutNumber(value, { integer = false, min = 0, max = Infinity } = {}) {
     if (
         (typeof value !== "number" && typeof value !== "string") ||
         (typeof value === "string" && value.trim() === "")
@@ -15,7 +15,7 @@ function parseWorkoutNumber(value, { integer = false, min = 0 } = {}) {
     }
 
     const number = Number(value);
-    const valid = Number.isFinite(number) && number >= min &&
+    const valid = Number.isFinite(number) && number >= min && number <= max &&
         (integer ? Number.isSafeInteger(number) : true);
 
     return { valid, value: valid ? number : null };
