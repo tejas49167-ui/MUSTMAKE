@@ -91,7 +91,7 @@ function cameraErrorMessage(error) {
     return "Camera unavailable.";
 }
 
-async function createPoseLandmarker() {
+async function createPoseLandmarker(delegate) {
     const { FilesetResolver, PoseLandmarker } =
         await loadVisionModule();
 
@@ -111,17 +111,24 @@ async function createPoseLandmarker() {
         minTrackingConfidence: 0.55
     });
 
+    return PoseLandmarker.createFromOptions(
+        fileset,
+        buildOptions(delegate)
+    );
+}
+
+async function createPoseLandmarkerWithFallback() {
     try {
-        return await PoseLandmarker.createFromOptions(
-            fileset,
-            buildOptions("GPU")
-        );
+        return {
+            landmarker: await createPoseLandmarker("GPU"),
+            delegate: "GPU"
+        };
     } catch {
         try {
-            return await PoseLandmarker.createFromOptions(
-                fileset,
-                buildOptions("CPU")
-            );
+            return {
+                landmarker: await createPoseLandmarker("CPU"),
+                delegate: "CPU"
+            };
         } catch (error) {
             throw new Error(
                 "Pose detection could not initialize on this device.",
@@ -224,6 +231,7 @@ export function mountAiMonitor(
     let lifecycle = "idle";
     let stream = null;
     let landmarker = null;
+    let landmarkerDelegate = null;
     let animationFrame = null;
     let resizeObserver = null;
     let disposed = false;
@@ -323,7 +331,7 @@ export function mountAiMonitor(
             !["error", "finished", "saved"].includes(lifecycle);
 
         smartCameraPrompt.hidden = !showScrollPrompt;
-        placeholder.hidden = Boolean(stream) && !showScrollPrompt;
+        placeholder.hidden = Boolean(landmarker) && !showScrollPrompt;
     }
 
     function getFullscreenPreviewGeometry() {
@@ -359,6 +367,7 @@ export function mountAiMonitor(
         }
 
         updateSmartCameraPreview();
+        resizeCanvas();
     }
 
     function transitionPreview(fullscreen) {
@@ -645,7 +654,7 @@ export function mountAiMonitor(
     }
 
     function resizeCanvas() {
-        if (previewTransitioning || previewFixed) return;
+        if (previewTransitioning) return;
 
         const bounds = canvas.getBoundingClientRect();
 
@@ -709,6 +718,7 @@ export function mountAiMonitor(
     }
 
     function drawPose(landmarks) {
+        resizeCanvas();
         clearOverlay();
 
         if (
@@ -866,6 +876,7 @@ export function mountAiMonitor(
             }
 
             landmarker = null;
+            landmarkerDelegate = null;
         }
     }
 
@@ -881,6 +892,59 @@ export function mountAiMonitor(
         stopProcessing();
         releaseCamera();
         closeLandmarker();
+    }
+
+    async function switchToCpuAfterInferenceError(error) {
+        console.warn(
+            "GPU pose inference failed; switching to CPU.",
+            error
+        );
+
+        const gpuLandmarker = landmarker;
+        landmarker = null;
+        landmarkerDelegate = null;
+
+        try {
+            gpuLandmarker?.close();
+        } catch (closeError) {
+            console.warn(
+                "Could not close the GPU pose detector cleanly.",
+                closeError
+            );
+        }
+
+        try {
+            landmarker = await createPoseLandmarker("CPU");
+            landmarkerDelegate = "CPU";
+
+            if (disposed || lifecycle !== "running") {
+                closeLandmarker();
+                return;
+            }
+
+            lastInferenceAt = 0;
+            lastTimestamp = 0;
+            resizeCanvas();
+            updateSmartCameraPreview();
+            animationFrame = requestAnimationFrame(processFrames);
+        } catch (cpuError) {
+            if (disposed || lifecycle !== "running") {
+                closeLandmarker();
+                return;
+            }
+
+            console.error(
+                "CPU pose inference fallback failed:",
+                cpuError
+            );
+            endActiveInterval();
+            releaseMonitoring();
+
+            const message = "AI paused. Finish session to review.";
+            cameraStatus.textContent = "Tracking stopped";
+            setFeedback(message);
+            setStatus("error", message);
+        }
     }
 
     function updateCurrentPose(landmarks) {
@@ -953,30 +1017,32 @@ export function mountAiMonitor(
 
             lastTimestamp = timestamp;
 
+            let result;
             try {
-                const result = landmarker.detectForVideo(
+                result = landmarker.detectForVideo(
                     video,
                     timestamp
                 );
-
-                const pose = result.landmarks?.[0] || null;
-
-                updateCurrentPose(pose);
             } catch (error) {
-                console.error("Pose inference error:", error);
+                if (landmarkerDelegate === "GPU") {
+                    stopProcessing();
+                    void switchToCpuAfterInferenceError(error);
+                    return;
+                }
 
+                console.error("Pose inference error:", error);
                 endActiveInterval();
                 releaseMonitoring();
 
-                const message =
-                    "AI paused. Restart.";
-
+                const message = "AI paused. Finish session to review.";
                 cameraStatus.textContent = "Tracking stopped";
                 setFeedback(message);
                 setStatus("error", message);
-
                 return;
             }
+
+            const pose = result.landmarks?.[0] || null;
+            updateCurrentPose(pose);
         }
 
         if (isPlank) {
@@ -1126,7 +1192,10 @@ export function mountAiMonitor(
                 };
             });
 
-            landmarker = await createPoseLandmarker();
+            const initializedLandmarker =
+                await createPoseLandmarkerWithFallback();
+            landmarker = initializedLandmarker.landmarker;
+            landmarkerDelegate = initializedLandmarker.delegate;
 
             if (disposed) {
                 releaseMonitoring();
@@ -1139,6 +1208,8 @@ export function mountAiMonitor(
                 );
             }
 
+            updateSmartCameraPreview();
+            resizeCanvas();
             detector.reset(isPlank ? elapsedMs : rawCount);
 
             lastInferenceAt = 0;
