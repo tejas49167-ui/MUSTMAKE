@@ -120,14 +120,14 @@ async function createPoseLandmarker(delegate) {
 async function createPoseLandmarkerWithFallback() {
     try {
         return {
-            landmarker: await createPoseLandmarker("GPU"),
-            delegate: "GPU"
+            landmarker: await createPoseLandmarker("CPU"),
+            delegate: "CPU"
         };
     } catch {
         try {
             return {
-                landmarker: await createPoseLandmarker("CPU"),
-                delegate: "CPU"
+                landmarker: await createPoseLandmarker("GPU"),
+                delegate: "GPU"
             };
         } catch (error) {
             throw new Error(
@@ -928,8 +928,8 @@ export function mountAiMonitor(
             updateSmartCameraPreview();
             animationFrame = requestAnimationFrame(processFrames);
         } catch (cpuError) {
-            if (disposed || lifecycle !== "running") {
-                closeLandmarker();
+            if (disposed) {
+                releaseMonitoring();
                 return;
             }
 
