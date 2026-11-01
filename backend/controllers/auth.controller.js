@@ -16,6 +16,47 @@ const {
     createAuthSession
 } = require("../services/auth.service");
 const { sendOTPEmail } = require("../services/email.service");
+const loginRateLimitService = require("../services/login-rate-limit.service");
+
+function sendLoginRestriction(res, retryAfterMs) {
+    return res.status(429).json({
+        restricted: true,
+        retryAfterMs,
+        message: "Login temporarily restricted."
+    });
+}
+
+async function respondToFailedLogin(res, keys) {
+    await loginRateLimitService.recordIpFailure(keys.ip);
+    const restriction = await loginRateLimitService.getRestriction(keys);
+
+    if (restriction.restricted) {
+        return sendLoginRestriction(res, restriction.retryAfterMs);
+    }
+
+    return res.status(401).json({
+        message: "Invalid username/email or password."
+    });
+}
+
+const loginRateLimitStatus = async (req, res) => {
+    res.set("Cache-Control", "no-store");
+
+    try {
+        await connectDB();
+        await loginRateLimitService.ensureIndexes();
+
+        const keys = loginRateLimitService.getRateLimitKeys(req, res);
+        const restriction = await loginRateLimitService.getRestriction(keys);
+
+        return res.json(restriction);
+    } catch (error) {
+        console.error("Login rate-limit status error:", error);
+        return res.status(500).json({
+            message: "Could not check login availability."
+        });
+    }
+};
 
 function isOtpLocked(guard, now = new Date()) {
     return Boolean(
@@ -52,7 +93,7 @@ async function claimOtpSend(email, purpose, now) {
                 $set: { lastSentAt: now },
                 $setOnInsert: { email, purpose }
             },
-            { new: true, upsert: true }
+            { returnDocument: "after", upsert: true }
         );
     } catch (error) {
         if (error.code === 11000) {
@@ -75,7 +116,7 @@ async function incrementOtpFailures(email, purpose, now) {
     const incremented = await OTPGuard.findOneAndUpdate(
         activeWindow,
         { $inc: { failedAttempts: 1 } },
-        { new: true }
+        { returnDocument: "after" }
     );
 
     if (incremented) {
@@ -99,7 +140,7 @@ async function incrementOtpFailures(email, purpose, now) {
                 },
                 $setOnInsert: { email, purpose }
             },
-            { new: true, upsert: true }
+            { returnDocument: "after", upsert: true }
         );
     } catch (error) {
         if (error.code !== 11000) {
@@ -109,7 +150,7 @@ async function incrementOtpFailures(email, purpose, now) {
         const retried = await OTPGuard.findOneAndUpdate(
             activeWindow,
             { $inc: { failedAttempts: 1 } },
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!retried) {
@@ -476,7 +517,7 @@ const verifyOtp = async (req, res) => {
                         expiresAt: { $gt: new Date() }
                     },
                     { $inc: { attempts: 1 } },
-                    { new: true }
+                    { returnDocument: "after" }
                 );
 
                 if (!updatedRecord) {
@@ -596,6 +637,18 @@ const login = async (req, res) => {
         try {
 
             await connectDB();
+            await loginRateLimitService.ensureIndexes();
+
+            const keys = loginRateLimitService.getRateLimitKeys(req, res);
+            const currentRestriction =
+                await loginRateLimitService.getRestriction(keys);
+
+            if (currentRestriction.restricted) {
+                return sendLoginRestriction(
+                    res,
+                    currentRestriction.retryAfterMs
+                );
+            }
 
 
             const body = isPlainObject(req.body) ? req.body : {};
@@ -615,6 +668,24 @@ const login = async (req, res) => {
                 });
             }
 
+            const deviceAttempt =
+                await loginRateLimitService.reserveDeviceAttempt(keys.device);
+
+            if (!deviceAttempt) {
+                const restriction =
+                    await loginRateLimitService.getRestriction(keys);
+                return sendLoginRestriction(res, restriction.retryAfterMs);
+            }
+
+            if (
+                deviceAttempt.restrictedUntil &&
+                deviceAttempt.restrictedUntil.getTime() > Date.now()
+            ) {
+                return sendLoginRestriction(
+                    res,
+                    deviceAttempt.restrictedUntil.getTime() - Date.now()
+                );
+            }
 
             const loginValue =
                 login
@@ -642,17 +713,18 @@ const login = async (req, res) => {
 
 
             if (!user) {
-
-                return res.status(401).json({
-                    message:
-                        "Invalid username/email or password."
-                });
+                return respondToFailedLogin(res, keys);
             }
 
 
             // Google-only accounts don't have a password
             if (!user.passwordHash) {
-
+                await loginRateLimitService.recordIpFailure(keys.ip);
+                const restriction =
+                    await loginRateLimitService.getRestriction(keys);
+                if (restriction.restricted) {
+                    return sendLoginRestriction(res, restriction.retryAfterMs);
+                }
                 return res.status(401).json({
                     message:
                         "This account uses Google login."
@@ -668,13 +740,10 @@ const login = async (req, res) => {
 
 
             if (!passwordMatch) {
-
-                return res.status(401).json({
-                    message:
-                        "Invalid username/email or password."
-                });
+                return respondToFailedLogin(res, keys);
             }
 
+            await loginRateLimitService.resetDeviceFailures(keys.device);
 
             const token =
                 jwt.sign(
@@ -814,5 +883,6 @@ module.exports = {
     verifyOtp,
     signup,
     login,
+    loginRateLimitStatus,
     googleCallback
 };

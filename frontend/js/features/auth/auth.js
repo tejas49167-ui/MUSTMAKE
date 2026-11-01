@@ -14,6 +14,14 @@ const loginModeButtons = document.querySelectorAll("[data-login-mode]");
 let loginMode = "password";
 let loginRequestToast = null;
 let otpRequestToast = null;
+let loginRequestInFlight = false;
+let otpVerificationInFlight = false;
+let loginRestrictionUntil = 0;
+let loginRestrictionNeedsRecheck = false;
+let loginRestrictionTimer = null;
+let loginRestrictionRetryTimer = null;
+let loginRestrictionCheckPromise = null;
+const loginRestrictionStatus = document.getElementById("loginRestrictionStatus");
 
 function setLoginToast(message, type = "info") {
     if (
@@ -93,16 +101,126 @@ if (googleLoginLink) {
 async function postAuth(path, payload) {
     const response = await fetch(`${window.API_URL}${path}`, {
         method: "POST",
+        credentials: path === "/api/auth/login" ? "include" : "omit",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     });
 
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-        throw new Error(data.message || "Could not complete login.");
+        const error = new Error(data.message || "Could not complete login.");
+        error.status = response.status;
+        error.data = data;
+        throw error;
     }
 
     return data;
+}
+
+function updateLoginRestrictionUI() {
+    if (!loginRestrictionStatus || !loginSubmitButton) return;
+
+    const remainingSeconds = Math.max(
+        0,
+        Math.ceil((loginRestrictionUntil - Date.now()) / 1000)
+    );
+    const isRestricted = loginMode === "password" &&
+        (remainingSeconds > 0 || loginRestrictionNeedsRecheck);
+
+    loginRestrictionStatus.hidden = !isRestricted;
+    if (isRestricted) {
+        const minutes = Math.floor(remainingSeconds / 60);
+        const seconds = remainingSeconds % 60;
+        loginRestrictionStatus.textContent =
+            `Too many unsuccessful attempts, try after ${String(minutes).padStart(2, "0")}:` +
+            String(seconds).padStart(2, "0");
+    }
+
+    loginSubmitButton.disabled = loginRequestInFlight || isRestricted;
+}
+
+function clearLoginRestriction() {
+    loginRestrictionUntil = 0;
+    loginRestrictionNeedsRecheck = false;
+    if (loginRestrictionTimer) {
+        clearInterval(loginRestrictionTimer);
+        loginRestrictionTimer = null;
+    }
+    if (loginRestrictionRetryTimer) {
+        clearTimeout(loginRestrictionRetryTimer);
+        loginRestrictionRetryTimer = null;
+    }
+    updateLoginRestrictionUI();
+}
+
+function applyLoginRestriction(retryAfterMs) {
+    loginRestrictionUntil = Date.now() + Math.max(0, retryAfterMs);
+    loginRestrictionNeedsRecheck = false;
+
+    if (loginRestrictionTimer) {
+        clearInterval(loginRestrictionTimer);
+    }
+
+    loginRestrictionTimer = setInterval(() => {
+        if (Date.now() >= loginRestrictionUntil) {
+            loginRestrictionNeedsRecheck = true;
+            updateLoginRestrictionUI();
+            void refreshLoginRestriction();
+            return;
+        }
+
+        updateLoginRestrictionUI();
+    }, 1000);
+
+    updateLoginRestrictionUI();
+}
+
+function refreshLoginRestriction() {
+    if (loginRestrictionCheckPromise) return loginRestrictionCheckPromise;
+
+    loginRestrictionCheckPromise = (async () => {
+        try {
+            const response = await fetch(
+                `${window.API_URL}/api/auth/login-rate-limit`,
+                { credentials: "include" }
+            );
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.message || "Could not check login availability.");
+            }
+
+            if (data.restricted && Number.isFinite(data.retryAfterMs)) {
+                applyLoginRestriction(data.retryAfterMs);
+            } else {
+                clearLoginRestriction();
+            }
+        } catch (error) {
+            console.warn("Could not refresh password login restriction.", error);
+            if (loginRestrictionNeedsRecheck && !loginRestrictionRetryTimer) {
+                loginRestrictionRetryTimer = setTimeout(() => {
+                    loginRestrictionRetryTimer = null;
+                    void refreshLoginRestriction();
+                }, 3000);
+            }
+        } finally {
+            loginRestrictionCheckPromise = null;
+            updateLoginRestrictionUI();
+        }
+    })();
+
+    return loginRestrictionCheckPromise;
+}
+
+function handleLoginRestriction(error) {
+    const retryAfterMs = error?.data?.retryAfterMs;
+    if (error?.data?.restricted && Number.isFinite(retryAfterMs)) {
+        applyLoginRestriction(retryAfterMs);
+        loginRequestToast?.dismiss();
+        return true;
+    }
+
+    return false;
 }
 
 function setLoginMode(mode) {
@@ -129,6 +247,11 @@ function setLoginMode(mode) {
         button.classList.toggle("is-active", selected);
         button.setAttribute("aria-pressed", String(selected));
     });
+
+    updateLoginRestrictionUI();
+    if (!usingOtp) {
+        void refreshLoginRestriction();
+    }
 }
 
 function setOtpStatus(message, isError = false) {
@@ -251,6 +374,8 @@ if (loginForm) {
 
     loginForm.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (loginRequestInFlight) return;
+        loginRequestInFlight = true;
 
         const login = loginIdentifier.value.trim();
         const submitButton = loginForm.querySelector('button[type="submit"]');
@@ -278,7 +403,8 @@ if (loginForm) {
                     setLoginToast(errorMessage, "error");
                 }
             } finally {
-                submitButton.disabled = false;
+                loginRequestInFlight = false;
+                updateLoginRestrictionUI();
             }
 
             return;
@@ -293,6 +419,9 @@ if (loginForm) {
             finishLogin(data);
         } catch (error) {
             console.error(error);
+            if (handleLoginRestriction(error)) {
+                return;
+            }
             const errorMessage = error instanceof TypeError
                 ? "Cannot reach the backend. Please try again shortly."
                 : error.message || "Could not login.";
@@ -303,7 +432,8 @@ if (loginForm) {
                 setLoginToast(errorMessage, "error");
             }
         } finally {
-            submitButton.disabled = false;
+                loginRequestInFlight = false;
+                updateLoginRestrictionUI();
         }
     });
 }
@@ -319,6 +449,8 @@ if (otpLoginVerifyForm) {
         if (!email) {
             return resetOtpLogin("Sign-in session expired. Request a new code.", "", true);
         }
+        if (otpVerificationInFlight) return;
+        otpVerificationInFlight = true;
 
         setOtpStatus("Verifying code...");
         submitButton.disabled = true;
@@ -342,6 +474,7 @@ if (otpLoginVerifyForm) {
                 setOtpStatus(message, true);
             }
         } finally {
+            otpVerificationInFlight = false;
             submitButton.disabled = false;
         }
     });
@@ -376,4 +509,18 @@ document.getElementById("changeOtpLoginEmail")?.addEventListener("click", () => 
         "Update the email address for your account.",
         sessionStorage.getItem(LOGIN_EMAIL_KEY) || ""
     );
+});
+
+window.addEventListener("pageshow", () => {
+    void refreshLoginRestriction();
+});
+
+window.addEventListener("focus", () => {
+    void refreshLoginRestriction();
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        void refreshLoginRestriction();
+    }
 });

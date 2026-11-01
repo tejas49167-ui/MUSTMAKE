@@ -18,6 +18,15 @@ const errorHandler = require("./middleware/error-handler");
 const exercises = require("./config/exercises.json");
 
 const app = express();
+const configuredTrustProxy = process.env.TRUST_PROXY;
+const trustProxy = configuredTrustProxy === "true"
+    ? true
+    : configuredTrustProxy === "false"
+        ? false
+        : /^\d+$/.test(configuredTrustProxy || "")
+            ? Number(configuredTrustProxy)
+            : 1;
+app.set("trust proxy", trustProxy);
 
 const jsonParser = express.json({ limit: "3mb" });
 app.use((req, res, next) => {
