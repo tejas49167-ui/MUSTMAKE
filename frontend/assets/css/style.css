@@ -2047,18 +2047,6 @@ textarea {
     }
 }
 
-@keyframes page-exit {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateY(-4px);
-    }
-}
-
 @keyframes search-results-in {
     from {
         opacity: 0;
@@ -2077,45 +2065,11 @@ main.container,
     animation: page-enter 120ms var(--ease-premium) both;
 }
 
-@view-transition {
-    navigation: auto;
-}
-
-::view-transition-old(root) {
-    animation: page-exit 120ms ease-out both;
-}
-
-::view-transition-new(root) {
-    animation: page-enter 120ms var(--ease-premium) both;
-}
-
-::view-transition-group(bottom-navigation),
-::view-transition-group(bottom-nav-indicator) {
-    animation-duration: 180ms;
-    animation-timing-function: cubic-bezier(0.2, 0.75, 0.25, 1);
-}
-
 @media (max-width: 800px) {
     main.container,
     .auth-container,
     .profile-container {
         animation-duration: 80ms;
-    }
-
-    ::view-transition-old(root) {
-        animation-duration: 80ms;
-    }
-
-    ::view-transition-new(root) {
-        animation-duration: 80ms;
-    }
-}
-
-@supports (view-transition-name: root) {
-    main.container,
-    .auth-container,
-    .profile-container {
-        animation: none;
     }
 }
 
@@ -2137,11 +2091,6 @@ main.container,
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
-    }
-
-    ::view-transition-group(bottom-navigation),
-    ::view-transition-group(bottom-nav-indicator) {
-        animation-duration: 0.01ms;
     }
 }
 
@@ -4771,7 +4720,6 @@ body.mobile-nav-open {
         border-top: 1px solid var(--glass-border);
         background: rgba(255, 255, 255, 0.96);
         box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
-        view-transition-name: bottom-navigation;
         contain: paint;
     }
 
@@ -4841,7 +4789,6 @@ body.mobile-nav-open {
         border-radius: 10px;
         background: var(--accent-soft);
         content: "";
-        view-transition-name: bottom-nav-indicator;
     }
 
     .bottom-nav-item::before {

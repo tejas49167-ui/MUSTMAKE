@@ -120,16 +120,19 @@ async function loadProfile() {
             }
         });
 
+        const data = await response.json().catch(() => null);
+
         if (response.status === 401) {
             logout();
             return;
         }
 
         if (!response.ok) {
-            throw new Error("Could not load profile.");
+            throw new Error(
+                data?.message || `Could not load profile (HTTP ${response.status}).`
+            );
         }
 
-        const data = await response.json();
         writeProfileCache(data);
         renderProfile(data);
     } catch (error) {

@@ -12,6 +12,52 @@
     const slug = document.body.dataset.exerciseSlug;
     if (!root || !slug) return;
 
+    let hasUnfinishedAiSession = false;
+
+    const exercisePageUrl = window.location.href;
+    window.history.pushState(
+        { ...window.history.state, mustmakeExercisePageBackGuard: true },
+        "",
+        exercisePageUrl
+    );
+
+    document.addEventListener("click", event => {
+        if (!hasUnfinishedAiSession) return;
+        const link = event.target.closest?.("#navbar a[href]");
+        if (!link || link.origin !== window.location.origin) return;
+
+        const destination = new URL(link.href, window.location.href);
+        if (
+            destination.pathname === window.location.pathname &&
+            destination.search === window.location.search &&
+            destination.hash === window.location.hash
+        ) {
+            return;
+        }
+
+        if (!window.confirm("You have an unfinished AI workout. Are you sure you want to leave?")) {
+            event.preventDefault();
+        }
+    });
+
+    window.addEventListener("popstate", () => {
+        if (document.querySelector("#monitorSummary")?.open) return;
+        if (!hasUnfinishedAiSession) return;
+        if (window.confirm("You have an unfinished AI workout. Are you sure you want to leave?")) return;
+
+        window.history.pushState(
+            { ...window.history.state, mustmakeExercisePageBackGuard: true },
+            "",
+            exercisePageUrl
+        );
+    });
+
+    window.addEventListener("beforeunload", event => {
+        if (!hasUnfinishedAiSession) return;
+        event.preventDefault();
+        event.returnValue = "";
+    });
+
     function clearOutdatedExerciseCaches() {
         OUTDATED_EXERCISE_CACHE_KEYS.forEach(key => sessionStorage.removeItem(key));
     }
@@ -329,7 +375,10 @@
                         savedMonitorSnapshot,
                         pendingWorkout?.mode === "ai" ? pendingWorkout.payload : null,
                         payload => storePendingWorkout("ai", payload),
-                        clearPendingWorkout
+                        clearPendingWorkout,
+                        active => {
+                            hasUnfinishedAiSession = active;
+                        }
                     );
 
                     savedMonitorSnapshot = null;
@@ -592,6 +641,7 @@
 
                 clearPendingWorkout();
                 form.reset();
+                window.queueWorkoutCompletion?.();
                 window.location.replace("/today");
             } catch (error) {
                 console.error("Save workout error:", error);

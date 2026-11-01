@@ -5,6 +5,7 @@
     const PENDING_TOAST_KEY = "mustmake_pending_toast";
     const PENDING_FINISH_SOUND_KEY = "mustmake_pending_finish_sound";
     const PENDING_DISCARD_SOUND_KEY = "mustmake_pending_discard_sound";
+    const PENDING_WORKOUT_CELEBRATION_KEY = "mustmake_pending_workout_celebration";
     const EXERCISE_SOUND_KEY_PREFIX = "mustmake_exercise_sound:";
     const finishSound = new Audio("/assets/finishsession.mp3");
     const discardSound = new Audio("/assets/discardsession.mp3");
@@ -201,9 +202,129 @@
         }
     }
 
+    function queueWorkoutCelebration() {
+        try {
+            sessionStorage.setItem(PENDING_WORKOUT_CELEBRATION_KEY, JSON.stringify({
+                createdAt: Date.now()
+            }));
+        } catch (error) {
+            console.warn("Could not queue the workout celebration.", error);
+        }
+    }
+
+    function queueWorkoutCompletion(soundEnabled = getExerciseSoundPreference()) {
+        queueWorkoutCelebration();
+        if (!soundEnabled) return;
+
+        try {
+            sessionStorage.setItem(PENDING_FINISH_SOUND_KEY, "true");
+        } catch (error) {
+            console.warn("Could not queue the session finish sound.", error);
+        }
+    }
+
+    function showWorkoutCelebration() {
+        if (
+            !document.body ||
+            window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+        ) {
+            return;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.className = "workout-celebration";
+        canvas.setAttribute("aria-hidden", "true");
+
+        const context = canvas.getContext("2d");
+        if (!context) return;
+
+        const scale = Math.min(window.devicePixelRatio || 1, 2);
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        context.scale(scale, scale);
+        document.body.appendChild(canvas);
+
+        const colors = ["#ff4d6d", "#ffd166", "#06d6a0", "#4cc9f0", "#a78bfa", "#f97316"];
+        const particles = Array.from({ length: 110 }, () => {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2.5 + Math.random() * 7;
+            return {
+                x: width / 2 + (Math.random() - 0.5) * 44,
+                y: height * 0.36 + (Math.random() - 0.5) * 36,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: 4 + Math.random() * 6,
+                rotation: Math.random() * Math.PI,
+                rotationSpeed: (Math.random() - 0.5) * 0.18,
+                color: colors[Math.floor(Math.random() * colors.length)]
+            };
+        });
+
+        const duration = 3800;
+        let startedAt;
+        const animate = timestamp => {
+            startedAt ??= timestamp;
+            const progress = Math.min((timestamp - startedAt) / duration, 1);
+            context.clearRect(0, 0, width, height);
+            context.globalAlpha = Math.min(1, (1 - progress) * 4);
+
+            particles.forEach(particle => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vx *= 0.992;
+                particle.vy = particle.vy * 0.992 + 0.14;
+                particle.rotation += particle.rotationSpeed;
+
+                context.save();
+                context.translate(particle.x, particle.y);
+                context.rotate(particle.rotation);
+                context.fillStyle = particle.color;
+                context.fillRect(
+                    -particle.size / 2,
+                    -particle.size / 2,
+                    particle.size,
+                    particle.size * 0.65
+                );
+                context.restore();
+            });
+
+            if (progress < 1) {
+                window.requestAnimationFrame(animate);
+            } else {
+                canvas.remove();
+            }
+        };
+
+        window.requestAnimationFrame(animate);
+    }
+
+    function showQueuedWorkoutCelebration() {
+        let pending;
+        try {
+            pending = JSON.parse(
+                sessionStorage.getItem(PENDING_WORKOUT_CELEBRATION_KEY) || "null"
+            );
+            sessionStorage.removeItem(PENDING_WORKOUT_CELEBRATION_KEY);
+        } catch (error) {
+            console.warn("Could not read the pending workout celebration.", error);
+            return;
+        }
+
+        if (
+            window.location.pathname === "/today" &&
+            Number.isFinite(pending?.createdAt) &&
+            Date.now() - pending.createdAt < 30000
+        ) {
+            showWorkoutCelebration();
+        }
+    }
+
     function showQueuedToast() {
         playPendingSound(PENDING_FINISH_SOUND_KEY, finishSound, "session finish");
         playPendingSound(PENDING_DISCARD_SOUND_KEY, discardSound, "session discard");
+        showQueuedWorkoutCelebration();
         try {
             const pending = JSON.parse(sessionStorage.getItem(PENDING_TOAST_KEY) || "null");
             sessionStorage.removeItem(PENDING_TOAST_KEY);
@@ -221,8 +342,12 @@
 
     window.showToast = showToast;
     window.queueToast = queueToast;
+    window.queueWorkoutCelebration = queueWorkoutCelebration;
+    window.queueWorkoutCompletion = queueWorkoutCompletion;
     window.MUSTMAKE = window.MUSTMAKE || {};
     window.MUSTMAKE.toast = showToast;
+    window.MUSTMAKE.queueWorkoutCelebration = queueWorkoutCelebration;
+    window.MUSTMAKE.queueWorkoutCompletion = queueWorkoutCompletion;
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", showQueuedToast, { once: true });

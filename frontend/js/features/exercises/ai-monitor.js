@@ -148,7 +148,8 @@ export function mountAiMonitor(
     snapshot = null,
     pendingWorkout = null,
     onSignInRequired = null,
-    onWorkoutSaved = null
+    onWorkoutSaved = null,
+    onSessionStateChange = null
 ) {
     const isPlank = exercise.slug === "plank";
     const isJumpCount = exercise.slug === "skipping-rope";
@@ -271,6 +272,7 @@ export function mountAiMonitor(
     let sessionStarted = Boolean(
         snapshot?.sessionStarted || snapshot?.finished
     );
+    onSessionStateChange?.(sessionStarted);
 
     if (countOutput) {
         countOutput.textContent = String(rawCount);
@@ -1216,6 +1218,7 @@ export function mountAiMonitor(
             lastTimestamp = 0;
 
             sessionStarted = true;
+            onSessionStateChange?.(true);
 
             setStatus("running", "Monitoring");
 
@@ -1310,6 +1313,7 @@ export function mountAiMonitor(
         rawCount = 0;
         elapsedMs = 0;
         sessionStarted = false;
+        onSessionStateChange?.(false);
 
         detector.reset();
 
@@ -1557,14 +1561,8 @@ export function mountAiMonitor(
 
             window.clearPrivateCaches?.();
             onWorkoutSaved?.();
-
-            if (soundEnabled) {
-                try {
-                    sessionStorage.setItem("mustmake_pending_finish_sound", "true");
-                } catch (error) {
-                    console.warn("Could not queue the session finish sound.", error);
-                }
-            }
+            onSessionStateChange?.(false);
+            window.queueWorkoutCompletion?.(soundEnabled);
             window.location.replace("/today");
             return;
         } catch (error) {
@@ -1856,6 +1854,7 @@ export function mountAiMonitor(
         }
 
         sessionStarted = true;
+        onSessionStateChange?.(true);
 
         window.showToast("You're signed in. Review your workout and save it again.", {
             type: "info"
