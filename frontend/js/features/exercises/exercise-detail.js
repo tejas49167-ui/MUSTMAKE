@@ -13,6 +13,7 @@
     if (!root || !slug) return;
 
     let hasUnfinishedAiSession = false;
+    let navigatingToSignIn = false;
 
     const exercisePageUrl = window.location.href;
     window.history.pushState(
@@ -53,10 +54,20 @@
     });
 
     window.addEventListener("beforeunload", event => {
-        if (!hasUnfinishedAiSession) return;
+        if (!hasUnfinishedAiSession || navigatingToSignIn) return;
         event.preventDefault();
         event.returnValue = "";
     });
+
+    document.addEventListener("click", event => {
+        const link = event.target.closest?.("a[href]");
+        if (!link || link.origin !== window.location.origin) return;
+
+        const destination = new URL(link.href, window.location.href);
+        if (destination.pathname === "/login") {
+            navigatingToSignIn = true;
+        }
+    }, true);
 
     function clearOutdatedExerciseCaches() {
         OUTDATED_EXERCISE_CACHE_KEYS.forEach(key => sessionStorage.removeItem(key));
