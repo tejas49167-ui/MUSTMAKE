@@ -43,7 +43,7 @@ MUSTMAKE/
 │   │   ├── index.html
 │   │   ├── exercises/<slug>.html
 │   │   ├── history.html
-│   │   ├── gst.html
+│   │   ├── doit.html
 │   │   ├── login.html
 │   │   ├── signup.html
 │   │   ├── google-callback.html

@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#080a0f">
     <meta name="description" content="Build a workout habit that lasts with MUSTMAKE. Track exercises your way, follow your progress, and keep showing up—one day at a time.">
+    <script>
+        try {
+            const isAuthenticated = Boolean(
+                localStorage.getItem("token") &&
+                JSON.parse(localStorage.getItem("user") || "null")
+            );
+            if (isAuthenticated) window.location.replace("/today");
+        } catch {
+            // Invalid stored authentication data is treated as a guest session.
+        }
+    </script>
     <link rel="canonical" href="https://mustmake.vercel.app/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="MUSTMAKE">
@@ -22,6 +33,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <title>MUSTMAKE — You can and you must</title>
+
+    <script src="/js/core/change_backend_url.js"></script>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/toast.css">
+
     <style>
         :root {
             color-scheme: dark;
@@ -131,6 +147,21 @@
             background: #202020;
         }
 
+        .landing-page #navbar .guest-actions .guest-signup-button {
+            padding: 10px 16px;
+            border: 1px solid #f2f2f2 !important;
+            border-radius: 3px;
+            background: #f2f2f2 !important;
+            color: #101010 !important;
+            font-weight: 700;
+        }
+
+        .landing-page #navbar .guest-actions .guest-signup-button:hover {
+            background: #d0d0d0 !important;
+            border-color: #d0d0d0 !important;
+            color: #101010 !important;
+        }
+
         .hero {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -138,9 +169,17 @@
             gap: 48px;
             padding-block: 112px 96px;
         }
+
         h1 {
             max-width: 680px;
             margin: 24px 0;
+            font-size: clamp(3.2rem, 7vw, 6.4rem);
+            font-weight: 600;
+            line-height: .96;
+            letter-spacing: -.075em;
+        }
+
+        #hero-title {
             font-size: clamp(3.2rem, 7vw, 6.4rem);
             font-weight: 600;
             line-height: .96;
@@ -260,6 +299,26 @@
             gap: 40px;
         }
 
+        .start-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 48px;
+        }
+
+        .start-image {
+            width: 100%;
+            aspect-ratio: 3 / 2;
+            display: block;
+            object-fit: contain;
+            background: #000;
+            filter: grayscale(1);
+        }
+
+        .start-layout .section-heading {
+            margin: 0;
+        }
+
         .step {
             padding-top: 20px;
             border-top: 1px solid #444;
@@ -314,6 +373,294 @@
             color: #d0d0d0;
         }
 
+        .logo {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.13em;
+            white-space: nowrap;
+        }
+
+        /* =========================================
+           LANDING INTRO
+        ========================================= */
+
+        .landing-intro {
+            text-align: center;
+            padding: 80px 0 60px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .landing-intro h1 {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin: 0 auto 20px;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            background: linear-gradient(
+                135deg,
+                #0284c7 0%,
+                #ffffff 100%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .landing-intro p {
+            font-size: 1.25rem;
+            color: var(--text-secondary, var(--muted));
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* =========================================
+           LANDING SECTION
+        ========================================= */
+
+        .landing-section {
+            margin: 60px 0;
+        }
+
+        .landing-page .exercise-section {
+            margin-bottom: 40px;
+        }
+
+        .landing-page .exercise-section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 4px;
+        }
+
+        .landing-page .exercise-section-heading h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            text-transform: capitalize;
+        }
+
+        .landing-page .exercise-card {
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            transition: none;
+            overflow: hidden;
+        }
+
+        .landing-page .exercise-card:hover {
+            transform: none;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .landing-page .exercise-card-media {
+            background: transparent;
+            border-radius: 0;
+        }
+
+        .landing-page .exercise-media {
+            background: transparent;
+        }
+
+        .landing-page .exercise-card-link:hover h3 {
+            color: inherit;
+        }
+
+        .landing-page .exercise-card-content {
+            padding: 16px;
+            min-height: auto;
+        }
+
+        .landing-page .exercise-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        :root body.landing-page .exercise-card,
+        :root body.landing-page .exercise-card:hover {
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+            transform: none;
+        }
+
+        :root body.landing-page .exercise-card-media {
+            background: transparent;
+        }
+
+        /* =========================================
+           SECTION TITLE
+        ========================================= */
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        :root .landing-page #exercises > .section-title .just-highlight {
+            color: #9dcae7;
+        }
+
+        .section-title::after {
+            content: "";
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: var(--accent);
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        /* =========================================
+           VIDEO CTA
+        ========================================= */
+
+        .cta-section {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 420px;
+            padding: 80px 24px;
+            margin: 65px 0;
+            text-align: center;
+            background: #07131b;
+        }
+
+        .cta-video {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            pointer-events: none;
+        }
+
+        .cta-section::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: linear-gradient(
+                90deg,
+                rgba(4, 10, 18, 0.5),
+                rgba(4, 10, 18, 0.28) 50%,
+                rgba(4, 10, 18, 0.5)
+            );
+            pointer-events: none;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            padding: 0 20px;
+        }
+
+        .cta-section h2 {
+            color: #ffffff;
+            font-size: clamp(1.5rem, 3.5vw, 2.3rem);
+            font-weight: 700;
+            line-height: 1.4;
+            margin: 0 0 28px;
+            text-shadow: 0 2px 18px rgba(0, 0, 0, 0.7);
+        }
+
+        .cta-section .main-button {
+            position: relative;
+            z-index: 2;
+            display: inline-flex;
+            margin-bottom: 10px;
+        }
+
+        .cta-section .main-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 28px rgba(56, 189, 248, 0.22);
+        }
+
+        /* =========================================
+           GENERAL ANIMATIONS
+        ========================================= */
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* =========================================
+           RESPONSIVE DESIGN
+        ========================================= */
+
+        @media (max-width: 768px) {
+            .landing-intro {
+                padding: 60px 0 40px;
+            }
+
+            .landing-intro h1 {
+                font-size: 2rem;
+            }
+
+            .landing-intro p {
+                font-size: 1rem;
+            }
+
+            .landing-page .exercise-section {
+                margin-bottom: 32px;
+            }
+
+            .landing-page .exercise-section-heading h2 {
+                font-size: 1.25rem;
+            }
+
+            .landing-page .exercise-card-content {
+                padding: 12px;
+            }
+
+            .landing-page .exercise-card h3 {
+                font-size: 1rem;
+            }
+
+            .cta-section {
+                min-height: 320px;
+                padding: 85px 18px 75px;
+                margin: 45px 0;
+            }
+
+            .cta-content {
+                max-width: 100%;
+            }
+
+            .cta-section h2 {
+                font-size: clamp(1.5rem, 6vw, 1.9rem);
+            }
+        }
+
         @media (max-width: 760px) {
             .nav {
                 min-height: 68px;
@@ -345,6 +692,11 @@
                 gap: 28px;
             }
 
+            .start-layout {
+                grid-template-columns: 1fr;
+                gap: 28px;
+            }
+
             .content-section {
                 padding-block: 72px;
             }
@@ -352,7 +704,7 @@
 
         @media (max-width: 420px) {
             .wrap {
-                width: min(100% - 28px, 1120px);
+                width: min(calc(100% - 28px), 1120px);
             }
 
             .brand {
@@ -379,6 +731,10 @@
             }
         }
 
+        /* =========================================
+           ACCESSIBILITY
+        ========================================= */
+
         @media (prefers-reduced-motion: reduce) {
             *,
             *::before,
@@ -386,53 +742,55 @@
                 scroll-behavior: auto !important;
                 transition-duration: .01ms !important;
             }
+
+            .landing-intro {
+                animation: none !important;
+            }
+
+            .cta-section .main-button {
+                transition: none;
+            }
         }
-.logo {
-    color: var(--text-primary);
-    text-decoration: none;
-
-    font-size: 15px;
-    font-weight: 600;
-
-    letter-spacing: 0.13em;
-
-    white-space: nowrap;
-}
     </style>
 </head>
-<body>
-    <header class="site-header">
-        <nav class="nav wrap" aria-label="Main navigation">
-            <a class="brand" href="/" aria-label="MUSTMAKE home">
-                <span class="logo">MUSTMAKE</span>
-            </a>
-            <div class="nav-links">
-                <a class="exercise-link" href="/exercises">Exercises</a>
-                <a class="about-link" href="/about">Our story</a>
-                <a class="button" href="/signup">Get started</a>
-            </div>
-        </nav>
-    </header>
 
-    <main>
+<body class="app-page landing-page">
+
+
+    <div id="navbar"></div>
+
+    <main class="container">
+
+
+        <section class="landing-intro wrap">
+            <h1>Hardcome to MUSTMAKE</h1>
+            <p>You can and you must.</p>
+        </section>
+
+
         <section class="hero wrap" aria-labelledby="hero-title">
             <div>
                 <h1 id="hero-title">Make movement a habit.</h1>
                 <p class="hero-copy">MUSTMAKE helps you turn the workouts you want to do into a routine you can keep. Pick an exercise, track it your way, and come back tomorrow.</p>
                 <div class="actions">
-                    <a class="button" href="/signup">Start your workout</a>
-                    <a class="button secondary" href="/exercises">Explore exercises</a>
+                    <a class="button" href="/signup">Get started</a>
+                    <a class="button secondary" href="/doit">View exercises</a>
                 </div>
                 <p class="hero-note">Free to get started</p>
             </div>
-            <div class="hero-art">
-                <img src="/assets/images/pushups.webp" alt="Push-up exercise demonstration" width="1536" height="1024" fetchpriority="high">
+            <div>
+                <div class="hero-art">
+                    <img src="/assets/images/pushups.webp" alt="Push-up exercise demonstration" width="1536" height="1024" fetchpriority="high">
+                </div>
                 <div class="art-caption">
                     <strong>Your workout. Your pace.</strong>
                     <span>Choose from bodyweight, cardio, and dumbbell exercises.</span>
                 </div>
             </div>
         </section>
+
+
+
 
         <section class="content-section" aria-labelledby="features-title">
             <div class="wrap">
@@ -459,32 +817,28 @@
 
         <section class="content-section" aria-labelledby="start-title">
             <div class="wrap">
-                <div class="section-heading">
-
-                    <h2 id="start-title">Start where you are.</h2>
-                </div>
-                <div class="steps">
-                    <article class="step">
-                        <h3>1. Create your account</h3>
-                        <p>Sign up to save your workouts and keep your activity together.</p>
-                    </article>
-                    <article class="step">
-                        <h3>2. Pick an exercise</h3>
-                        <p>Choose a movement from the exercise library and select a tracking mode that suits it.</p>
-                    </article>
-                    <article class="step">
-                        <h3>3. Come back tomorrow</h3>
-                        <p>Build a routine one session at a time and use your history to look back on how far you have come.</p>
-                    </article>
+                <div class="start-layout">
+                    <img
+                        class="start-image"
+                        src="/assets/images/running.webp"
+                        alt="Running exercise demonstration"
+                        width="344"
+                        height="290"
+                        loading="lazy"
+                    >
+                    <div class="section-heading">
+                        <h2 id="start-title">Start where you are.</h2>
+                    </div>
                 </div>
             </div>
         </section>
+
+
 
         <section class="content-section" aria-labelledby="download-title">
             <div class="wrap">
                 <div class="download-panel">
                     <div>
-                        <span>Ready when you are</span>
                         <h2 id="download-title">No download. Just get moving.</h2>
                         <p>MUSTMAKE is available right here on the web. Open it in your browser, create an account, and start tracking.</p>
                     </div>
@@ -492,7 +846,9 @@
                 </div>
             </div>
         </section>
+
     </main>
+
 
     <footer class="site-footer">
         <div class="footer-inner wrap">
@@ -500,5 +856,11 @@
             <a class="text-link" href="/about">The story behind MUSTMAKE</a>
         </div>
     </footer>
+
+
+    <script src="/js/shared/toast.js"></script>
+    <script src="/js/shared/navbar.js"></script>
+    <script src="/js/features/exercises/exercise-library.js"></script>
+
 </body>
 </html>

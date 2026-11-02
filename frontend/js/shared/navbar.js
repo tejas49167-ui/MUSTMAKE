@@ -77,7 +77,7 @@
             "/pages/profile": "/profile",
             "/pages/login": "/login",
             "/pages/signup": "/signup",
-            "/pages/gst": "/gst"
+            "/pages/doit": "/doit"
         };
 
         return legacyRoutes[path] || path;
@@ -99,7 +99,7 @@
 
         return currentPage === target ||
             (target === "/today" &&
-                (currentPage === "/gst" || currentPage.startsWith("/exercises/")));
+                (currentPage === "/doit" || currentPage.startsWith("/exercises/")));
     }
 
     function navLink(href, label, currentPage) {
@@ -160,7 +160,9 @@
             : `
                 <nav class="guest-actions" aria-label="Account">
                     ${navLink("/login", "Login", currentPage)}
-                    ${navLink("/signup", "Sign up", currentPage)}
+                    ${currentPage === "/"
+                        ? '<a class="guest-signup-button" href="/signup">Get started</a>'
+                        : navLink("/signup", "Sign up", currentPage)}
                 </nav>
             `;
 
@@ -287,7 +289,7 @@
                     ${menuButtonHTML}
 
                     <a class="logo"
-                        href="${isAuthenticated ? "/today" : "/blog"}"
+                        href="${isAuthenticated ? "/today" : "/"}"
                         aria-label="MUSTMAKE home">
                         MUSTMAKE
                     </a>
@@ -528,7 +530,7 @@
                 window.clearPrivateCaches();
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
-                window.location.href = "/blog";
+                window.location.href = "/";
             });
         });
 

@@ -1,10 +1,9 @@
 {
   "public": ".",
   "rewrites": [
-    { "source": "/blog", "destination": "/pages/blog.html" },
-    { "source": "/exercises", "destination": "/pages/gst.html" },
+    { "source": "/exercises", "destination": "/pages/doit.html" },
+    { "source": "/doit", "destination": "/pages/doit.html" },
     { "source": "/exercises/:slug", "destination": "/pages/exercises/:slug.html" },
-    { "source": "/gst", "destination": "/pages/gst.html" },
     { "source": "/today", "destination": "/pages/index.html" },
     { "source": "/history", "destination": "/pages/history.html" },
     { "source": "/login", "destination": "/pages/login.html" },

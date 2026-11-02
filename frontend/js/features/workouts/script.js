@@ -129,7 +129,7 @@ async function loadToday() {
     const token = getToken();
 
     if (!user || !token) {
-        window.location.replace("/pages/gst.html");
+        window.location.replace("/");
         return;
     }
     const userId = getUserId(user);
@@ -188,7 +188,7 @@ async function loadToday() {
             userContainer.replaceChildren();
             window.showToast("Your workout data could not be loaded.", {
                 type: "error",
-                action: { label: "Browse exercises", href: "/pages/gst.html" }
+                action: { label: "Browse exercises", href: "/doit" }
             });
         } else {
             window.showToast("Could not refresh your workout data. Showing saved data.", { type: "warning" });

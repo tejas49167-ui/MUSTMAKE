@@ -88,7 +88,7 @@ deleteAccountButton.addEventListener("click", async () => {
             window.clearPrivateCaches();
             localStorage.removeItem("token");
             localStorage.removeItem("user");
-            window.location.replace("/blog");
+            window.location.replace("/");
             return;
         }
         if (!response.ok) {
@@ -100,7 +100,7 @@ deleteAccountButton.addEventListener("click", async () => {
         localStorage.removeItem("user");
         deleteToast?.dismiss();
         window.queueToast("Account deleted successfully.", "success");
-        window.setTimeout(() => window.location.replace("/blog"), 600);
+        window.setTimeout(() => window.location.replace("/"), 600);
     } catch (error) {
         console.error("Account deletion error:", error);
         deleteToast?.update(error instanceof TypeError

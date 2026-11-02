@@ -12,9 +12,9 @@
                 localStorage.getItem("token") &&
                 JSON.parse(localStorage.getItem("user") || "null")
             );
-            if (!isAuthenticated) window.location.replace("/pages/gst.html");
+            if (!isAuthenticated) window.location.replace("/");
         } catch {
-            window.location.replace("/pages/gst.html");
+            window.location.replace("/");
         }
     </script>
     <script src="/js/core/change_backend_url.js"></script>

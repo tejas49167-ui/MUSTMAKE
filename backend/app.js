@@ -72,10 +72,9 @@ app.get("/", (req, res) => {
 const frontendRoot = path.resolve(__dirname, "../frontend");
 if (fs.existsSync(frontendRoot)) {
     const frontendPages = {
-        "/blog": "blog.html",
         "/today": "index.html",
-        "/exercises": "gst.html",
-        "/gst": "gst.html",
+        "/exercises": "doit.html",
+        "/doit": "doit.html",
         "/history": "history.html",
         "/login": "login.html",
         "/signup": "signup.html",
@@ -114,6 +113,9 @@ if (fs.existsSync(frontendRoot)) {
     // setup, send browser requests for the About page to the frontend site.
     app.get(["/about", "/about.html"], (req, res) => {
         res.redirect("https://mustmake.vercel.app/about");
+    });
+    app.get(["/doit", "/exercises"], (req, res) => {
+        res.redirect("https://mustmake.vercel.app/doit");
     });
 }
 
