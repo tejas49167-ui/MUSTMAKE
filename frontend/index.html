@@ -138,15 +138,6 @@
             gap: 48px;
             padding-block: 112px 96px;
         }
-
-        .eyebrow {
-            color: #aaa;
-            font-size: .72rem;
-            font-weight: 600;
-            letter-spacing: .2em;
-            text-transform: uppercase;
-        }
-
         h1 {
             max-width: 680px;
             margin: 24px 0;
@@ -396,19 +387,28 @@
                 transition-duration: .01ms !important;
             }
         }
+.logo {
+    color: var(--text-primary);
+    text-decoration: none;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    letter-spacing: 0.13em;
+
+    white-space: nowrap;
+}
     </style>
 </head>
 <body>
     <header class="site-header">
         <nav class="nav wrap" aria-label="Main navigation">
             <a class="brand" href="/" aria-label="MUSTMAKE home">
-                <img src="/assets/images/favicon.png" alt="" width="38" height="38">
-                <span>MUSTMAKE</span>
+                <span class="logo">MUSTMAKE</span>
             </a>
             <div class="nav-links">
                 <a class="exercise-link" href="/exercises">Exercises</a>
                 <a class="about-link" href="/about">Our story</a>
-                <a href="/login">Log in</a>
                 <a class="button" href="/signup">Get started</a>
             </div>
         </nav>
@@ -417,14 +417,13 @@
     <main>
         <section class="hero wrap" aria-labelledby="hero-title">
             <div>
-                <span class="eyebrow">A little progress adds up</span>
                 <h1 id="hero-title">Make movement a habit.</h1>
                 <p class="hero-copy">MUSTMAKE helps you turn the workouts you want to do into a routine you can keep. Pick an exercise, track it your way, and come back tomorrow.</p>
                 <div class="actions">
                     <a class="button" href="/signup">Start your workout</a>
                     <a class="button secondary" href="/exercises">Explore exercises</a>
                 </div>
-                <p class="hero-note">Free to get started. No app download required.</p>
+                <p class="hero-note">Free to get started</p>
             </div>
             <div class="hero-art">
                 <img src="/assets/images/pushups.webp" alt="Push-up exercise demonstration" width="1536" height="1024" fetchpriority="high">
@@ -438,23 +437,19 @@
         <section class="content-section" aria-labelledby="features-title">
             <div class="wrap">
                 <div class="section-heading">
-                    <span class="eyebrow">Built for showing up</span>
                     <h2 id="features-title">A simple way to stay in motion.</h2>
                     <p>Whether you have a full training plan or just a few minutes, make each session count and keep your progress in one place.</p>
                 </div>
                 <div class="feature-grid">
                     <article class="feature">
-                        <span class="feature-number">01 / CHOOSE</span>
                         <h3>Find your next move</h3>
                         <p>Browse exercises across bodyweight, cardio, and dumbbell workouts, with a demonstration to help you get started.</p>
                     </article>
                     <article class="feature">
-                        <span class="feature-number">02 / TRACK</span>
                         <h3>Log it your way</h3>
                         <p>Use guided AI exercise monitoring where available, or record sets, reps, distance, and duration manually.</p>
                     </article>
                     <article class="feature">
-                        <span class="feature-number">03 / KEEP GOING</span>
                         <h3>See your consistency</h3>
                         <p>Review your workout history and daily streak, and celebrate the steady work behind your progress.</p>
                     </article>
@@ -465,7 +460,7 @@
         <section class="content-section" aria-labelledby="start-title">
             <div class="wrap">
                 <div class="section-heading">
-                    <span class="eyebrow">Three steps, no fuss</span>
+
                     <h2 id="start-title">Start where you are.</h2>
                 </div>
                 <div class="steps">
@@ -489,7 +484,7 @@
             <div class="wrap">
                 <div class="download-panel">
                     <div>
-                        <span class="eyebrow">Ready when you are</span>
+                        <span>Ready when you are</span>
                         <h2 id="download-title">No download. Just get moving.</h2>
                         <p>MUSTMAKE is available right here on the web. Open it in your browser, create an account, and start tracking—there is no separate app download or app-store listing.</p>
                     </div>
