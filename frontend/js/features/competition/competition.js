@@ -309,7 +309,7 @@ async function loadCompetition({ renderCache = true } = {}) {
 
 function renderCompetition(competitions) {
     if (competitions.length === 0) {
-        competitionList.innerHTML = `<p class="no-workout"></p>`;
+        competitionList.innerHTML = `<p class="no-workout">It's you vs you </p>`;
         return;
     }
 

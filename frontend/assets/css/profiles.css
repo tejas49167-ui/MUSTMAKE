@@ -528,14 +528,6 @@
     box-shadow: none;
 }
 
-.profile-value-dialog .profile-interaction-actions button:hover:not(:disabled) {
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-}
-
 .profile-photo-dialog h2,
 .profile-social-dialog h2 {
     margin-bottom: 1.25rem;

@@ -305,34 +305,69 @@
 
         container.innerHTML = navbarHTML;
 
-        const prefetchedUrls = new Set();
+        const prefetchableRoutes = new Set([
+            "/today",
+            "/doit",
+            "/exercises",
+            "/history",
+            "/competition"
+        ]);
+        const routeAliases = {
+            "/pages/index": "/today",
+            "/pages/exercises": "/exercises",
+            "/pages/history": "/history",
+            "/pages/competition": "/competition"
+        };
+        const currentPath = window.location.pathname
+            .replace(/\.html$/, "")
+            .replace(/\/+$/, "") || "/";
+        const currentRoute = routeAliases[currentPath] || currentPath;
+        const prefetchedRoutes = new Set();
         const prefetchPage = link => {
             const url = new URL(link.href, window.location.href);
-            if (url.origin !== window.location.origin || prefetchedUrls.has(url.href)) return;
+            if (
+                url.origin !== window.location.origin ||
+                url.search ||
+                url.hash ||
+                link.target && link.target !== "_self" ||
+                link.hasAttribute("download")
+            ) {
+                return;
+            }
 
-            prefetchedUrls.add(url.href);
+            const path = url.pathname.replace(/\.html$/, "").replace(/\/+$/, "") || "/";
+            const route = routeAliases[path] || path;
+
+            if (
+                !prefetchableRoutes.has(route) ||
+                route === currentRoute ||
+                prefetchedRoutes.has(route) ||
+                navigator.connection?.saveData ||
+                navigator.connection?.effectiveType === "slow-2g" ||
+                navigator.connection?.effectiveType === "2g"
+            ) {
+                return;
+            }
+
+            prefetchedRoutes.add(route);
             const prefetchLink = document.createElement("link");
             prefetchLink.rel = "prefetch";
-            prefetchLink.href = url.href;
+            prefetchLink.href = url.origin + route;
             document.head.appendChild(prefetchLink);
         };
 
-        container.querySelectorAll("a[href]").forEach(link => {
-            const prefetch = () => prefetchPage(link);
-            link.addEventListener("pointerenter", prefetch, { once: true });
-            link.addEventListener("touchstart", prefetch, { once: true, passive: true });
-        });
+        const prefetchFromInteraction = event => {
+            if (event.type === "pointerover" && event.pointerType !== "mouse") return;
+            if (event.type === "pointerdown" && event.pointerType !== "touch") return;
 
-        const warmBottomNavigation = () => {
-            if (navigator.connection?.saveData) return;
-            container.querySelectorAll(".bottom-navigation a[href]").forEach(prefetchPage);
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+            const link = target.closest("a[href]");
+            if (link && container.contains(link)) prefetchPage(link);
         };
 
-        if ("requestIdleCallback" in window) {
-            window.requestIdleCallback(warmBottomNavigation, { timeout: 1500 });
-        } else {
-            window.setTimeout(warmBottomNavigation, 1000);
-        }
+        container.addEventListener("pointerover", prefetchFromInteraction);
+        container.addEventListener("pointerdown", prefetchFromInteraction);
 
         document.body.classList.toggle(
             "has-bottom-navigation",
@@ -349,6 +384,7 @@
 
         let lastMenuFocus = null;
         let closeTimer = null;
+        let openFrame = null;
         let touchStart = null;
         const mobileNavigationQuery = window.matchMedia("(max-width: 800px)");
         const swipeThreshold = 56;
@@ -366,6 +402,10 @@
             if (closeTimer !== null) {
                 window.clearTimeout(closeTimer);
                 closeTimer = null;
+            }
+            if (openFrame !== null) {
+                window.cancelAnimationFrame(openFrame);
+                openFrame = null;
             }
 
             menuButtons.forEach(button => {
@@ -407,12 +447,13 @@
             menuPanel.hidden = false;
             if (backdrop) backdrop.hidden = false;
 
-            // Allow the opening animation to run.
-            void menuPanel.offsetWidth;
-
-            menuPanel.classList.add("is-open");
-            backdrop?.classList.add("is-visible");
-            menuPanel.setAttribute("aria-hidden", "false");
+            openFrame = window.requestAnimationFrame(() => {
+                openFrame = null;
+                if (menuPanel.hidden) return;
+                menuPanel.classList.add("is-open");
+                backdrop?.classList.add("is-visible");
+                menuPanel.setAttribute("aria-hidden", "false");
+            });
 
             menuButtons.forEach(button => {
                 button.setAttribute("aria-expanded", "true");

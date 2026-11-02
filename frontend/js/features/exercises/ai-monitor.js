@@ -266,8 +266,6 @@ export function mountAiMonitor(
     let saveInFlight = false;
     let discardInProgress = false;
     let cameraEnded = false;
-    let reviewHistoryGuard = false;
-    let reviewHistoryUrl = null;
 
     let sessionStarted = Boolean(
         snapshot?.sessionStarted || snapshot?.finished
@@ -567,10 +565,6 @@ export function mountAiMonitor(
         status.dataset.state = state;
         status.textContent = message;
         updateSmartCameraPreview();
-
-        if (state === "finished") {
-            protectReviewFromBack();
-        }
 
         if (state === "running") {
             smartScrollArmed = false;
@@ -1298,15 +1292,12 @@ export function mountAiMonitor(
         }
     }
 
-    function discardSession(alreadyConfirmed = false) {
+    function discardSession() {
         if (discardInProgress || !["finished", "saved"].includes(lifecycle)) {
             return;
         }
 
-        if (
-            !alreadyConfirmed &&
-            !window.confirm("Discard this session? It will not be saved.")
-        ) {
+        if (!window.confirm("Discard this session? It will not be saved.")) {
             return;
         }
         discardInProgress = true;
@@ -1340,30 +1331,6 @@ export function mountAiMonitor(
         window.location.replace("/today");
     }
 
-    function protectReviewFromBack() {
-        if (reviewHistoryGuard) return;
-        reviewHistoryUrl ??= window.location.href;
-        window.history.pushState(
-            { ...window.history.state, mustmakeWorkoutReview: true },
-            "",
-            reviewHistoryUrl
-        );
-        reviewHistoryGuard = true;
-    }
-
-    function handleReviewBack() {
-        if (!reviewHistoryGuard) return;
-        reviewHistoryGuard = false;
-
-        if (lifecycle !== "finished" || saveInFlight) return;
-
-        if (window.confirm("Discard this session? It will not be saved.")) {
-            discardSession(true);
-            return;
-        }
-
-        protectReviewFromBack();
-    }
     function correctedCount() {
         const value = correction.value.trim();
         const parsed = Number(value);
@@ -1678,12 +1645,6 @@ export function mountAiMonitor(
     window.addEventListener(
         "pagehide",
         handlePageHide,
-        { signal: listeners.signal }
-    );
-
-    window.addEventListener(
-        "popstate",
-        handleReviewBack,
         { signal: listeners.signal }
     );
 

@@ -1,5 +1,22 @@
 /* Base layout */
 
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 180ms;
+    animation-timing-function: ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none;
+    }
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -4474,13 +4491,6 @@ nav button,
 .main-button:hover {
     background: var(--accent-hover) !important;
     border-color: var(--accent-hover) !important;
-}
-
-.mobile-nav-links > a:hover,
-.mobile-nav-links > .mobile-nav-logout:hover,
-.mobile-nav-links > a.active {
-    color: var(--accent-hover);
-    background: var(--accent-soft);
 }
 
 #firstSetupPage {
