@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /today
+Disallow: /history
+Disallow: /profile
+Disallow: /settings
+Disallow: /edit-profile
+Disallow: /user-profile
+Disallow: /competition
+Disallow: /first-details
+Disallow: /google-callback
+
+Sitemap: https://mustmake.vercel.app/sitemap.xml
