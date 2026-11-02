@@ -17,6 +17,7 @@
     { "source": "/about.html", "destination": "/about", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://mustmakebackend.vercel.app/api/:path*" },
     { "source": "/exercises", "destination": "/pages/doit" },
     { "source": "/doit", "destination": "/pages/doit" },
     { "source": "/exercises/:slug", "destination": "/pages/exercises/:slug" },

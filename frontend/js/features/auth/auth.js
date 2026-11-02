@@ -45,7 +45,7 @@ window.addEventListener("storage", (event) => {
 
     localStorage.removeItem("googleLoginComplete");
 
-    if (localStorage.getItem("token") && localStorage.getItem("user")) {
+    if (localStorage.getItem("user")) {
         try {
             window.redirectAfterAuthentication(JSON.parse(localStorage.getItem("user")));
         } catch (error) {
@@ -57,6 +57,10 @@ window.addEventListener("storage", (event) => {
 
 const googleLoginLink = document.getElementById("googleLoginLink");
 const signupLink = document.getElementById("signupLink");
+
+if (googleLoginLink) {
+    googleLoginLink.href = `${window.API_URL}/api/auth/google`;
+}
 
 if (signupLink) {
     signupLink.addEventListener("click", (event) => {
@@ -101,7 +105,6 @@ if (googleLoginLink) {
 async function postAuth(path, payload) {
     const response = await fetch(`${window.API_URL}${path}`, {
         method: "POST",
-        credentials: path === "/api/auth/login" ? "include" : "omit",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     });
@@ -282,7 +285,7 @@ function setOtpStatus(message, isError = false) {
 function finishLogin(data) {
     loginRequestToast?.dismiss();
     otpRequestToast?.dismiss();
-    window.saveAuthenticatedSession(data.token, data.user);
+    window.saveAuthenticatedSession(data.user);
     sessionStorage.removeItem(LOGIN_EMAIL_KEY);
     sessionStorage.removeItem(LOGIN_SENT_AT_KEY);
     window.redirectAfterAuthentication(data.user);

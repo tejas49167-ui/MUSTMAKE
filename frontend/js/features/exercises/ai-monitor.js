@@ -1414,9 +1414,9 @@ export function mountAiMonitor(
                     ...(weightInput ? { weight } : {})
                 };
 
-        const token = localStorage.getItem("token");
+        const isSignedIn = Boolean(localStorage.getItem("user"));
 
-        if (!token) {
+        if (!isSignedIn) {
             if (!onSignInRequired?.(payload)) {
                 if (signInPromptMessage) {
                     signInPromptMessage.textContent =
@@ -1447,7 +1447,6 @@ export function mountAiMonitor(
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
                     },
                     body: JSON.stringify(payload)
                 }
@@ -1456,7 +1455,6 @@ export function mountAiMonitor(
             if (response.status === 401) {
                 window.clearPrivateCaches?.();
 
-                localStorage.removeItem("token");
                 localStorage.removeItem("user");
 
                 if (!onSignInRequired?.(payload)) {

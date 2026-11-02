@@ -8,7 +8,6 @@
     <script>
         try {
             const isAuthenticated = Boolean(
-                localStorage.getItem("token") &&
                 JSON.parse(localStorage.getItem("user") || "null")
             );
             if (isAuthenticated) window.location.replace("/today");

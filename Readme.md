@@ -32,6 +32,10 @@ The application provides workout tracking, user authentication, and a backend AP
 
 ### The project is being developed incrementally, with future plans for additional fitness, automation, and AI-related functionality.
 
+## Authentication configuration
+
+Browser sessions use an HttpOnly, SameSite=Lax cookie with a seven-day expiry. Production API requests are proxied through the frontend origin to keep that cookie first-party. Set `GOOGLE_CALLBACK_URL` and the matching Google OAuth authorized redirect URI to `https://mustmake.vercel.app/api/auth/google/callback` so Google sign-in also returns through the proxy. The backend accepts state-changing requests only from configured frontend origins. `FRONTEND_ORIGINS` can be set to a comma-separated list of exact origins when deploying another frontend domain; the default includes the production frontend and local development origins. Deploy the frontend and backend session changes together.
+
 ## Project Structure
 
 ```text

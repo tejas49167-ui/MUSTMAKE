@@ -1,17 +1,17 @@
-function getToken() {
-    return localStorage.getItem("token");
+function hasSignedInUser() {
+    try {
+        return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
+    } catch {
+        return false;
+    }
 }
 
 function authHeaders() {
-    return {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${getToken()}`
-    };
+    return { "Content-Type": "application/json" };
 }
 
 function logout() {
     window.clearPrivateCaches();
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.href = "/login";
 }
@@ -379,7 +379,7 @@ function formatWorkoutDuration(seconds) {
     return remainingSeconds ? `${minutes} min ${remainingSeconds} sec` : `${minutes} min`;
 }
 
-if (!getToken()) {
+if (!hasSignedInUser()) {
     window.location.href = "/login";
 } else {
     loadCompetition();

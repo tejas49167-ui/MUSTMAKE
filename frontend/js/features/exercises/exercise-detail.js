@@ -528,9 +528,9 @@
             event.preventDefault();
 
             const button = form.querySelector("button[type='submit']");
-            const token = localStorage.getItem("token");
+            const isSignedIn = Boolean(localStorage.getItem("user"));
 
-            if (!token) {
+            if (!isSignedIn) {
                 const values = Object.fromEntries(new FormData(form).entries());
                 if (!storePendingWorkout("manual", values)) {
                     window.showToast("Could not preserve your workout. Please try again before signing in.", { type: "error" });
@@ -553,7 +553,6 @@
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            "Authorization": `Bearer ${token}`
                         },
                         body: JSON.stringify(
                             buildWorkoutPayload(exercise, form)
@@ -565,7 +564,6 @@
 
                 if (response.status === 401) {
                     window.clearPrivateCaches();
-                    localStorage.removeItem("token");
                     localStorage.removeItem("user");
 
                     if (!storePendingWorkout(

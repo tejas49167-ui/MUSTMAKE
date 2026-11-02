@@ -47,7 +47,7 @@
         }
     });
 
-    window.saveAuthenticatedSession = function (token, user) {
+    window.saveAuthenticatedSession = function (user) {
         let previousUserId;
         try {
             const previousUser = JSON.parse(localStorage.getItem("user") || "null");
@@ -61,7 +61,7 @@
             window.clearPrivateCaches();
         }
 
-        localStorage.setItem("token", token);
+        localStorage.removeItem("token");
         localStorage.setItem("user", JSON.stringify(user));
     };
 
@@ -126,10 +126,7 @@
 
     function getAuthenticationState() {
         try {
-            return Boolean(
-                localStorage.getItem("token") &&
-                JSON.parse(localStorage.getItem("user") || "null")
-            );
+            return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
         } catch {
             return false;
         }
@@ -569,9 +566,14 @@
         container.querySelectorAll("[data-auth-logout], #logoutButton").forEach(button => {
             button.addEventListener("click", () => {
                 window.clearPrivateCaches();
-                localStorage.removeItem("token");
                 localStorage.removeItem("user");
-                window.location.href = "/";
+                window.fetch(`${window.API_URL}/api/auth/logout`, {
+                    method: "POST"
+                }).catch(error => {
+                    console.warn("Could not end the server session.", error);
+                }).finally(() => {
+                    window.location.replace("/");
+                });
             });
         });
 

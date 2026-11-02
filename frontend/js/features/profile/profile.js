@@ -1,10 +1,5 @@
-function getToken() {
-    return localStorage.getItem("token");
-}
-
 function logout() {
     window.clearPrivateCaches();
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.href = "/login";
 }
@@ -114,11 +109,7 @@ async function loadProfile() {
     if (cachedProfile) renderProfile(cachedProfile);
 
     try {
-        const response = await fetch(`${window.API_URL}/api/profile`, {
-            headers: {
-                "Authorization": `Bearer ${getToken()}`
-            }
-        });
+        const response = await fetch(`${window.API_URL}/api/profile`);
 
         const data = await response.json().catch(() => null);
 
@@ -194,7 +185,6 @@ async function updateProfile(payload) {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${getToken()}`
         },
         body: JSON.stringify(payload)
     });

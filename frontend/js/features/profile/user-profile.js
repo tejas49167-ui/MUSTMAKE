@@ -1,5 +1,11 @@
 const profileRoot = document.getElementById("publicProfile");
-const profileToken = localStorage.getItem("token");
+const profileToken = (() => {
+    try {
+        return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
+    } catch {
+        return false;
+    }
+})();
 const profileId = new URLSearchParams(window.location.search).get("id");
 const publicPhotoDialog = document.getElementById("publicPhotoDialog");
 const publicPhotoPreview = document.getElementById("publicPhotoPreview");
@@ -133,14 +139,12 @@ async function loadMorePublicHistory(event) {
             limit: "25"
         });
         const response = await fetch(
-            `${window.API_URL}/api/users/${encodeURIComponent(profileId)}?${query}`,
-            { headers: { Authorization: "Bearer " + profileToken } }
+            `${window.API_URL}/api/users/${encodeURIComponent(profileId)}?${query}`
         );
 
         if (response.status === 401) {
             loadToast?.dismiss();
             window.clearPrivateCaches();
-            localStorage.removeItem("token");
             localStorage.removeItem("user");
             window.location.href = "/login";
             return;
@@ -265,12 +269,9 @@ async function loadPublicProfile() {
     }
 
     try {
-        const response = await fetch(`${window.API_URL}/api/users/${encodeURIComponent(profileId)}`, {
-            headers: { Authorization: `Bearer ${profileToken}` }
-        });
+        const response = await fetch(`${window.API_URL}/api/users/${encodeURIComponent(profileId)}`);
         if (response.status === 401) {
             window.clearPrivateCaches();
-            localStorage.removeItem("token");
             localStorage.removeItem("user");
             window.location.href = "/login";
             return;

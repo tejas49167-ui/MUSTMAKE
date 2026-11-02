@@ -1,7 +1,11 @@
 const APP_TIME_ZONE = "Asia/Kolkata";
 
-function getToken() {
-    return localStorage.getItem("token");
+function hasSignedInUser() {
+    try {
+        return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
+    } catch {
+        return false;
+    }
 }
 
 function readSessionCache(key) {
@@ -41,7 +45,6 @@ function getUserId(user) {
 
 function logout(redirectToLogin = true) {
     window.clearPrivateCaches();
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
     if (redirectToLogin) {
         window.location.href = "/login";
@@ -126,9 +129,7 @@ async function loadToday() {
     if (!personalDashboard || !userContainer) return;
 
     const user = getCurrentUser();
-    const token = getToken();
-
-    if (!user || !token) {
+    if (!user || !hasSignedInUser()) {
         window.location.replace("/");
         return;
     }
@@ -164,9 +165,7 @@ async function loadToday() {
         cacheSuffix ? `mustmake_streak${cacheSuffix}` : null
     );
     try {
-        const todayPromise = fetch(`${window.API_URL}/api/workouts/today`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
+        const todayPromise = fetch(`${window.API_URL}/api/workouts/today`);
 
         const [response] = await Promise.all([todayPromise, streakPromise]);
         if (response.status === 401) {
@@ -220,11 +219,7 @@ async function loadStreaks(cacheKey) {
     if (!streakElement) return;
 
     try {
-        const response = await fetch(`${window.API_URL}/api/workouts/streaks`, {
-            headers: {
-                "Authorization": `Bearer ${getToken()}`
-            }
-        });
+        const response = await fetch(`${window.API_URL}/api/workouts/streaks`);
 
         if (response.status === 401) {
             logout();
@@ -296,7 +291,7 @@ async function loadHistory(cursor = null) {
     const historyContainer = document.getElementById("history");
     if (!historyContainer || historyLoading) return;
 
-    if (!getToken()) {
+    if (!hasSignedInUser()) {
         window.location.href = "/login";
         return;
     }
@@ -309,11 +304,7 @@ async function loadHistory(cursor = null) {
     if (cursor) query.set("cursor", cursor);
 
     try {
-        const response = await fetch(`${window.API_URL}/api/workouts/history?${query}`, {
-            headers: {
-                "Authorization": `Bearer ${getToken()}`
-            }
-        });
+        const response = await fetch(`${window.API_URL}/api/workouts/history?${query}`);
 
         if (response.status === 401) {
             loadToast?.dismiss();

@@ -16,7 +16,6 @@ const deleteAccountButton = document.getElementById("deleteAccountButton");
 function hasSignedInUser() {
     try {
         return Boolean(
-            localStorage.getItem("token") &&
             JSON.parse(localStorage.getItem("user") || "null")
         );
     } catch {
@@ -76,17 +75,13 @@ deleteAccountButton.addEventListener("click", async () => {
 
     try {
         const response = await fetch(`${window.API_URL}/api/account`, {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`
-            }
+            method: "DELETE"
         });
         const data = await response.json().catch(() => ({}));
 
         if (response.status === 401) {
             deleteToast?.dismiss();
             window.clearPrivateCaches();
-            localStorage.removeItem("token");
             localStorage.removeItem("user");
             window.location.replace("/");
             return;
@@ -96,7 +91,11 @@ deleteAccountButton.addEventListener("click", async () => {
         }
 
         window.clearPrivateCaches();
-        localStorage.removeItem("token");
+        try {
+            await fetch(`${window.API_URL}/api/auth/logout`, { method: "POST" });
+        } catch (error) {
+            console.warn("Could not clear the session cookie after account deletion.", error);
+        }
         localStorage.removeItem("user");
         deleteToast?.dismiss();
         window.queueToast("Account deleted successfully.", "success");

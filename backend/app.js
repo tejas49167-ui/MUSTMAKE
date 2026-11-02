@@ -16,6 +16,8 @@ const workoutsRoutes = require("./routes/workouts.routes");
 const exercisesRoutes = require("./routes/exercises.routes");
 const errorHandler = require("./middleware/error-handler");
 const exercises = require("./config/exercises.json");
+const { getFrontendOrigins } = require("./utils/auth-cookie");
+const csrfOrigin = require("./middleware/csrf-origin");
 
 const app = express();
 const configuredTrustProxy = process.env.TRUST_PROXY;
@@ -42,16 +44,18 @@ app.use((req, res, next) => {
     });
 });
 
-app.use(
-    cors({
-        origin: [
-            "https://mustmake.vercel.app",
-            "http://localhost:5500",
-            "http://127.0.0.1:5500"
-        ],
-        credentials: true
-    })
-);
+const frontendOrigins = getFrontendOrigins();
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || frontendOrigins.has(origin)) {
+            return callback(null, true);
+        }
+        return callback(null, false);
+    },
+    credentials: true
+}));
+
+app.use(csrfOrigin);
 
 app.use(passport.initialize());
 

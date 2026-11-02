@@ -1,6 +1,7 @@
 const express = require("express");
 const passport = require("passport");
 const authController = require("../controllers/auth.controller");
+const auth = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -9,6 +10,8 @@ router.post("/api/auth/verify-otp", authController.verifyOtp);
 router.post("/api/auth/signup", authController.signup);
 router.post("/api/auth/login", authController.login);
 router.get("/api/auth/login-rate-limit", authController.loginRateLimitStatus);
+router.get("/api/auth/session", auth, authController.currentSession);
+router.post("/api/auth/logout", authController.logout);
 
 router.get(
     "/api/auth/google",

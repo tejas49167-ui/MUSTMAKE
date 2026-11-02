@@ -17,6 +17,16 @@ const {
 } = require("../services/auth.service");
 const { sendOTPEmail } = require("../services/email.service");
 const loginRateLimitService = require("../services/login-rate-limit.service");
+const { setSessionCookie, clearSessionCookie } = require("../utils/auth-cookie");
+
+function sendAuthenticatedSession(res, session) {
+    res.set("Cache-Control", "no-store");
+    setSessionCookie(res, session.token);
+    return res.json({
+        success: true,
+        user: session.user
+    });
+}
 
 function sendLoginRestriction(res, retryAfterMs) {
     return res.status(429).json({
@@ -607,11 +617,12 @@ const verifyOtp = async (req, res) => {
 
             const session = createAuthSession(user);
 
+            res.set("Cache-Control", "no-store");
+            setSessionCookie(res, session.token);
             return res.json({
                 success: true,
-                message:
-                    "OTP verified successfully.",
-                ...session
+                message: "OTP verified successfully.",
+                user: session.user
             });
 
         } catch (error) {
@@ -762,12 +773,8 @@ const login = async (req, res) => {
                 );
 
 
-            res.json({
-
-                success: true,
-
+            return sendAuthenticatedSession(res, {
                 token,
-
                 user: {
 
                     id:
@@ -827,41 +834,9 @@ const googleCallback = async (req, res) => {
                 );
 
 
-            const user = {
-
-                id:
-                    req.user._id,
-
-                name:
-                    req.user.name,
-
-                username:
-                    req.user.username,
-
-                email:
-                    req.user.email,
-
-                profilePicture:
-                    req.user.profilePicture,
-
-                age:
-                    req.user.age
-            };
-
-
-            const params =
-                new URLSearchParams({
-
-                    token,
-
-                    user:
-                        JSON.stringify(user)
-                });
-
-
-            res.redirect(
-                `https://mustmake.vercel.app/pages/google-callback.html#${params.toString()}`
-            );
+            setSessionCookie(res, token);
+            res.set("Cache-Control", "no-store");
+            res.redirect("https://mustmake.vercel.app/pages/google-callback.html");
 
 
         } catch (error) {
@@ -878,11 +853,45 @@ const googleCallback = async (req, res) => {
         }
     };
 
+const currentSession = async (req, res) => {
+    res.set("Cache-Control", "no-store");
+    try {
+        await connectDB();
+        const user = await User.findById(req.userId).select("+ageReferenceYear");
+        if (!user) {
+            clearSessionCookie(res);
+            return res.status(401).json({ message: "Session is no longer valid." });
+        }
+
+        return res.json({
+            user: {
+                id: user._id,
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                profilePicture: user.profilePicture,
+                age: user.age
+            }
+        });
+    } catch (error) {
+        console.error("Current session error:", error);
+        return res.status(500).json({ message: "Could not verify session." });
+    }
+};
+
+const logout = (req, res) => {
+    res.set("Cache-Control", "no-store");
+    clearSessionCookie(res);
+    return res.json({ success: true });
+};
+
 module.exports = {
     sendOtp,
     verifyOtp,
     signup,
     login,
     loginRateLimitStatus,
-    googleCallback
+    googleCallback,
+    currentSession,
+    logout
 };

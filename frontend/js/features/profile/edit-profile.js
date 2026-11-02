@@ -1,10 +1,5 @@
-function getToken() {
-    return localStorage.getItem("token");
-}
-
 function logout() {
     window.clearPrivateCaches();
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
     window.location.href = "/login";
 }
@@ -84,11 +79,7 @@ profilePictureInput?.addEventListener("change", () => {
 
 async function loadProfile() {
     try {
-        const response = await fetch(`${window.API_URL}/api/profile`, {
-            headers: {
-                "Authorization": `Bearer ${getToken()}`
-            }
-        });
+        const response = await fetch(`${window.API_URL}/api/profile`);
 
         if (response.status === 401) {
             logout();
@@ -189,7 +180,6 @@ profileForm.addEventListener("submit", async event => {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${getToken()}`
             },
             body: JSON.stringify(payload)
         });

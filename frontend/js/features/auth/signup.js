@@ -43,7 +43,7 @@ async function postAuth(path, payload) {
 
 function saveSession(data) {
     signupToast?.dismiss();
-    window.saveAuthenticatedSession(data.token, data.user);
+    window.saveAuthenticatedSession(data.user);
     sessionStorage.removeItem(SIGNUP_EMAIL_KEY);
     sessionStorage.removeItem(SIGNUP_SENT_AT_KEY);
     window.redirectAfterAuthentication(data.user);
