@@ -10,4 +10,4 @@ Disallow: /competition
 Disallow: /first-details
 Disallow: /google-callback
 
-Sitemap: https://www.mustmake.site/sitemap.xml
+Sitemap: https://mustmake.site/sitemap.xml

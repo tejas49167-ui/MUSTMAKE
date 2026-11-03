@@ -116,10 +116,10 @@ if (fs.existsSync(frontendRoot)) {
     // The API is sometimes deployed from the backend directory alone. In that
     // setup, send browser requests for the About page to the frontend site.
     app.get(["/about", "/about.html"], (req, res) => {
-        res.redirect("https://www.mustmake.site/about");
+        res.redirect("https://mustmake.site/about");
     });
     app.get(["/doit", "/exercises"], (req, res) => {
-        res.redirect("https://www.mustmake.site/doit");
+        res.redirect("https://mustmake.site/doit");
     });
 }
 

@@ -24,7 +24,7 @@ router.get(
 router.get(
     "/api/auth/google/callback",
     passport.authenticate("google", {
-        failureRedirect: "https://www.mustmake.site/pages/login.html",
+        failureRedirect: "https://mustmake.site/pages/login.html",
         session: false
     }),
     authController.googleCallback

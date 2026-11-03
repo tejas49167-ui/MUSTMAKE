@@ -94,7 +94,20 @@ test("unsafe requests require an allowed frontend origin", () => {
     assert.equal(res.statusCode, 403);
 });
 
-test("unsafe requests accept the configured production frontend origin", () => {
+test("unsafe requests accept the bare production frontend origin", () => {
+    let nextCalled = false;
+
+    csrfOrigin({
+        method: "POST",
+        get: header => header === "Origin" ? "https://mustmake.site" : null
+    }, responseStub(), () => {
+        nextCalled = true;
+    });
+
+    assert.equal(nextCalled, true);
+});
+
+test("unsafe requests accept the www frontend alias", () => {
     let nextCalled = false;
 
     csrfOrigin({

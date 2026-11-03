@@ -27,6 +27,7 @@ function getFrontendOrigins() {
         .filter(Boolean);
 
     return new Set([
+        "https://mustmake.site",
         "https://www.mustmake.site",
         "https://mustmake.vercel.app",
         "http://localhost:5500",
