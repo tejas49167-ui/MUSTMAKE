@@ -99,6 +99,19 @@ test("unsafe requests accept the configured production frontend origin", () => {
 
     csrfOrigin({
         method: "POST",
+        get: header => header === "Origin" ? "https://www.mustmake.site" : null
+    }, responseStub(), () => {
+        nextCalled = true;
+    });
+
+    assert.equal(nextCalled, true);
+});
+
+test("unsafe requests continue accepting the legacy Vercel frontend origin", () => {
+    let nextCalled = false;
+
+    csrfOrigin({
+        method: "POST",
         get: header => header === "Origin" ? "https://mustmake.vercel.app" : null
     }, responseStub(), () => {
         nextCalled = true;

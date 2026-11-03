@@ -13,9 +13,9 @@ test("API requests use cookies and drop bearer headers without changing static f
     const removedKeys = [];
     const window = {
         location: {
-            hostname: "mustmake.vercel.app",
-            href: "https://mustmake.vercel.app/login",
-            origin: "https://mustmake.vercel.app"
+            hostname: "www.mustmake.site",
+            href: "https://www.mustmake.site/login",
+            origin: "https://www.mustmake.site"
         },
         fetch: async (input, init) => {
             calls.push({ input, init });

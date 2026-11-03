@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>https://mustmake.vercel.app/</loc>
+        <loc>https://www.mustmake.site/</loc>
     </url>
     <url>
-        <loc>https://mustmake.vercel.app/about</loc>
+        <loc>https://www.mustmake.site/about</loc>
     </url>
     <url>
-        <loc>https://mustmake.vercel.app/exercises</loc>
+        <loc>https://www.mustmake.site/exercises</loc>
     </url>
 </urlset>

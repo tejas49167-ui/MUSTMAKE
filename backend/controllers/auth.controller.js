@@ -836,7 +836,7 @@ const googleCallback = async (req, res) => {
 
             setSessionCookie(res, token);
             res.set("Cache-Control", "no-store");
-            res.redirect("https://mustmake.vercel.app/pages/google-callback.html");
+            res.redirect("https://www.mustmake.site/pages/google-callback.html");
 
 
         } catch (error) {
@@ -848,7 +848,7 @@ const googleCallback = async (req, res) => {
 
 
             res.redirect(
-                "https://mustmake.vercel.app/pages/login.html"
+                "https://www.mustmake.site/pages/login.html"
             );
         }
     };

@@ -10,4 +10,4 @@ Disallow: /competition
 Disallow: /first-details
 Disallow: /google-callback
 
-Sitemap: https://mustmake.vercel.app/sitemap.xml
+Sitemap: https://www.mustmake.site/sitemap.xml
