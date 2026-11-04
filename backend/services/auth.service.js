@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 
 const OTP_EXPIRY_MINUTES = 5;
-const OTP_MAX_ATTEMPTS = 4;
+const OTP_MAX_ATTEMPTS = 7;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_ATTEMPT_WINDOW_MS = OTP_EXPIRY_MINUTES * 60 * 1000;
 
