@@ -47,6 +47,5 @@ const otpSchema = new mongoose.Schema(
     }
 );
 
-otpSchema.index({ email: 1, purpose: 1 });
-
+otpSchema.index({ email: 1, purpose: 1 }, { unique: true });
 module.exports = mongoose.model("OTP", otpSchema);

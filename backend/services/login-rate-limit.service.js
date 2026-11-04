@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const LoginRateLimit = require("../models/LoginRateLimit");
 
 const DEVICE_COOKIE_NAME = "mm_login_device";
-const DEVICE_LOCK_ATTEMPT = 7;
+const DEVICE_LOCK_ATTEMPT = 4;
 const IP_WINDOW_MS = 5 * 60 * 1000;
 const IP_LOCK_ATTEMPT = 100;
 const RESTRICTION_MS = 5 * 60 * 1000;
