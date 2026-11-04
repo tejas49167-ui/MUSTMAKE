@@ -34,7 +34,7 @@ test("production responses include secure headers and protected routes reject an
     const previousNodeEnv = process.env.NODE_ENV;
     const previousTrustProxy = process.env.TRUST_PROXY;
     process.env.NODE_ENV = "production";
-    delete process.env.TRUST_PROXY;
+    process.env.TRUST_PROXY = "false";
 
     const appPath = require.resolve("../app");
     delete require.cache[appPath];

@@ -737,7 +737,7 @@ test("OTP expires and the fifth wrong code locks and consumes the challenge", as
             init: async () => OTP,
             findOne: async () => deleted ? null : otpRecord,
             findOneAndUpdate: async () => {
-                if (otpRecord.attempts >= 5) return null;
+                if (otpRecord.attempts >= authService.OTP_MAX_ATTEMPTS) return null;
                 otpRecord.attempts += 1;
                 return { ...otpRecord };
             },
@@ -791,7 +791,7 @@ test("OTP expires and the fifth wrong code locks and consumes the challenge", as
     otpRecord.expiresAt = new Date(Date.now() + 60_000);
 
     const statuses = [];
-    for (let attempt = 0; attempt < 5; attempt += 1) {
+    for (let attempt = 0; attempt < authService.OTP_MAX_ATTEMPTS; attempt += 1) {
         const response = responseStub();
         await authController.verifyOtp({
             body: {
@@ -805,6 +805,6 @@ test("OTP expires and the fifth wrong code locks and consumes the challenge", as
         statuses.push(response.statusCode);
     }
 
-    assert.deepEqual(statuses, [401, 401, 401, 401, 401]);
+    assert.ok(statuses.every(status => status === 401));
     assert.equal(deleted, true);
 });
