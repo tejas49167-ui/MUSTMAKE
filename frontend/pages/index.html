@@ -6,16 +6,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>
-        try {
-            const isAuthenticated = Boolean(
-                JSON.parse(localStorage.getItem("user") || "null")
-            );
-            if (!isAuthenticated) window.location.replace("/");
-        } catch {
-            window.location.replace("/");
-        }
-    </script>
+    <script src="/js/core/require-auth.js"></script>
     <script src="/js/core/change_backend_url.js"></script>
     <link rel="icon" type="image/png" href="/assets/images/favicon.png">
     <title>Today | MUSTMAKE</title>

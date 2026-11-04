@@ -1,5 +1,6 @@
 const LOGIN_EMAIL_KEY = "pendingLoginOtpEmail";
 const LOGIN_SENT_AT_KEY = "pendingLoginOtpSentAt";
+const LOGIN_CHALLENGE_KEY = "pendingLoginOtpChallenge";
 const OTP_COOLDOWN_MS = 60 * 1000;
 
 const loginForm = document.getElementById("loginForm");
@@ -288,18 +289,22 @@ function finishLogin(data) {
     window.saveAuthenticatedSession(data.user);
     sessionStorage.removeItem(LOGIN_EMAIL_KEY);
     sessionStorage.removeItem(LOGIN_SENT_AT_KEY);
+    sessionStorage.removeItem(LOGIN_CHALLENGE_KEY);
     window.redirectAfterAuthentication(data.user);
 }
 
 let resendTimer = null;
 
-function showOtpVerify(email, sentAt = Date.now()) {
+function showOtpVerify(email, sentAt = Date.now(), challengeToken = "") {
     loginForm.hidden = true;
     otpLoginVerifyForm.hidden = false;
     document.body.classList.add("otp-login-page");
     document.getElementById("otpLoginEmailLabel").textContent = email;
     sessionStorage.setItem(LOGIN_EMAIL_KEY, email);
     sessionStorage.setItem(LOGIN_SENT_AT_KEY, String(sentAt));
+    if (challengeToken) {
+        sessionStorage.setItem(LOGIN_CHALLENGE_KEY, challengeToken);
+    }
     document.getElementById("loginOtp").focus();
     updateResendCooldown();
 }
@@ -341,6 +346,7 @@ function resetOtpLogin(message, email = "", isError = false) {
 
     sessionStorage.removeItem(LOGIN_EMAIL_KEY);
     sessionStorage.removeItem(LOGIN_SENT_AT_KEY);
+    sessionStorage.removeItem(LOGIN_CHALLENGE_KEY);
     document.getElementById("loginOtp").value = "";
     otpLoginVerifyForm.hidden = true;
     document.getElementById("loginOtpResendStatus").hidden = true;
@@ -389,10 +395,10 @@ if (loginForm) {
             submitButton.disabled = true;
 
             try {
-                await postAuth("/api/auth/send-otp", { email, purpose: "login" });
+                const result = await postAuth("/api/auth/send-otp", { email, purpose: "login" });
                 loginIdentifier.value = email;
-                showOtpVerify(email);
-                setLoginToast("Sign-in code sent.", "success");
+                showOtpVerify(email, result.sentAt || Date.now(), result.challengeToken);
+                setLoginToast(result.message || "If the address is eligible, a sign-in code will be sent.", "success");
                 setOtpStatus("");
             } catch (error) {
                 console.error(error);
@@ -462,6 +468,7 @@ if (otpLoginVerifyForm) {
             const data = await postAuth("/api/auth/verify-otp", {
                 email,
                 otp,
+                challengeToken: sessionStorage.getItem(LOGIN_CHALLENGE_KEY),
                 purpose: "login"
             });
             finishLogin(data);
@@ -494,7 +501,10 @@ document.getElementById("loginOtpResend")?.addEventListener("click", async () =>
     setOtpStatus("Sending another sign-in code...");
 
     try {
-        await postAuth("/api/auth/send-otp", { email, purpose: "login" });
+        const result = await postAuth("/api/auth/send-otp", { email, purpose: "login" });
+        if (result.challengeToken) {
+            sessionStorage.setItem(LOGIN_CHALLENGE_KEY, result.challengeToken);
+        }
         sessionStorage.setItem(LOGIN_SENT_AT_KEY, String(Date.now()));
         updateResendCooldown();
         setOtpStatus("A new sign-in code was sent.");

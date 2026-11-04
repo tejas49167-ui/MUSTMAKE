@@ -2,7 +2,12 @@ const express = require("express");
 const passport = require("passport");
 const authController = require("../controllers/auth.controller");
 const auth = require("../middleware/auth");
-const { frontend_url } = require("../config/urls");
+const {
+    limitGoogleOAuthStart,
+    beginGoogleOAuth,
+    validateGoogleOAuthState
+} = require("../middleware/google-oauth-state");
+const { getFrontendRedirect } = require("../config/urls");
 
 const router = express.Router();
 
@@ -16,16 +21,20 @@ router.post("/api/auth/logout", authController.logout);
 
 router.get(
     "/api/auth/google",
-    passport.authenticate("google", {
+    limitGoogleOAuthStart,
+    beginGoogleOAuth,
+    (req, res, next) => passport.authenticate("google", {
         scope: ["profile", "email"],
-        session: false
-    })
+        session: false,
+        state: req.googleOAuthState
+    })(req, res, next)
 );
 
 router.get(
     "/api/auth/google/callback",
+    validateGoogleOAuthState,
     passport.authenticate("google", {
-        failureRedirect: `${frontend_url}/pages/login.html`,
+        failureRedirect: getFrontendRedirect("/pages/login.html"),
         session: false
     }),
     authController.googleCallback

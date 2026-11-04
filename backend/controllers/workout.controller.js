@@ -6,6 +6,7 @@ const { isPlainObject, parseWorkoutNumber } = require("../utils/validation");
 const { createWorkoutRecord } = require("../services/workout.service");
 const { getWorkoutHistoryPage } = require("../services/workout-history.service");
 const exercises = require("../config/exercises.json");
+const { logFailure } = require("../utils/safe-log");
 
 const exercisesByName = new Map(exercises.map(exercise => [exercise.name, exercise]));
 
@@ -94,7 +95,7 @@ const addWorkout = async (req, res) => {
 
         return res.status(201).json(workout);
     } catch (error) {
-        console.error("Save workout error:", error);
+        logFailure("Save workout failed.", error);
         return res.status(500).json({ message: "Could not save workout." });
     }
 };
@@ -132,10 +133,7 @@ const getTodayWorkouts = async (req, res) => {
 
         } catch (error) {
 
-            console.error(
-                "Load today's workouts error:",
-                error
-            );
+            logFailure("Load today's workouts failed.", error);
 
 
             res.status(500).json({
@@ -263,10 +261,7 @@ const getStreak = async (req, res) => {
 
         } catch (error) {
 
-            console.error(
-                "Load streak error:",
-                error
-            );
+            logFailure("Load streak failed.", error);
 
 
             res.status(500).json({
@@ -292,10 +287,7 @@ const getWorkoutHistory = async (req, res) => {
 
         } catch (error) {
 
-            console.error(
-                "Load history error:",
-                error
-            );
+            logFailure("Load workout history failed.", error);
 
 
             res.status(500).json({
@@ -346,10 +338,7 @@ const deleteWorkout = async (req, res) => {
 
         } catch (error) {
 
-            console.error(
-                "Delete workout error:",
-                error
-            );
+            logFailure("Delete workout failed.", error);
 
 
             res.status(500).json({

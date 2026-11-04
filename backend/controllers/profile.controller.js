@@ -10,6 +10,7 @@ const {
     isPlainObject
 } = require("../utils/validation");
 const { getDateString } = require("../utils/date");
+const { logFailure } = require("../utils/safe-log");
 
 const getProfile = async (req, res) => {
         try {
@@ -33,10 +34,7 @@ const getProfile = async (req, res) => {
 
         } catch (error) {
 
-            console.error(
-                "Get profile error:",
-                error
-            );
+            logFailure("Get profile failed.", error);
 
             res.status(500).json({
                 message:
@@ -222,10 +220,7 @@ const saveProfile = async (req, res, requireName = false) => {
 
         } catch (error) {
 
-            console.error(
-                "Update profile error:",
-                error
-            );
+            logFailure("Update profile failed.", error);
 
             res.status(500).json({
                 message:
@@ -273,13 +268,13 @@ const deleteAccount = async (req, res) => {
                     { resource_type: "image" }
                 );
             } catch (error) {
-                console.error("Could not remove deleted account's profile photo:", error);
+                logFailure("Could not remove deleted account's profile photo.", error);
             }
         }
 
         return res.json({ success: true });
     } catch (error) {
-        console.error("Delete account error:", error);
+        logFailure("Delete account failed.", error);
         return res.status(500).json({ message: "Could not delete your account." });
     } finally {
         await session?.endSession();

@@ -1,5 +1,6 @@
 const SIGNUP_EMAIL_KEY = "pendingSignupEmail";
 const SIGNUP_SENT_AT_KEY = "pendingSignupOtpSentAt";
+const SIGNUP_CHALLENGE_KEY = "pendingSignupOtpChallenge";
 const OTP_COOLDOWN_MS = 60 * 1000;
 
 const loginLink = document.getElementById("loginLink");
@@ -46,15 +47,19 @@ function saveSession(data) {
     window.saveAuthenticatedSession(data.user);
     sessionStorage.removeItem(SIGNUP_EMAIL_KEY);
     sessionStorage.removeItem(SIGNUP_SENT_AT_KEY);
+    sessionStorage.removeItem(SIGNUP_CHALLENGE_KEY);
     window.redirectAfterAuthentication(data.user);
 }
 
-function setSignupStep(email, sentAt = Date.now()) {
+function setSignupStep(email, sentAt = Date.now(), challengeToken = "") {
     signupForm.hidden = true;
     signupOtpForm.hidden = false;
     document.getElementById("signupOtpEmail").textContent = email;
     sessionStorage.setItem(SIGNUP_EMAIL_KEY, email);
     sessionStorage.setItem(SIGNUP_SENT_AT_KEY, String(sentAt));
+    if (challengeToken) {
+        sessionStorage.setItem(SIGNUP_CHALLENGE_KEY, challengeToken);
+    }
     document.getElementById("signupOtp").focus();
     updateResendCooldown();
 }
@@ -123,6 +128,7 @@ function returnToSignup(message, isError = true) {
 
     sessionStorage.removeItem(SIGNUP_EMAIL_KEY);
     sessionStorage.removeItem(SIGNUP_SENT_AT_KEY);
+    sessionStorage.removeItem(SIGNUP_CHALLENGE_KEY);
     signupOtpForm.hidden = true;
     signupForm.hidden = false;
     document.getElementById("signupOtp").value = "";
@@ -160,7 +166,7 @@ if (signupForm && signupOtpForm) {
                 purpose: "signup"
             });
 
-            setSignupStep(email, result.sentAt || Date.now());
+            setSignupStep(email, result.sentAt || Date.now(), result.challengeToken);
             setSignupMessage(result.message || "Verification code sent. Check your inbox and spam folder.");
         } catch (error) {
             const savedEmail = sessionStorage.getItem(SIGNUP_EMAIL_KEY);
@@ -198,6 +204,7 @@ if (signupForm && signupOtpForm) {
             const data = await postAuth("/api/auth/verify-otp", {
                 email,
                 otp,
+                challengeToken: sessionStorage.getItem(SIGNUP_CHALLENGE_KEY),
                 purpose: "signup"
             });
 
@@ -228,7 +235,10 @@ if (signupForm && signupOtpForm) {
         setSignupMessage("Sending another verification code...");
 
         try {
-            await postAuth("/api/auth/send-otp", { email, purpose: "signup" });
+            const result = await postAuth("/api/auth/send-otp", { email, purpose: "signup" });
+            if (result.challengeToken) {
+                sessionStorage.setItem(SIGNUP_CHALLENGE_KEY, result.challengeToken);
+            }
             sessionStorage.setItem(SIGNUP_SENT_AT_KEY, String(Date.now()));
             updateResendCooldown();
             setSignupMessage("A new verification code was sent.");

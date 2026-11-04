@@ -5,6 +5,7 @@ const Workout = require("../models/Workout");
 const connectDB = require("../config/database");
 const { escapeRegex } = require("../utils/validation");
 const { getWorkoutHistoryPage } = require("../services/workout-history.service");
+const { logFailure } = require("../utils/safe-log");
 
 const currentUser = async (req, res) => {
 
@@ -40,10 +41,7 @@ const currentUser = async (req, res) => {
 
         } catch (error) {
 
-            console.error(
-                "Auth error:",
-                error
-            );
+            logFailure("Current user lookup failed.", error);
 
 
             res.status(500).json({
@@ -105,10 +103,7 @@ const searchUsers = async (req, res) => {
 
         } catch (error) {
 
-            console.error(
-                "User search error:",
-                error
-            );
+            logFailure("User search failed.", error);
 
             res.status(500).json({
 
@@ -164,10 +159,7 @@ const getPublicProfile = async (req, res) => {
 
         } catch (error) {
 
-            console.error(
-                "Public profile error:",
-                error
-            );
+            logFailure("Public profile lookup failed.", error);
 
 
             res.status(500).json({

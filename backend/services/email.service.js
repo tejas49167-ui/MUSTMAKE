@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const { OTP_EXPIRY_MINUTES } = require("./auth.service");
+const { logFailure } = require("../utils/safe-log");
 
 function getEmailProvider() {
     const configuredProvider = process.env.EMAIL_PROVIDER?.trim().toLowerCase();
@@ -66,15 +67,13 @@ async function sendOTPEmail(email, otp, purpose) {
                 body: JSON.stringify({ ...message, from })
             });
         } catch (error) {
-            console.error("[email] Resend request failed.", {
-                code: error.code || "NETWORK_ERROR"
-            });
+            logFailure("[email] Resend request failed.", error);
             throw new Error("Resend email delivery failed.");
         }
 
         if (!response.ok) {
             console.error("[email] Resend rejected the email.", {
-                status: response.status
+                status: Number.isInteger(response.status) ? response.status : "unknown"
             });
             throw new Error(`Resend email delivery failed (HTTP ${response.status}).`);
         }
@@ -99,9 +98,7 @@ async function sendOTPEmail(email, otp, purpose) {
             from: process.env.GMAIL_USER
         });
     } catch (error) {
-        console.error("[email] Gmail delivery failed.", {
-            code: error.code || "SMTP_ERROR"
-        });
+        logFailure("[email] Gmail delivery failed.", error);
         throw new Error("Gmail email delivery failed.");
     }
 }

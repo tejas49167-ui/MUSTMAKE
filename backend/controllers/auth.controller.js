@@ -1,6 +1,5 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const OTP = require("../models/OTP");
 const OTPGuard = require("../models/OTPGuard");
@@ -12,13 +11,16 @@ const {
     OTP_RESEND_COOLDOWN_MS,
     OTP_ATTEMPT_WINDOW_MS,
     generateOTP,
+    generateOTPChallenge,
     hashOTP,
     createAuthSession
 } = require("../services/auth.service");
 const { sendOTPEmail } = require("../services/email.service");
+const otpAbuseService = require("../services/otp-abuse.service");
 const loginRateLimitService = require("../services/login-rate-limit.service");
 const { setSessionCookie, clearSessionCookie } = require("../utils/auth-cookie");
-const { frontend_url } = require("../config/urls");
+const { getFrontendRedirect } = require("../config/urls");
+const { logFailure } = require("../utils/safe-log");
 
 function sendAuthenticatedSession(res, session) {
     res.set("Cache-Control", "no-store");
@@ -62,7 +64,7 @@ const loginRateLimitStatus = async (req, res) => {
 
         return res.json(restriction);
     } catch (error) {
-        console.error("Login rate-limit status error:", error);
+        logFailure("Login rate-limit status failed.", error);
         return res.status(500).json({
             message: "Could not check login availability."
         });
@@ -173,472 +175,313 @@ async function incrementOtpFailures(email, purpose, now) {
 }
 
 const sendOtp = async (req, res) => {
+    res.set("Cache-Control", "no-store");
+    try {
+        await connectDB();
+        await Promise.all([OTP.init(), OTPGuard.init()]);
+        const body = isPlainObject(req.body) ? req.body : {};
+        const { email, purpose } = body;
 
-        try {
+        if (typeof email !== "string" || typeof purpose !== "string") {
+            return res.status(400).json({ message: "Email and OTP purpose are required." });
+        }
 
-            await connectDB();
+        const cleanEmail = email.trim().toLowerCase();
+        if (!isValidEmail(cleanEmail)) {
+            return res.status(400).json({ message: "Enter a valid email address." });
+        }
+        if (!["login", "signup"].includes(purpose)) {
+            return res.status(400).json({ message: "Invalid OTP purpose." });
+        }
 
-            const body =
-                isPlainObject(req.body)
-                    ? req.body
-                    : {};
-
-            const { email, purpose } = body;
-
-            if (
-                typeof email !== "string" ||
-                typeof purpose !== "string"
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Email and OTP purpose are required."
-                });
-            }
-
-            const cleanEmail =
-                email.trim().toLowerCase();
-
-            if (!isValidEmail(cleanEmail)) {
-                return res.status(400).json({
-                    message:
-                        "Enter a valid email address."
-                });
-            }
-
-            if (
-                !["login", "signup"].includes(
-                    purpose
-                )
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Invalid OTP purpose."
-                });
-            }
-
-            const existingUser = await User.findOne({ email: cleanEmail });
-
-            // SIGNUP
-
-            if (
-                purpose === "signup" &&
-                existingUser
-            ) {
-                return res.status(409).json({
-                    message:
-                        "Email already registered. Please login"
-                });
-            }
-
-            // LOGIN
-
-            if (
-                purpose === "login" &&
-                !existingUser
-            ) {
-                return res.status(404).json({
-                    message:
-                        "No account exists with this email."
-                });
-            }
-
-            const previousOTP = await OTP.findOne({
-                email: cleanEmail,
-                purpose
-            });
-
-            let signupData = null;
-            let hasSignupFields = false;
-
-            if (purpose === "signup") {
-                hasSignupFields =
-                    typeof body.username === "string" ||
-                    typeof body.password === "string";
-
-                if (hasSignupFields) {
-                    const username = typeof body.username === "string"
-                        ? body.username.trim().toLowerCase()
-                        : "";
-                    const password = typeof body.password === "string" ? body.password : "";
-
-                    if (!/^[a-z0-9_]{3,30}$/.test(username)) {
-                        return res.status(400).json({
-                            message: "Username must be 3 to 30 characters and use only letters, numbers or underscores."
-                        });
-                    }
-
-                    if (password.length < 6 || Buffer.byteLength(password, "utf8") > 72) {
-                        return res.status(400).json({
-                            message: "Password must be at least 6 characters and no more than 72 bytes."
-                        });
-                    }
-
-                    signupData = {
-                        username,
-                        passwordHash: await bcrypt.hash(password, 12)
-                    };
-                } else if (
-                    previousOTP &&
-                    previousOTP.expiresAt > new Date() &&
-                    previousOTP.signupData?.passwordHash
-                ) {
-                    // A page refresh should not discard a still-valid signup draft.
-                    signupData = previousOTP.signupData.toObject
-                        ? previousOTP.signupData.toObject()
-                        : previousOTP.signupData;
-                } else {
-                    return res.status(400).json({
-                        message: "Signup details expired. Please enter your details again."
-                    });
-                }
-
-                const usernameOwner = await User.findOne({ username: signupData.username });
-                if (usernameOwner) {
-                    return res.status(409).json({ message: "Username already exists." });
-                }
-            }
-
-            const now = new Date();
-            const guard = await OTPGuard.findOne({
-                email: cleanEmail,
-                purpose
-            });
-
-            if (isOtpLocked(guard, now)) {
-                return res.status(429).json({
-                    message: "Too many incorrect attempts. Please wait five minutes before requesting another OTP."
-                });
-            }
-
-            // Keep the current code valid during the cooldown. Signup retries
-            // may update the saved draft without sending another email.
-            const cooldownStartedAt = guard?.lastSentAt || previousOTP?.createdAt;
-            const withinCooldown = cooldownStartedAt &&
-                cooldownStartedAt.getTime() > now.getTime() - OTP_RESEND_COOLDOWN_MS;
-
-            if (withinCooldown) {
-                if (
-                    purpose === "signup" &&
-                    signupData &&
-                    previousOTP?.expiresAt > now
-                ) {
-                    if (hasSignupFields) {
-                        previousOTP.signupData = signupData;
-                        await previousOTP.save();
-                    }
-
-                    return res.json({
-                        success: true,
-                        codeAlreadySent: true,
-                        sentAt: cooldownStartedAt.getTime(),
-                        message: "A code was sent recently. Use the current code from your email."
-                    });
-                }
-
-                return res.status(429).json({
-                    message:
-                        "Please wait 60 seconds before requesting another OTP."
-                });
-            }
-
-            const sendClaim = await claimOtpSend(cleanEmail, purpose, now);
-            if (!sendClaim) {
-                const latestGuard = await OTPGuard.findOne({
-                    email: cleanEmail,
-                    purpose
-                });
-
-                return res.status(429).json({
-                    message: isOtpLocked(latestGuard, now)
-                        ? "Too many incorrect attempts. Please wait five minutes before requesting another OTP."
-                        : "Please wait 60 seconds before requesting another OTP."
-                });
-            }
-
-            const otp =
-                generateOTP();
-
-            const otpHash =
-                hashOTP(otp);
-
-            const expiresAt =
-                new Date(
-                    Date.now() +
-                    OTP_EXPIRY_MINUTES *
-                    60 *
-                    1000
-                );
-
-            await OTP.deleteMany({ email: cleanEmail, purpose });
-
-            const otpRecord = await OTP.create({
-                email: cleanEmail,
-                otpHash,
-                purpose,
-                expiresAt,
-                ...(signupData ? { signupData } : {})
-            });
-
-            try {
-                await sendOTPEmail(cleanEmail, otp, purpose);
-            } catch (error) {
-                await OTP.deleteOne({ _id: otpRecord._id, otpHash });
-                throw error;
-            }
-
-            return res.json({
-                success: true,
-                sentAt: now.getTime(),
-                message:
-                    "OTP sent successfully."
-            });
-
-        } catch (error) {
-
-            console.error(
-                "Send OTP error:",
-                error
-            );
-
-            return res.status(500).json({
-                message:
-                    "Could not send OTP."
+        const now = new Date();
+        const ip = req.ip || req.socket?.remoteAddress || "unknown";
+        const allowed = await otpAbuseService.allowOtpSend(cleanEmail, ip, now);
+        if (!allowed) {
+            return res.status(429).json({
+                message: "Too many code requests. Please try again later."
             });
         }
-    };
+
+        const previousOTP = await OTP.findOne({ email: cleanEmail, purpose });
+        const guard = await OTPGuard.findOne({ email: cleanEmail, purpose });
+        if (isOtpLocked(guard, now)) {
+            return res.status(202).json({
+                success: true,
+                challengeToken: generateOTPChallenge(),
+                sentAt: now.getTime(),
+                message: "If the address is eligible, a verification code will be sent."
+            });
+        }
+
+        const cooldownStartedAt = guard?.lastSentAt || previousOTP?.createdAt;
+        if (
+            cooldownStartedAt &&
+            cooldownStartedAt.getTime() > now.getTime() - OTP_RESEND_COOLDOWN_MS
+        ) {
+            return res.status(202).json({
+                success: true,
+                codeAlreadySent: true,
+                sentAt: cooldownStartedAt.getTime(),
+                message: "If the address is eligible, a code was sent. Use the most recent code."
+            });
+        }
+
+        let signupData = null;
+        const hasSignupFields =
+            typeof body.username === "string" || typeof body.password === "string";
+
+        if (purpose === "signup") {
+            if (hasSignupFields) {
+                const username = typeof body.username === "string"
+                    ? body.username.trim().toLowerCase()
+                    : "";
+                const password = typeof body.password === "string" ? body.password : "";
+
+                if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+                    return res.status(400).json({
+                        message: "Username must be 3 to 30 characters and use only letters, numbers or underscores."
+                    });
+                }
+                if (password.length < 6 || Buffer.byteLength(password, "utf8") > 72) {
+                    return res.status(400).json({
+                        message: "Password must be at least 6 characters and no more than 72 bytes."
+                    });
+                }
+
+                signupData = {
+                    username,
+                    passwordHash: await bcrypt.hash(password, 12)
+                };
+            } else if (
+                previousOTP?.expiresAt > now &&
+                previousOTP.signupData?.passwordHash
+            ) {
+                signupData = previousOTP.signupData.toObject
+                    ? previousOTP.signupData.toObject()
+                    : previousOTP.signupData;
+            } else {
+                return res.status(400).json({
+                    message: "Signup details expired. Please enter your details again."
+                });
+            }
+        }
+
+        const sendClaim = await claimOtpSend(cleanEmail, purpose, now);
+        if (!sendClaim) {
+            return res.status(429).json({
+                message: "Too many code requests. Please wait before trying again."
+            });
+        }
+
+        const existingUser = await User.findOne({ email: cleanEmail });
+        const eligible = purpose === "signup" ? !existingUser : Boolean(existingUser);
+        let usernameExists = false;
+        if (eligible && purpose === "signup") {
+            usernameExists = Boolean(await User.findOne({ username: signupData.username }));
+        }
+
+        const challengeToken = generateOTPChallenge();
+        const shouldSend = eligible && !usernameExists;
+        if (!shouldSend) {
+            return res.status(202).json({
+                success: true,
+                challengeToken,
+                sentAt: now.getTime(),
+                message: "If the address is eligible, a verification code will be sent."
+            });
+        }
+
+        const otp = generateOTP();
+        const otpHash = hashOTP(otp);
+        const expiresAt = new Date(now.getTime() + OTP_EXPIRY_MINUTES * 60 * 1000);
+        await OTP.deleteMany({ email: cleanEmail, purpose });
+
+        const otpRecord = await OTP.create({
+            email: cleanEmail,
+            otpHash,
+            challengeHash: hashOTP(challengeToken),
+            purpose,
+            expiresAt,
+            ...(signupData ? { signupData } : {})
+        });
+
+        try {
+            await sendOTPEmail(cleanEmail, otp, purpose);
+        } catch (error) {
+            await OTP.deleteOne({ _id: otpRecord._id, otpHash });
+            throw error;
+        }
+
+        return res.status(202).json({
+            success: true,
+            challengeToken,
+            sentAt: now.getTime(),
+            message: "If the address is eligible, a verification code will be sent."
+        });
+    } catch (error) {
+        logFailure("Send OTP failed.", error);
+        return res.status(500).json({ message: "Could not process the code request." });
+    }
+};
 
 const verifyOtp = async (req, res) => {
+    res.set("Cache-Control", "no-store");
+    try {
+        await connectDB();
+        await Promise.all([OTP.init(), OTPGuard.init()]);
+        const body = isPlainObject(req.body) ? req.body : {};
+        const { email, otp, purpose } = body;
 
-        try {
-
-            await connectDB();
-
-            const body =
-                isPlainObject(req.body)
-                    ? req.body
-                    : {};
-
-            const {
-                email,
-                otp,
-                purpose
-            } = body;
-
-            if (typeof email !== "string" || typeof otp !== "string" || typeof purpose !== "string") {
-                return res.status(400).json({
-                    message:
-                        "Email, OTP and purpose are required."
-                });
-            }
-
-            const cleanEmail =
-                email.trim().toLowerCase();
-
-            const cleanOTP =
-                otp.trim();
-
-            if (!isValidEmail(cleanEmail)) {
-                return res.status(400).json({ message: "Enter a valid email address." });
-            }
-
-            if (!/^\d{6}$/.test(cleanOTP)) {
-                return res.status(400).json({
-                    message:
-                        "OTP must be 6 digits."
-                });
-            }
-
-            if (
-                !["login", "signup"].includes(
-                    purpose
-                )
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Invalid OTP purpose."
-                });
-            }
-
-            const guard = await OTPGuard.findOne({
-                email: cleanEmail,
-                purpose
-            });
-
-            if (isOtpLocked(guard)) {
-                return res.status(429).json({
-                    message: "Too many incorrect attempts. Please wait five minutes before requesting another OTP."
-                });
-            }
-
-            const otpRecord = await OTP.findOne({ email: cleanEmail, purpose });
-
-            if (!otpRecord) {
-                return res.status(400).json({
-                    message:
-                        "OTP expired or not found. Please request a new OTP."
-                });
-            }
-
-            if (
-                otpRecord.expiresAt <
-                new Date()
-            ) {
-                await OTP.deleteOne({
-                    _id: otpRecord._id
-                });
-
-                return res.status(400).json({
-                    message:
-                        "OTP expired. Please request a new OTP."
-                });
-            }
-
-            if (
-                otpRecord.attempts >=
-                OTP_MAX_ATTEMPTS
-            ) {
-                await OTP.deleteOne({
-                    _id: otpRecord._id
-                });
-
-                return res.status(429).json({
-                    message:
-                        "Too many incorrect attempts. Please request a new OTP."
-                });
-            }
-
-            if (purpose === "signup" && !otpRecord.signupData?.passwordHash) {
-                await OTP.deleteOne({ _id: otpRecord._id });
-                return res.status(400).json({
-                    message: "Signup details expired. Please start signup again."
-                });
-            }
-
-            const submittedHash = Buffer.from(hashOTP(cleanOTP), "hex");
-            const storedHash = Buffer.from(otpRecord.otpHash, "hex");
-
-            if (
-                submittedHash.length !== storedHash.length ||
-                !crypto.timingSafeEqual(submittedHash, storedHash)
-            ) {
-                const updatedRecord = await OTP.findOneAndUpdate(
-                    {
-                        _id: otpRecord._id,
-                        attempts: { $lt: OTP_MAX_ATTEMPTS },
-                        expiresAt: { $gt: new Date() }
-                    },
-                    { $inc: { attempts: 1 } },
-                    { returnDocument: "after" }
-                );
-
-                if (!updatedRecord) {
-                    const currentRecord = await OTP.findById(otpRecord._id);
-                    if (currentRecord?.attempts >= OTP_MAX_ATTEMPTS) {
-                        await OTP.deleteOne({ _id: currentRecord._id });
-                        return res.status(429).json({
-                            message: "Too many incorrect attempts. Please request a new OTP."
-                        });
-                    }
-
-                    return res.status(400).json({
-                        message: "OTP expired or already used. Please request a new OTP."
-                    });
-                }
-
-                const updatedGuard = await incrementOtpFailures(
-                    cleanEmail,
-                    purpose,
-                    new Date()
-                );
-
-                if (
-                    updatedRecord.attempts >= OTP_MAX_ATTEMPTS ||
-                    updatedGuard.failedAttempts >= OTP_MAX_ATTEMPTS
-                ) {
-                    await OTP.deleteMany({ email: cleanEmail, purpose });
-                    return res.status(429).json({
-                        message: "Too many incorrect attempts. Please request a new OTP."
-                    });
-                }
-
-                return res.status(401).json({ message: "Invalid OTP." });
-            }
-
-            // Atomically consume the code so two requests cannot use it twice.
-            const consumedOTP = await OTP.findOneAndDelete({
-                _id: otpRecord._id,
-                otpHash: otpRecord.otpHash,
-                expiresAt: { $gt: new Date() },
-                attempts: { $lt: OTP_MAX_ATTEMPTS }
-            });
-
-            if (!consumedOTP) {
-                return res.status(400).json({
-                    message: "OTP expired or already used. Please request a new OTP."
-                });
-            }
-
-            await OTPGuard.updateOne(
-                { email: cleanEmail, purpose },
-                {
-                    $set: {
-                        failedAttempts: 0
-                    },
-                    $unset: { attemptWindowStartedAt: 1 }
-                }
-            );
-
-            let user;
-
-            if (purpose === "signup") {
-                try {
-                    user = await User.create({
-                        name: consumedOTP.signupData.username,
-                        username: consumedOTP.signupData.username,
-                        email: cleanEmail,
-                        passwordHash: consumedOTP.signupData.passwordHash
-                    });
-                } catch (error) {
-                    if (error.code === 11000) {
-                        const field = Object.keys(error.keyPattern || {})[0];
-                        return res.status(409).json({
-                            message: field === "username"
-                                ? "Username already exists. Please restart signup with a different username."
-                                : "Email already registered. Please login instead."
-                        });
-                    }
-                    throw error;
-                }
-            } else {
-                user = await User.findOne({ email: cleanEmail }).select("+ageReferenceYear");
-                if (!user) {
-                    return res.status(404).json({ message: "Account not found." });
-                }
-            }
-
-            const session = createAuthSession(user);
-
-            res.set("Cache-Control", "no-store");
-            setSessionCookie(res, session.token);
-            return res.json({
-                success: true,
-                message: "OTP verified successfully.",
-                user: session.user
-            });
-
-        } catch (error) {
-
-            console.error(
-                "Verify OTP error:",
-                error
-            );
-
-            return res.status(500).json({
-                message:
-                    "Could not verify OTP."
+        if (typeof email !== "string" || typeof purpose !== "string") {
+            return res.status(400).json({
+                message: "Email, OTP and purpose are required."
             });
         }
-    };
+
+        const cleanEmail = email.trim().toLowerCase();
+        if (!isValidEmail(cleanEmail)) {
+            return res.status(400).json({ message: "Enter a valid email address." });
+        }
+        if (!["login", "signup"].includes(purpose)) {
+            return res.status(400).json({ message: "Invalid OTP purpose." });
+        }
+
+        const now = new Date();
+        const ip = req.ip || req.socket?.remoteAddress || "unknown";
+        const allowed = await otpAbuseService.allowOtpVerification(cleanEmail, ip, now);
+        if (!allowed) {
+            return res.status(429).json({
+                message: "Too many code attempts. Request a new code later."
+            });
+        }
+
+        const cleanOTP = typeof otp === "string" ? otp.trim() : "";
+        const challengeToken = typeof body.challengeToken === "string"
+            ? body.challengeToken
+            : "";
+        if (!/^\d{6}$/.test(cleanOTP)) {
+            return res.status(401).json({ message: "Invalid or expired code." });
+        }
+
+        const guard = await OTPGuard.findOne({ email: cleanEmail, purpose });
+        if (isOtpLocked(guard, now)) {
+            return res.status(401).json({ message: "Invalid or expired code." });
+        }
+
+        const otpRecord = await OTP.findOne({ email: cleanEmail, purpose });
+        if (!otpRecord || otpRecord.expiresAt <= now) {
+            if (otpRecord) {
+                await OTP.deleteOne({ _id: otpRecord._id, expiresAt: { $lte: now } });
+            }
+            return res.status(401).json({ message: "Invalid or expired code." });
+        }
+
+        if (
+            otpRecord.attempts >= OTP_MAX_ATTEMPTS ||
+            (purpose === "signup" && !otpRecord.signupData?.passwordHash)
+        ) {
+            await OTP.deleteOne({ _id: otpRecord._id });
+            return res.status(401).json({ message: "Invalid or expired code." });
+        }
+
+        const submittedOtpHash = Buffer.from(hashOTP(cleanOTP), "hex");
+        const storedOtpHash = Buffer.from(otpRecord.otpHash, "hex");
+        const submittedChallengeHash = Buffer.from(hashOTP(challengeToken), "hex");
+        const storedChallengeHash = Buffer.from(otpRecord.challengeHash || "", "hex");
+        const otpMatches = submittedOtpHash.length === storedOtpHash.length &&
+            crypto.timingSafeEqual(submittedOtpHash, storedOtpHash);
+        const challengeMatches = submittedChallengeHash.length === storedChallengeHash.length &&
+            storedChallengeHash.length > 0 &&
+            crypto.timingSafeEqual(submittedChallengeHash, storedChallengeHash);
+
+        if (!otpMatches || !challengeMatches) {
+            const updatedRecord = await OTP.findOneAndUpdate(
+                {
+                    _id: otpRecord._id,
+                    attempts: { $lt: OTP_MAX_ATTEMPTS },
+                    expiresAt: { $gt: new Date() }
+                },
+                { $inc: { attempts: 1 } },
+                { returnDocument: "after" }
+            );
+
+            if (!updatedRecord) {
+                return res.status(401).json({ message: "Invalid or expired code." });
+            }
+
+            const updatedGuard = await incrementOtpFailures(
+                cleanEmail,
+                purpose,
+                new Date()
+            );
+            if (
+                updatedRecord.attempts >= OTP_MAX_ATTEMPTS ||
+                updatedGuard.failedAttempts >= OTP_MAX_ATTEMPTS
+            ) {
+                await OTP.deleteMany({ email: cleanEmail, purpose });
+                return res.status(401).json({ message: "Invalid or expired code." });
+            }
+
+            return res.status(401).json({ message: "Invalid or expired code." });
+        }
+
+        const consumedOTP = await OTP.findOneAndDelete({
+            _id: otpRecord._id,
+            otpHash: otpRecord.otpHash,
+            challengeHash: otpRecord.challengeHash,
+            expiresAt: { $gt: new Date() },
+            attempts: { $lt: OTP_MAX_ATTEMPTS }
+        });
+        if (!consumedOTP) {
+            return res.status(401).json({ message: "Invalid or expired code." });
+        }
+
+        await OTPGuard.updateOne(
+            { email: cleanEmail, purpose },
+            {
+                $set: { failedAttempts: 0 },
+                $unset: { attemptWindowStartedAt: 1 }
+            }
+        );
+
+        let user;
+        if (purpose === "signup") {
+            try {
+                user = await User.create({
+                    name: consumedOTP.signupData.username,
+                    username: consumedOTP.signupData.username,
+                    email: cleanEmail,
+                    passwordHash: consumedOTP.signupData.passwordHash
+                });
+            } catch (error) {
+                if (error.code === 11000) {
+                    return res.status(409).json({
+                        message: "Signup could not be completed. Please restart signup."
+                    });
+                }
+                throw error;
+            }
+        } else {
+            user = await User.findOne({ email: cleanEmail }).select("+ageReferenceYear");
+            if (!user) {
+                return res.status(401).json({ message: "Invalid or expired code." });
+            }
+        }
+
+        const session = createAuthSession(user);
+        res.set("Cache-Control", "no-store");
+        setSessionCookie(res, session.token);
+        return res.json({
+            success: true,
+            message: "Code verified successfully.",
+            user: session.user
+        });
+    } catch (error) {
+        logFailure("Verify OTP failed.", error);
+        return res.status(500).json({ message: "Could not verify the code." });
+    }
+};
 
 const signup = (req, res) => res.status(410).json({
         message: "Email verification is required. Request a signup code to create an account."
@@ -699,6 +542,13 @@ const login = async (req, res) => {
                 );
             }
 
+            if (
+                login.trim().length > 254 ||
+                Buffer.byteLength(password, "utf8") > 72
+            ) {
+                return respondToFailedLogin(res, keys);
+            }
+
             const loginValue =
                 login
                     .toLowerCase()
@@ -738,8 +588,7 @@ const login = async (req, res) => {
                     return sendLoginRestriction(res, restriction.retryAfterMs);
                 }
                 return res.status(401).json({
-                    message:
-                        "This account uses Google login."
+                    message: "Invalid username/email or password."
                 });
             }
 
@@ -800,11 +649,7 @@ const login = async (req, res) => {
 
 
         } catch (error) {
-
-            console.error(
-                "Login error:",
-                error
-            );
+            logFailure("Login failed.", error);
 
 
             res.status(500).json({
@@ -815,42 +660,17 @@ const login = async (req, res) => {
     };
 
 const googleCallback = async (req, res) => {
-
         try {
-
-            const token =
-                jwt.sign(
-
-                    {
-                        userId:
-                            req.user._id.toString()
-                    },
-
-                    process.env.JWT_SECRET,
-
-                    {
-                        expiresIn:
-                            "7d"
-                    }
-                );
-
-
-            setSessionCookie(res, token);
+            if (!req.user?._id) {
+                return res.redirect(getFrontendRedirect("/pages/login.html"));
+            }
+            const session = createAuthSession(req.user);
+            setSessionCookie(res, session.token);
             res.set("Cache-Control", "no-store");
-            res.redirect(`${frontend_url}/pages/google-callback.html`);
-
-
+            return res.redirect(getFrontendRedirect("/pages/google-callback.html"));
         } catch (error) {
-
-            console.error(
-                "Google callback error:",
-                error
-            );
-
-
-            res.redirect(
-                `${frontend_url}/pages/login.html`
-            );
+            logFailure("Google callback failed.", error);
+            return res.redirect(getFrontendRedirect("/pages/login.html"));
         }
     };
 
@@ -875,7 +695,7 @@ const currentSession = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("Current session error:", error);
+        logFailure("Current session check failed.", error);
         return res.status(500).json({ message: "Could not verify session." });
     }
 };

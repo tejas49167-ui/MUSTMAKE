@@ -34,5 +34,6 @@ const otpGuardSchema = new mongoose.Schema(
 );
 
 otpGuardSchema.index({ email: 1, purpose: 1 }, { unique: true });
+otpGuardSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
 
 module.exports = mongoose.model("OTPGuard", otpGuardSchema);

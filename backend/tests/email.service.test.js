@@ -142,7 +142,7 @@ test("Gmail delivery failures are logged without exposing credentials", async t 
         }
     );
     assert.deepEqual(logged, [
-        ["[email] Gmail delivery failed.", { code: "EAUTH" }]
+        ["[email] Gmail delivery failed.", { code: "EAUTH", name: "Error" }]
     ]);
 });
 

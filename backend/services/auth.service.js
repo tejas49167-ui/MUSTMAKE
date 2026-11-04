@@ -10,6 +10,10 @@ function generateOTP() {
     return crypto.randomInt(100000, 1000000).toString();
 }
 
+function generateOTPChallenge() {
+    return crypto.randomBytes(32).toString("base64url");
+}
+
 function hashOTP(otp) {
     const secret = process.env.OTP_SECRET || process.env.JWT_SECRET;
     if (!secret) {
@@ -52,6 +56,7 @@ module.exports = {
     OTP_RESEND_COOLDOWN_MS,
     OTP_ATTEMPT_WINDOW_MS,
     generateOTP,
+    generateOTPChallenge,
     hashOTP,
     createAuthSession
 };

@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const fs = require("fs");
 const path = require("path");
 const passport = require("passport");
@@ -15,21 +16,72 @@ const competitionRoutes = require("./routes/competition.routes");
 const workoutsRoutes = require("./routes/workouts.routes");
 const exercisesRoutes = require("./routes/exercises.routes");
 const errorHandler = require("./middleware/error-handler");
-const { frontend_url } = require("./config/urls");
+const { backend_url, frontend_url } = require("./config/urls");
 const exercises = require("./config/exercises.json");
 const { getFrontendOrigins } = require("./utils/auth-cookie");
 const csrfOrigin = require("./middleware/csrf-origin");
 
 const app = express();
 const configuredTrustProxy = process.env.TRUST_PROXY;
-const trustProxy = configuredTrustProxy === "true"
-    ? true
-    : configuredTrustProxy === "false"
-        ? false
-        : /^\d+$/.test(configuredTrustProxy || "")
-            ? Number(configuredTrustProxy)
-            : 1;
+let trustProxy = false;
+if (configuredTrustProxy === "true") {
+    trustProxy = 1;
+} else if (configuredTrustProxy === "false" || !configuredTrustProxy) {
+    trustProxy = false;
+} else if (/^\d+$/.test(configuredTrustProxy)) {
+    const proxyHops = Number(configuredTrustProxy);
+    if (!Number.isSafeInteger(proxyHops) || proxyHops > 5) {
+        throw new Error("TRUST_PROXY must be true, false, or a numeric hop count from 0 to 5.");
+    }
+    trustProxy = proxyHops;
+} else {
+    throw new Error("TRUST_PROXY must be true, false, or a numeric hop count from 0 to 5.");
+}
 app.set("trust proxy", trustProxy);
+
+const backendOrigin = new URL(backend_url).origin;
+const production = process.env.NODE_ENV === "production";
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            baseUri: ["'self'"],
+            objectSrc: ["'none'"],
+            frameAncestors: ["'none'"],
+            formAction: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                "https://cdn.jsdelivr.net",
+                "'wasm-unsafe-eval'",
+                "'sha256-0kYa/blvQdHg5cNcqjMOcf17NueaqYD2GZ3E6BpsMU8='"
+            ],
+            scriptSrcAttr: ["'none'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            styleSrcAttr: ["'unsafe-inline'"],
+            fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:", "blob:", "https:"],
+            connectSrc: [
+                "'self'",
+                backendOrigin,
+                "https://cdn.jsdelivr.net",
+                "https://storage.googleapis.com"
+            ],
+            workerSrc: ["'self'", "blob:"],
+            mediaSrc: ["'self'", "blob:"],
+            upgradeInsecureRequests: production ? [] : null
+        }
+    },
+    frameguard: { action: "deny" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginEmbedderPolicy: false,
+    hsts: production
+        ? { maxAge: 15552000, includeSubDomains: false, preload: false }
+        : false
+}));
+app.use((req, res, next) => {
+    res.setHeader("Permissions-Policy", "camera=(self), microphone=(), geolocation=()");
+    next();
+});
 
 const jsonParser = express.json({ limit: "3mb" });
 app.use((req, res, next) => {

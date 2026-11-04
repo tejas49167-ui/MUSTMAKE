@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Workout = require("../models/Workout");
 const connectDB = require("../config/database");
 const { getDateString } = require("../utils/date");
+const { logFailure } = require("../utils/safe-log");
 
 const addCompetitor = async (req, res) => {
 
@@ -105,10 +106,7 @@ const addCompetitor = async (req, res) => {
                 return res.status(409).json({ message: "User is already in your competition." });
             }
 
-            console.error(
-                "Add competition error:",
-                error
-            );
+            logFailure("Add competition failed.", error);
 
 
             res.status(500).json({
@@ -129,7 +127,7 @@ const removeCompetitor = async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         if (error.name === "CastError") return res.status(400).json({ message: "Invalid competitor ID." });
-        console.error("Remove competition error:", error);
+        logFailure("Remove competition failed.", error);
         res.status(500).json({ message: "Could not remove competitor." });
     }
 };
@@ -194,10 +192,7 @@ const getCompetitors = async (req, res) => {
 
         } catch (error) {
 
-            console.error(
-                "Load competition error:",
-                error
-            );
+            logFailure("Load competition failed.", error);
 
 
             res.status(500).json({

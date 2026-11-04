@@ -20,6 +20,7 @@ function getCookieValue(cookieHeader, name) {
 }
 
 async function auth(req, res, next) {
+    res.set("Cache-Control", "no-store");
     let decoded;
     try {
         const token = getCookieValue(req.headers.cookie, SESSION_COOKIE_NAME);
@@ -29,7 +30,9 @@ async function auth(req, res, next) {
             });
         }
 
-        decoded = jwt.verify(token, process.env.JWT_SECRET);
+        decoded = jwt.verify(token, process.env.JWT_SECRET, {
+            algorithms: ["HS256"]
+        });
     } catch {
         clearSessionCookie(res);
         return res.status(401).json({

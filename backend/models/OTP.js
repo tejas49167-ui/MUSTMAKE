@@ -14,6 +14,11 @@ const otpSchema = new mongoose.Schema(
             required: true
         },
 
+        challengeHash: {
+            type: String,
+            required: true
+        },
+
         purpose: {
             type: String,
             enum: ["login", "signup"],

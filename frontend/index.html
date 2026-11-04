@@ -45,16 +45,7 @@
   ]
 }
 </script>
-    <script>
-        try {
-            const isAuthenticated = Boolean(
-                JSON.parse(localStorage.getItem("user") || "null")
-            );
-            if (isAuthenticated) window.location.replace("/today");
-        } catch {
-            // Invalid stored authentication data is treated as a guest session.
-        }
-    </script>
+    <script src="/js/core/redirect-authenticated.js"></script>
     <link rel="canonical" href="https://mustmake.site/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="MUSTMAKE">

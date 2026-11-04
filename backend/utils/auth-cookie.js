@@ -6,7 +6,7 @@ function getSessionCookieOptions() {
     return {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         path: "/",
         maxAge: SESSION_MAX_AGE_MS
     };

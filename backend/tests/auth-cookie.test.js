@@ -15,6 +15,11 @@ function responseStub() {
         statusCode: null,
         body: null,
         clearedCookie: false,
+        headers: {},
+        set(name, value) {
+            this.headers[name] = value;
+            return this;
+        },
         status(code) {
             this.statusCode = code;
             return this;
@@ -52,7 +57,7 @@ function stubUserLookup(t, resultOrError) {
     });
 }
 
-test("session cookie is HttpOnly, SameSite=Lax, and Secure in production", () => {
+test("session cookie supports cross-site production API calls securely", () => {
     const previousNodeEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = "production";
 
@@ -60,7 +65,7 @@ test("session cookie is HttpOnly, SameSite=Lax, and Secure in production", () =>
         assert.deepEqual(getSessionCookieOptions(), {
             httpOnly: true,
             secure: true,
-            sameSite: "lax",
+            sameSite: "none",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
@@ -196,6 +201,41 @@ test("authentication clears expired session cookies", async () => {
     }
 });
 
+test("authentication rejects invalid signatures and non-HS256 algorithms", async () => {
+    const previousSecret = process.env.JWT_SECRET;
+    process.env.JWT_SECRET = "test-only-cookie-auth-secret";
+
+    try {
+        const invalidSignature = jwt.sign(
+            { userId: new mongoose.Types.ObjectId().toString() },
+            "different-test-secret"
+        );
+        const unsupportedAlgorithm = jwt.sign(
+            { userId: new mongoose.Types.ObjectId().toString() },
+            process.env.JWT_SECRET,
+            { algorithm: "HS384" }
+        );
+
+        for (const token of [invalidSignature, unsupportedAlgorithm]) {
+            const res = responseStub();
+            let nextCalled = false;
+            await auth(
+                { headers: { cookie: `${SESSION_COOKIE_NAME}=${token}` } },
+                res,
+                () => {
+                    nextCalled = true;
+                }
+            );
+            assert.equal(nextCalled, false);
+            assert.equal(res.statusCode, 401);
+            assert.equal(res.clearedCookie, true);
+        }
+    } finally {
+        if (previousSecret === undefined) delete process.env.JWT_SECRET;
+        else process.env.JWT_SECRET = previousSecret;
+    }
+});
+
 test("authentication rejects validly signed tokens without an object user ID", async () => {
     const previousSecret = process.env.JWT_SECRET;
     process.env.JWT_SECRET = "test-only-cookie-auth-secret";
@@ -229,6 +269,21 @@ test("unsafe requests require an allowed frontend origin", () => {
     csrfOrigin({
         method: "POST",
         get: header => header === "Origin" ? "https://attacker.example" : null
+    }, res, () => {
+        nextCalled = true;
+    });
+
+    assert.equal(nextCalled, false);
+    assert.equal(res.statusCode, 403);
+});
+
+test("unsafe requests reject a missing origin", () => {
+    const res = responseStub();
+    let nextCalled = false;
+
+    csrfOrigin({
+        method: "DELETE",
+        get: () => null
     }, res, () => {
         nextCalled = true;
     });
