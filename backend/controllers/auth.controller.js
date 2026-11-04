@@ -606,46 +606,7 @@ const login = async (req, res) => {
 
             await loginRateLimitService.resetDeviceFailures(keys.device);
 
-            const token =
-                jwt.sign(
-
-                    {
-                        userId:
-                            user._id.toString()
-                    },
-
-                    process.env.JWT_SECRET,
-
-                    {
-                        expiresIn:
-                            "7d"
-                    }
-                );
-
-
-            return sendAuthenticatedSession(res, {
-                token,
-                user: {
-
-                    id:
-                        user._id,
-
-                    name:
-                        user.name,
-
-                    username:
-                        user.username,
-
-                    email:
-                        user.email,
-
-                    profilePicture:
-                        user.profilePicture,
-
-                    age:
-                        user.age
-                }
-            });
+            return sendAuthenticatedSession(res, createAuthSession(user));
 
 
         } catch (error) {
