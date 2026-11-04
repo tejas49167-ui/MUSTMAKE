@@ -22,19 +22,25 @@
     <title>About Us | MUSTMAKE</title>
     <link rel="stylesheet" href="/assets/css/style.css">
     <link rel="stylesheet" href="/assets/css/toast.css">
+    <link rel="stylesheet" href="/assets/css/legal.css">
 </head>
 
 <body>
     <div id="navbar"></div>
 
-    <main class="about-page container narrow">
+    <main class="about-page container">
 
         <header class="about-hero hero">
-            <h1>It all started with one thought.</h1>
+           
+        <nav class="legal-nav" aria-label="On this page">
+            <a href="#privacy-policy">Privacy policy</a>
+            <a href="#terms-and-conditions">Terms &amp; conditions</a>
+            <p>As of 2026 , November</p>
+        </nav>    
         </header>
 
-        <section>
-          
+        <section class="about-story">
+            <h2>It all started with one thought.</h2>
             <p>My friend and I were always working out together and it was also part 
                 of our motivation or something we did, because after our PUC life ended we both joined different colleges; 
                 but the habit, it had not changed, we were texting on WhatsApp -> "Can we do workout now? Are you free?", and this pattern 
@@ -45,12 +51,274 @@
 
             <p>So I made a full-stack app that has individual accounts and connections, I spent more than a month to implement, improve, fix, make it more optimized, efficient 
             and here I am.</p>
-        </section>
-
-        <section>
             <p>If you truly love using this app, it's a good thing that this app is not only supporting us but also disciplined people and people like you.</p>
         </section>
 
+
+        <article class="legal-document" id="privacy-policy">
+            <header class="legal-document-header">
+                <h2>Privacy policy</h2>
+            
+
+            <section>
+                <h3>Introduction</h3>
+              
+                 <section>
+                <p>MUSTMAKE is an independent fitness tracking application designed to help users:</p>
+                <ul>
+                    <li>Record and manage workouts, track daily exercise activity and maintain workout streaks.</li>
+                    <li>Monitor fitness progress and create and manage fitness profiles.</li>
+                    <li>Connect with other members and compare workout activity through competitions.</li>
+                    <li>Use optional AI-assisted exercise monitoring.</li>
+                </ul>
+                <p>Features may change, improve or be discontinued over time.</p>
+            </section>
+
+                <p>Your privacy matters to us. This Privacy Policy explains what information we collect, how we use it, how it is stored, and how it is shared when you use MUSTMAKE.</p>
+            </section>
+
+            <section>
+                <h3>Information We Collect</h3>
+                <p>When you create an account and use MUSTMAKE, we may collect the following information:</p>
+                <h4>Account information</h4>
+                <ul>
+                    <li>Full name, username and email address</li>
+                    <li>>=6 ascii characters long password (stored as a secure password hash)</li>
+                    <li>Google account identifier when using Google Sign-In</li>
+                </ul>
+                <h4>Profile information</h4>
+                <ul><li>Age, height, weight, profile picture and social media links,</li></ul>
+                <p>except name other profile information is optional and can be updated through your account.</p>
+                <h4>Workout information</h4>
+                <p>When you record workouts, we collect information such as:</p>
+                <ul>
+                    <li>Exercise names, repetitions and sets completed</li>
+                    <li>Weight used, exercise duration, distance or other exercise amounts, where applicable</li>
+                    <li>Workout dates and timestamps</li>
+                </ul>
+                <p>This information helps MUSTMAKE maintain your workout history, activity records, consistency streaks and progress.</p>
+                <h4>Competition and security information</h4>
+                <p>When you connect with other members through the competition feature, we store the connections between accounts and use relevant workout information to display daily activity and comparisons.</p>
+                <p>We may process information such as IP addresses, authentication attempts, verification records and session information to protect accounts, prevent misuse and maintain platform security. Verification codes are temporary and are stored using protected representations.</p>
+            </section>
+
+            <section>
+                <h3>How We Use Your Information</h3>
+                <p>We use collected information to:</p>
+                <ul>
+                    <li>Create and maintain your account, and authenticate users through email verification and Google Sign-In.</li>
+                    <li>Maintain workout records and exercise history; display user profiles and workout progress.</li>
+                    <li>Provide competition and workout comparison features, and calculate workout streaks and activity statistics.</li>
+                    <li>Support exercise monitoring features and improve application functionality and performance.</li>
+                    <li>Detect suspicious activity, prevent unauthorized access and communicate essential account verification information.</li>
+                </ul>
+                <p>We do not use your fitness information to provide medical diagnoses.</p>
+            </section>
+
+            <section>
+                <h3>Profile Visibility and Information Sharing Between Members</h3>
+                <p>MUSTMAKE is designed as a community-based fitness tracking platform. <strong>An important part of MUSTMAKE is allowing logged-in members to view one another's fitness profiles and workout progress.</strong></p>
+                <p>Other authenticated MUSTMAKE members may be able to view:</p>
+                <ul>
+                    <li>Your name and username, profile picture, age, height and weight</li>
+                    <li>Your social media links and workout history</li>
+                </ul>
+                <p>Members may also see relevant daily workout information through the competition feature.</p>
+                <p>This visibility is part of the platform's core functionality. Do not add information to your profile that you do not want other logged-in members to see.</p>
+                <p>MUSTMAKE profiles are intended for authenticated members, rather than being unrestricted public profiles accessible without an account.</p>
+            </section>
+
+            <section>
+                <h3>Camera and AI Exercise Monitoring</h3>
+                <p>MUSTMAKE provides optional AI-assisted exercise monitoring. When you choose to use this feature:</p>
+                <ul>
+                    <li>Your browser requests permission to access your camera.</li>
+                    <li>Camera footage is processed locally in your browser for pose detection and exercise tracking.</li>
+                    <li>The application does not request microphone access for this feature.</li>
+                    <li>The reviewed application code does not upload or record the live camera feed.</li>
+                    <li>Workout results, such as repetitions and duration, may be saved to your account when you record a workout.</li>
+                </ul>
+                <p>The application downloads MediaPipe libraries and pose-detection model resources from third-party services, including jsDelivr and Google Cloud Storage. Those providers may receive ordinary network request information, such as your IP address and browser information, when these resources are requested.</p>
+                <p>You can deny camera permission and continue using other available features.</p>
+            </section>
+
+            <section>
+                <h3>Third-Party Services</h3>
+                <p>MUSTMAKE relies on third-party services to operate:</p>
+                <ul class="service-list">
+                    <li><strong>MongoDB:</strong> Used to store account information, profile information and workout records.</li>
+                    <li><strong>Vercel:</strong> Used for application hosting and delivery.</li>
+                    <li><strong>Cloudinary:</strong> Used to host profile images uploaded to MUSTMAKE.</li>
+                    <li><strong>Resend or Gmail:</strong> Used to deliver email verification codes, depending on the configured email provider.</li>
+                    <li><strong>Google:</strong> Used for Google Sign-In and for delivery of certain external resources, such as fonts and AI model files.</li>
+                </ul>
+                <p>These providers process information as necessary to provide their respective services and may have their own privacy policies and data-handling practices. Some providers may process information outside India, depending on their infrastructure and configuration. MUSTMAKE does not control the independent privacy practices of these providers.</p>
+            </section>
+
+            <section>
+                <h3>Cookies and Browser Storage</h3>
+                <p>MUSTMAKE uses essential browser storage to provide application functionality. This may include:</p>
+                <ul>
+                    <li>An authentication cookie to maintain your login session</li>
+                    <li>Browser storage for your profile display information</li>
+                    <li>Camera display preferences, exercise sound preferences, and temporary exercise and workout information</li>
+                </ul>
+                <p>Authentication cookies are configured as HttpOnly cookies and have a limited lifetime.</p>
+                <p>You can manage or clear browser storage through your browser settings. Clearing essential storage may require you to sign in again or reset preferences.</p>
+            </section>
+
+            <section>
+                <h3>Data Security</h3>
+                <p>We take reasonable measures to protect information stored and processed through MUSTMAKE. These measures include password hashing, authenticated API access, protected session cookies, input validation and mechanisms intended to prevent unauthorized account access.</p>
+                <p>However, no internet-based service can guarantee absolute security.</p>
+            </section>
+
+            <section>
+                <h3>Data Retention and Account Deletion</h3>
+                <p>We retain account information for as long as your account remains active and the information is required to provide the service or meet applicable obligations.</p>
+                <p>You can delete your account through <strong>Settings → Delete account</strong>.</p>
+                <p>When an account deletion request is successfully processed, MUSTMAKE deletes the associated account, workout records, competition connections and relevant verification records from its active database. Deletion of profile images hosted by third-party providers is also requested.</p>
+                <p>Some information may remain temporarily in service-provider backups, technical logs or other records where retention is necessary or permitted by applicable law.</p>
+            </section>
+
+            <section>
+                <h3>Your Choices and Privacy Requests</h3>
+                <p>You can:</p>
+                <ul>
+                    <li>Edit your profile information and update your personal details.</li>
+                    <li>Choose whether to provide optional profile information or deny camera access.</li>
+                    <li>Delete your MUSTMAKE account.</li>
+                    <li>Contact us with questions or requests concerning your personal information.</li>
+                </ul>
+                <p>For privacy-related requests, contact us using the details below.</p>
+            </section>
+
+    
+          
+        </article>
+
+        <article class="legal-document" id="terms-and-conditions">
+            <header class="legal-document-header">
+                <h2>Terms &amp; conditions</h2>
+            </header>
+
+           
+           
+
+            <section>
+                <h3>Account Registration</h3>
+                <p>To use account-based features, you must create an account. You agree to:</p>
+                <ul>
+                    <li>Provide accurate registration information and use an email address that you own or are authorized to use.</li>
+                    <li>Maintain the confidentiality of your login credentials and avoid sharing your account with unauthorized individuals.</li>
+                    <li>Notify us if you suspect unauthorized access.</li>
+                </ul>
+                <p>You are responsible for activities carried out through your account, subject to applicable law. Google Sign-In may also be used where available.</p>
+            </section>
+
+          
+            <section>
+                <h3>User Profiles and Community Features</h3>
+                <p>MUSTMAKE allows authenticated members to view other members' fitness profiles and workout information. Information may include names, usernames, profile pictures, age, height, weight, social links and workout history.</p>
+                <p>By submitting information to your MUSTMAKE profile, you understand that it may be visible to other logged-in members as described in the Privacy Policy. You are responsible for the information you choose to publish on your profile.</p>
+                <p>You must not:</p>
+                <ul>
+                    <li>Impersonate another person or use misleading identity information.</li>
+                    <li>Harass or threaten other members, or publish unlawful or abusive material.</li>
+                    <li>Misuse another member's personal information.</li>
+                    <li>Attempt to access another member's account without authorization.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>Workout Tracking and Exercise Monitoring</h3>
+                <p>MUSTMAKE provides tools for recording workouts and tracking exercise progress. Workout records are intended for personal fitness tracking and motivation.</p>
+                <p>AI-assisted exercise monitoring may estimate repetitions, movements and exercise performance. These estimates may not always be accurate. You are responsible for checking your workout records and using appropriate judgment when exercising.</p>
+            </section>
+
+            <section>
+                <h3>Health and Exercise Disclaimer</h3>
+                <p>MUSTMAKE is a fitness tracking platform, not a medical service. Information provided by MUSTMAKE does not constitute:</p>
+                <ul>
+                    <li>Medical advice or a medical diagnosis</li>
+                    <li>Treatment recommendations</li>
+                    <li>A substitute for professional healthcare</li>
+                </ul>
+                <p>Exercise involves physical activity and may carry risks. You are responsible for determining whether an exercise is appropriate for your physical condition.</p>
+                <p>Consult a qualified healthcare professional before beginning a new exercise programme, particularly if you have an injury, medical condition or other health concern. Stop exercising if you experience pain, dizziness, unusual discomfort or other concerning symptoms.</p>
+            </section>
+
+            <section>
+                <h3>User Content and Profile Information</h3>
+                <p>You retain responsibility for the content and information you submit to MUSTMAKE, and you retain your ownership rights in content you provide.</p>
+                <p>By submitting profile information, photographs, social links and workout records, you grant MUSTMAKE permission to store, process and display that information as reasonably necessary to provide the platform's features. This includes displaying relevant information to authenticated members through profiles and competition features.</p>
+                <p>You must have the necessary rights or permission to upload any photograph or other content you submit.</p>
+            </section>
+
+            <section>
+                <h3>Account Deletion</h3>
+                <p>You may request account deletion through <strong>Settings → Delete account</strong>.</p>
+                <p>Account deletion removes your profile, workout records and competition connections from MUSTMAKE's active database through the account deletion process. Account deletion is intended to be permanent and cannot be reversed.</p>
+                <p>Information may remain temporarily in backups, technical logs or third-party systems where required or permitted by applicable law.</p>
+            </section>
+
+            <section>
+                <h3>Prohibited Activities</h3>
+                <p>You agree not to:</p>
+                <ul>
+                    <li>Attack, disrupt or interfere with MUSTMAKE's infrastructure.</li>
+                    <li>Attempt unauthorized access to accounts, APIs or databases.</li>
+                    <li>Reverse engineer or exploit the application for malicious purposes.</li>
+                    <li>Scrape or collect member information without authorization.</li>
+                    <li>Upload malicious software or harmful content.</li>
+                    <li>Abuse authentication, verification or other platform features, or use MUSTMAKE for unlawful activities.</li>
+                </ul>
+                <p>We may restrict or terminate accounts involved in violations of these terms, subject to applicable law.</p>
+            </section>
+
+            <section>
+                <h3>Third-Party Services</h3>
+                <p>MUSTMAKE uses external services for hosting, authentication, email delivery, image storage and other technical functionality. Those services may be subject to their own terms and privacy policies.</p>
+                <p>MUSTMAKE is not responsible for the independent availability or policies of third-party services.</p>
+            </section>
+
+            <section>
+                <h3>Availability and Changes</h3>
+                <p>We aim to keep MUSTMAKE accessible and functional. However, we do not guarantee uninterrupted availability or error-free operation. We may update, maintain, modify, suspend or discontinue features when necessary.</p>
+            </section>
+
+            <section>
+                <h3>Limitation of Liability</h3>
+                <p>To the extent permitted by applicable law, MUSTMAKE is not responsible for losses arising from:</p>
+                <ul>
+                    <li>Incorrect workout information entered by users or inaccurate AI-assisted exercise estimates.</li>
+                    <li>Temporary platform interruptions or third-party service interruptions.</li>
+                    <li>Unauthorized use resulting from a user's failure to protect their account.</li>
+                </ul>
+                <p>Nothing in these terms excludes liability that cannot legally be excluded.</p>
+            </section>
+
+            
+
+            <section>
+                <h3>Contact Information</h3>
+                <p>For questions regarding these terms, contact:</p>
+                <address class="legal-contact">
+                    <strong>Platform:</strong> MUSTMAKE<br>
+                    <strong>Website:</strong> <a href="https://mustmake.site">mustmake.site</a><br>
+                    <strong>Operator:</strong> Tejas and team<br>
+                    <strong>Email:</strong> <a href="mailto:mustmakeofficial@gmail.com">mustmakeofficial@gmail.com</a><br>
+                    <strong>Instagram:</strong> <a href="https://instagram.com/mustmakeofficial">instagram.com/mustmakeofficial</a>
+                </address>
+            </section>
+              <section>
+                <h3>Changes to Terms & Privacy Policy</h3>
+                <p>We may update this when our features, services, data practices or applicable legal requirements change. Updated versions will be published on our website with a revised effective date. We encourage users to review this page periodically.</p>
+            </section>
+
+          
+            
+        </article>
     </main>
 
     <script src="/js/shared/toast.js"></script>
