@@ -12,6 +12,8 @@ const publicPhotoPreview = document.getElementById("publicPhotoPreview");
 const publicPhotoPreviewHistoryKey = "mustmakePublicPhotoPreview";
 let publicHistoryCursor = null;
 let publicHistoryLoading = false;
+const publicHistoryDays = new Map();
+let publicHistoryLoadMoreButton = null;
 
 function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>"']/g, character => ({
@@ -88,14 +90,16 @@ function publicWorkoutMarkup(workout) {
 function appendPublicWorkouts(list, workouts) {
     if (!workouts.length) return;
 
-    list.querySelector(".no-workout")?.remove();
-    list.querySelector(".history-load-more")?.remove();
+    if (publicHistoryDays.size === 0) {
+        list.querySelector(".no-workout")?.remove();
+    }
+    publicHistoryLoadMoreButton?.remove();
+    publicHistoryLoadMoreButton = null;
 
+    const newDays = document.createDocumentFragment();
     workouts.forEach(workout => {
         const date = String(workout.date || "");
-        let day = Array.from(list.querySelectorAll(".history-day"))
-            .find(element => element.dataset.date === date);
-
+        let day = publicHistoryDays.get(date);
         if (!day) {
             day = document.createElement("div");
             day.className = "history-day";
@@ -105,24 +109,28 @@ function appendPublicWorkouts(list, workouts) {
             heading.className = "history-date";
             heading.textContent = formatWorkoutDate(date);
             day.appendChild(heading);
-            list.appendChild(day);
+            publicHistoryDays.set(date, day);
+            newDays.appendChild(day);
         }
 
         day.insertAdjacentHTML("beforeend", publicWorkoutMarkup(workout));
     });
+
+    list.appendChild(newDays);
 }
 
 function setPublicHistoryCursor(list, cursor) {
     publicHistoryCursor = cursor;
-    list.querySelector(".history-load-more")?.remove();
+    publicHistoryLoadMoreButton?.remove();
+    publicHistoryLoadMoreButton = null;
     if (!publicHistoryCursor) return;
 
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "main-button history-load-more";
-    button.textContent = "Load older workouts";
-    button.addEventListener("click", loadMorePublicHistory);
-    list.appendChild(button);
+    publicHistoryLoadMoreButton = document.createElement("button");
+    publicHistoryLoadMoreButton.type = "button";
+    publicHistoryLoadMoreButton.className = "main-button history-load-more";
+    publicHistoryLoadMoreButton.textContent = "Load older workouts";
+    publicHistoryLoadMoreButton.addEventListener("click", loadMorePublicHistory);
+    list.appendChild(publicHistoryLoadMoreButton);
 }
 
 async function loadMorePublicHistory(event) {
@@ -170,6 +178,8 @@ async function loadMorePublicHistory(event) {
 }
 
 function displayProfile({ user, workoutHistory = [], workoutHistoryNextCursor = null }) {
+    publicHistoryDays.clear();
+    publicHistoryLoadMoreButton = null;
     const photo = safeImageUrl(user.profilePicture) || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || "User")}&background=181818&color=ffffff`;
     const age = Number.isInteger(user.age) ? user.age : null;
     const hasHeight = user.height !== null && user.height !== undefined &&

@@ -1122,8 +1122,8 @@ export function mountAiMonitor(
             stream = await navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: "user",
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 },
+                    width: { ideal: 1280, max: 1280 },
+                    height: { ideal: 720, max: 720 },
                     zoom: { ideal: 1 }
                 },
                 audio: false

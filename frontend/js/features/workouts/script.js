@@ -239,33 +239,35 @@ async function loadStreaks(cacheKey) {
     }
 }
 
-const historyWorkouts = [];
+const historyDays = new Map();
+let historyWorkoutCount = 0;
 let historyCursor = null;
 let historyLoading = false;
+let historyLoadMoreButton = null;
 
-function renderHistory(historyContainer) {
-    historyContainer.replaceChildren();
-
-    if (historyWorkouts.length === 0) {
+function renderHistory(historyContainer, workouts) {
+    if (historyWorkoutCount === 0 && workouts.length === 0) {
         historyContainer.innerHTML = `<p class="no-workout">No workouts recorded yet.</p>`;
         return;
     }
 
+    if (historyWorkoutCount === 0) historyContainer.replaceChildren();
+
     const grouped = new Map();
-    historyWorkouts.forEach(workout => {
+    workouts.forEach(workout => {
         const date = String(workout.date || "");
         if (!grouped.has(date)) grouped.set(date, []);
         grouped.get(date).push(workout);
     });
 
-    [...grouped.keys()].forEach(date => {
-        const day = document.createElement("div");
-        day.className = "history-day";
+    historyLoadMoreButton?.remove();
+    historyLoadMoreButton = null;
 
-        let html = `<div class="history-date">${escapeHTML(formatDate(date))}</div>`;
-
-        grouped.get(date).forEach(workout => {
-            html += `
+    const newDays = document.createDocumentFragment();
+    grouped.forEach((dayWorkouts, date) => {
+        let workoutsHTML = "";
+        dayWorkouts.forEach(workout => {
+            workoutsHTML += `
                 <div class="history-workout">
                 <div class="workout-name">${escapeHTML(workout.exercise)}</div>
                     <div class="workout-details">${escapeHTML(workoutDetails(workout))}</div>
@@ -273,17 +275,31 @@ function renderHistory(historyContainer) {
             `;
         });
 
-        day.innerHTML = html;
-        historyContainer.appendChild(day);
+        const existingDay = historyDays.get(date);
+        if (existingDay) {
+            existingDay.insertAdjacentHTML("beforeend", workoutsHTML);
+            return;
+        }
+
+        const day = document.createElement("div");
+        day.className = "history-day";
+        day.innerHTML =
+            `<div class="history-date">${escapeHTML(formatDate(date))}</div>` +
+            workoutsHTML;
+        historyDays.set(date, day);
+        newDays.appendChild(day);
     });
 
+    historyContainer.appendChild(newDays);
+    historyWorkoutCount += workouts.length;
+
     if (historyCursor) {
-        const loadMoreButton = document.createElement("button");
-        loadMoreButton.type = "button";
-        loadMoreButton.className = "main-button history-load-more";
-        loadMoreButton.textContent = "Load older workouts";
-        loadMoreButton.addEventListener("click", () => loadHistory(historyCursor));
-        historyContainer.appendChild(loadMoreButton);
+        historyLoadMoreButton = document.createElement("button");
+        historyLoadMoreButton.type = "button";
+        historyLoadMoreButton.className = "main-button history-load-more";
+        historyLoadMoreButton.textContent = "Load older workouts";
+        historyLoadMoreButton.addEventListener("click", () => loadHistory(historyCursor));
+        historyContainer.appendChild(historyLoadMoreButton);
     }
 }
 
@@ -326,13 +342,12 @@ async function loadHistory(cursor = null) {
             throw new Error("History response was invalid. Please update the backend and try again.");
         }
 
-        historyWorkouts.push(...page.workouts);
         historyCursor = page.nextCursor || null;
-        renderHistory(historyContainer);
+        renderHistory(historyContainer, page.workouts);
         loadToast?.dismiss();
     } catch (error) {
         console.error(error);
-        if (historyWorkouts.length === 0) {
+        if (historyWorkoutCount === 0) {
             historyContainer.replaceChildren();
             if (loadToast?.element.isConnected) {
                 loadToast.update(error.message || "Could not load workout history.", { type: "error" });

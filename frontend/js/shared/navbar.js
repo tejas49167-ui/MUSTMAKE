@@ -320,8 +320,11 @@
             .replace(/\/+$/, "") || "/";
         const currentRoute = routeAliases[currentPath] || currentPath;
         const prefetchedRoutes = new Set();
+        let prefetchTimer = null;
+        let prefetchCandidate = null;
         const prefetchPage = link => {
             const url = new URL(link.href, window.location.href);
+            const connection = navigator.connection;
             if (
                 url.origin !== window.location.origin ||
                 url.search ||
@@ -339,9 +342,12 @@
                 !prefetchableRoutes.has(route) ||
                 route === currentRoute ||
                 prefetchedRoutes.has(route) ||
-                navigator.connection?.saveData ||
-                navigator.connection?.effectiveType === "slow-2g" ||
-                navigator.connection?.effectiveType === "2g"
+                navigator.onLine === false ||
+                connection?.saveData ||
+                (
+                    connection?.effectiveType &&
+                    connection.effectiveType !== "4g"
+                )
             ) {
                 return;
             }
@@ -360,11 +366,44 @@
             const target = event.target;
             if (!(target instanceof Element)) return;
             const link = target.closest("a[href]");
-            if (link && container.contains(link)) prefetchPage(link);
+            if (!link || !container.contains(link)) return;
+
+            if (event.type === "pointerdown") {
+                if (prefetchTimer !== null) {
+                    window.clearTimeout(prefetchTimer);
+                    prefetchTimer = null;
+                    prefetchCandidate = null;
+                }
+                prefetchPage(link);
+                return;
+            }
+
+            if (prefetchTimer !== null) window.clearTimeout(prefetchTimer);
+            prefetchCandidate = link;
+            prefetchTimer = window.setTimeout(() => {
+                prefetchTimer = null;
+                const candidate = prefetchCandidate;
+                prefetchCandidate = null;
+                if (candidate) prefetchPage(candidate);
+            }, 120);
         };
 
         container.addEventListener("pointerover", prefetchFromInteraction);
         container.addEventListener("pointerdown", prefetchFromInteraction);
+        container.addEventListener("pointerout", event => {
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+            const link = target.closest("a[href]");
+            if (
+                link &&
+                !link.contains(event.relatedTarget) &&
+                prefetchCandidate === link
+            ) {
+                window.clearTimeout(prefetchTimer);
+                prefetchTimer = null;
+                prefetchCandidate = null;
+            }
+        });
 
         document.body.classList.toggle(
             "has-bottom-navigation",

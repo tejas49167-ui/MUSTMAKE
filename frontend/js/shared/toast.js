@@ -7,10 +7,12 @@
     const PENDING_DISCARD_SOUND_KEY = "mustmake_pending_discard_sound";
     const PENDING_WORKOUT_CELEBRATION_KEY = "mustmake_pending_workout_celebration";
     const EXERCISE_SOUND_KEY_PREFIX = "mustmake_exercise_sound:";
-    const finishSound = new Audio("/assets/finishsession.mp3");
-    const discardSound = new Audio("/assets/discardsession.mp3");
-    finishSound.preload = "auto";
-    discardSound.preload = "auto";
+    const finishSound = new Audio();
+    const discardSound = new Audio();
+    finishSound.preload = "none";
+    discardSound.preload = "none";
+    finishSound.src = "/assets/finishsession.mp3";
+    discardSound.src = "/assets/discardsession.mp3";
     const icons = {
         success: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>',
         error: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>',
