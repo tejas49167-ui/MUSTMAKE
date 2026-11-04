@@ -15,6 +15,7 @@ const competitionRoutes = require("./routes/competition.routes");
 const workoutsRoutes = require("./routes/workouts.routes");
 const exercisesRoutes = require("./routes/exercises.routes");
 const errorHandler = require("./middleware/error-handler");
+const { frontend_url } = require("./config/urls");
 const exercises = require("./config/exercises.json");
 const { getFrontendOrigins } = require("./utils/auth-cookie");
 const csrfOrigin = require("./middleware/csrf-origin");
@@ -116,10 +117,10 @@ if (fs.existsSync(frontendRoot)) {
     // The API is sometimes deployed from the backend directory alone. In that
     // setup, send browser requests for the About page to the frontend site.
     app.get(["/about", "/about.html"], (req, res) => {
-        res.redirect("https://mustmake.site/about");
+        res.redirect(`${frontend_url}/about`);
     });
     app.get(["/doit", "/exercises"], (req, res) => {
-        res.redirect("https://mustmake.site/doit");
+        res.redirect(`${frontend_url}/doit`);
     });
 }
 

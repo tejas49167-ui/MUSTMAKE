@@ -567,7 +567,7 @@
             button.addEventListener("click", () => {
                 window.clearPrivateCaches();
                 localStorage.removeItem("user");
-                window.fetch(`${window.API_URL}/api/auth/logout`, {
+                window.fetch(`${window.backend_url}/api/auth/logout`, {
                     method: "POST"
                 }).catch(error => {
                     console.warn("Could not end the server session.", error);

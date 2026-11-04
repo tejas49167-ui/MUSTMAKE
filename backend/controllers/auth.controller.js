@@ -18,6 +18,7 @@ const {
 const { sendOTPEmail } = require("../services/email.service");
 const loginRateLimitService = require("../services/login-rate-limit.service");
 const { setSessionCookie, clearSessionCookie } = require("../utils/auth-cookie");
+const { frontend_url } = require("../config/urls");
 
 function sendAuthenticatedSession(res, session) {
     res.set("Cache-Control", "no-store");
@@ -836,7 +837,7 @@ const googleCallback = async (req, res) => {
 
             setSessionCookie(res, token);
             res.set("Cache-Control", "no-store");
-            res.redirect("https://mustmake.site/pages/google-callback.html");
+            res.redirect(`${frontend_url}/pages/google-callback.html`);
 
 
         } catch (error) {
@@ -848,7 +849,7 @@ const googleCallback = async (req, res) => {
 
 
             res.redirect(
-                "https://mustmake.site/pages/login.html"
+                `${frontend_url}/pages/login.html`
             );
         }
     };

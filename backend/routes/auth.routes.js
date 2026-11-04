@@ -2,6 +2,7 @@ const express = require("express");
 const passport = require("passport");
 const authController = require("../controllers/auth.controller");
 const auth = require("../middleware/auth");
+const { frontend_url } = require("../config/urls");
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.get(
 router.get(
     "/api/auth/google/callback",
     passport.authenticate("google", {
-        failureRedirect: "https://mustmake.site/pages/login.html",
+        failureRedirect: `${frontend_url}/pages/login.html`,
         session: false
     }),
     authController.googleCallback

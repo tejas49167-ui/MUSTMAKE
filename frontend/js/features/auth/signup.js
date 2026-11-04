@@ -27,7 +27,7 @@ if (loginLink) {
 }
 
 async function postAuth(path, payload) {
-    const response = await fetch(`${window.API_URL}${path}`, {
+    const response = await fetch(`${window.backend_url}${path}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

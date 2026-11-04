@@ -165,7 +165,7 @@ async function loadToday() {
         cacheSuffix ? `mustmake_streak${cacheSuffix}` : null
     );
     try {
-        const todayPromise = fetch(`${window.API_URL}/api/workouts/today`);
+        const todayPromise = fetch(`${window.backend_url}/api/workouts/today`);
 
         const [response] = await Promise.all([todayPromise, streakPromise]);
         if (response.status === 401) {
@@ -219,7 +219,7 @@ async function loadStreaks(cacheKey) {
     if (!streakElement) return;
 
     try {
-        const response = await fetch(`${window.API_URL}/api/workouts/streaks`);
+        const response = await fetch(`${window.backend_url}/api/workouts/streaks`);
 
         if (response.status === 401) {
             logout();
@@ -304,7 +304,7 @@ async function loadHistory(cursor = null) {
     if (cursor) query.set("cursor", cursor);
 
     try {
-        const response = await fetch(`${window.API_URL}/api/workouts/history?${query}`);
+        const response = await fetch(`${window.backend_url}/api/workouts/history?${query}`);
 
         if (response.status === 401) {
             loadToast?.dismiss();

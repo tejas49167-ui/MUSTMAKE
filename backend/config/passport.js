@@ -2,6 +2,7 @@ const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/User");
 const connectDB = require("./database");
+const { backend_url } = require("./urls");
 
 passport.use(
     new GoogleStrategy(
@@ -13,7 +14,8 @@ passport.use(
                 process.env.GOOGLE_CLIENT_SECRET,
 
             callbackURL:
-                process.env.GOOGLE_CALLBACK_URL
+                process.env.GOOGLE_CALLBACK_URL ||
+                `${backend_url}/api/auth/google/callback`
         },
 
         async (

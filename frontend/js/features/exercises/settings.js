@@ -74,7 +74,7 @@ deleteAccountButton.addEventListener("click", async () => {
     const deleteToast = window.showToast("Deleting account…", { type: "loading" });
 
     try {
-        const response = await fetch(`${window.API_URL}/api/account`, {
+        const response = await fetch(`${window.backend_url}/api/account`, {
             method: "DELETE"
         });
         const data = await response.json().catch(() => ({}));
@@ -92,7 +92,7 @@ deleteAccountButton.addEventListener("click", async () => {
 
         window.clearPrivateCaches();
         try {
-            await fetch(`${window.API_URL}/api/auth/logout`, { method: "POST" });
+            await fetch(`${window.backend_url}/api/auth/logout`, { method: "POST" });
         } catch (error) {
             console.warn("Could not clear the session cookie after account deletion.", error);
         }

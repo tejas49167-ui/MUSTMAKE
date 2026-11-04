@@ -109,7 +109,7 @@ async function loadProfile() {
     if (cachedProfile) renderProfile(cachedProfile);
 
     try {
-        const response = await fetch(`${window.API_URL}/api/profile`);
+        const response = await fetch(`${window.backend_url}/api/profile`);
 
         const data = await response.json().catch(() => null);
 
@@ -181,7 +181,7 @@ function makeButton(label, className, text) {
 }
 
 async function updateProfile(payload) {
-    const response = await fetch(`${window.API_URL}/api/profile`, {
+    const response = await fetch(`${window.backend_url}/api/profile`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",

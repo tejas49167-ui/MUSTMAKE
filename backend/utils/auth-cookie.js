@@ -1,5 +1,6 @@
 const SESSION_COOKIE_NAME = "mustmake_session";
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const { frontend_origins } = require("../config/urls");
 
 function getSessionCookieOptions() {
     return {
@@ -27,13 +28,7 @@ function getFrontendOrigins() {
         .filter(Boolean);
 
     return new Set([
-        "https://mustmake.site",
-        "https://www.mustmake.site",
-        "https://mustmake.vercel.app",
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-        "http://localhost:4000",
-        "http://127.0.0.1:4000",
+        ...frontend_origins,
         ...configuredOrigins
     ]);
 }

@@ -114,7 +114,7 @@ async function searchUsers(username) {
 
     try {
         const response = await fetch(
-            `${window.API_URL}/api/users/search?q=${encodeURIComponent(username)}`,
+            `${window.backend_url}/api/users/search?q=${encodeURIComponent(username)}`,
             { headers: authHeaders() }
         );
 
@@ -189,7 +189,7 @@ async function addCompetitor(competitorId, button) {
     const notification = window.showToast("Adding competitor…", { type: "loading" });
 
     try {
-        const response = await fetch(`${window.API_URL}/api/competition/add`, {
+        const response = await fetch(`${window.backend_url}/api/competition/add`, {
             method: "POST",
             headers: authHeaders(),
             body: JSON.stringify({ competitorId })
@@ -230,7 +230,7 @@ async function removeCompetitor(competitorId, button) {
     const notification = window.showToast("Removing competitor…", { type: "loading" });
 
     try {
-        const response = await fetch(`${window.API_URL}/api/competition/${encodeURIComponent(competitorId)}`, {
+        const response = await fetch(`${window.backend_url}/api/competition/${encodeURIComponent(competitorId)}`, {
             method: "DELETE",
             headers: authHeaders()
         });
@@ -275,7 +275,7 @@ async function loadCompetition({ renderCache = true } = {}) {
     if (cachedCompetition) renderCompetition(cachedCompetition);
 
     try {
-        const response = await fetch(`${window.API_URL}/api/competition`, {
+        const response = await fetch(`${window.backend_url}/api/competition`, {
             headers: authHeaders()
         });
 

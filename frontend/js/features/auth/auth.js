@@ -59,7 +59,7 @@ const googleLoginLink = document.getElementById("googleLoginLink");
 const signupLink = document.getElementById("signupLink");
 
 if (googleLoginLink) {
-    googleLoginLink.href = `${window.API_URL}/api/auth/google`;
+    googleLoginLink.href = `${window.backend_url}/api/auth/google`;
 }
 
 if (signupLink) {
@@ -103,7 +103,7 @@ if (googleLoginLink) {
 }
 
 async function postAuth(path, payload) {
-    const response = await fetch(`${window.API_URL}${path}`, {
+    const response = await fetch(`${window.backend_url}${path}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -184,7 +184,7 @@ function refreshLoginRestriction() {
     loginRestrictionCheckPromise = (async () => {
         try {
             const response = await fetch(
-                `${window.API_URL}/api/auth/login-rate-limit`,
+                `${window.backend_url}/api/auth/login-rate-limit`,
                 { credentials: "include" }
             );
             const data = await response.json().catch(() => ({}));

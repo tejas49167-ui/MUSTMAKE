@@ -1442,7 +1442,7 @@ export function mountAiMonitor(
 
         try {
             const response = await fetch(
-                `${window.API_URL}/api/workouts`,
+                `${window.backend_url}/api/workouts`,
                 {
                     method: "POST",
                     headers: {

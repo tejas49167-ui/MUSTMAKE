@@ -139,7 +139,7 @@ async function loadMorePublicHistory(event) {
             limit: "25"
         });
         const response = await fetch(
-            `${window.API_URL}/api/users/${encodeURIComponent(profileId)}?${query}`
+            `${window.backend_url}/api/users/${encodeURIComponent(profileId)}?${query}`
         );
 
         if (response.status === 401) {
@@ -269,7 +269,7 @@ async function loadPublicProfile() {
     }
 
     try {
-        const response = await fetch(`${window.API_URL}/api/users/${encodeURIComponent(profileId)}`);
+        const response = await fetch(`${window.backend_url}/api/users/${encodeURIComponent(profileId)}`);
         if (response.status === 401) {
             window.clearPrivateCaches();
             localStorage.removeItem("user");

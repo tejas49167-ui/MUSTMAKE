@@ -42,7 +42,8 @@ test("API requests use cookies and drop bearer headers without changing static f
         }
     });
 
-    assert.equal(window.API_URL, "");
+    assert.equal(window.backend_url, "");
+    assert.equal(window.frontend_url, "https://mustmake.site");
     assert.deepEqual(removedKeys, ["token"]);
     assert.equal(calls[0].init.credentials, "include");
     assert.equal(new Headers(calls[0].init.headers).has("Authorization"), false);
@@ -50,4 +51,27 @@ test("API requests use cookies and drop bearer headers without changing static f
 
     await window.fetch("/data/exercises.json");
     assert.equal(calls[1].init.credentials, undefined);
+});
+
+test("local frontend uses the local backend URL", () => {
+    const window = {
+        location: {
+            hostname: "localhost",
+            href: "http://localhost:5500/login",
+            origin: "http://localhost:5500"
+        },
+        fetch: async () => new Response(null, { status: 204 })
+    };
+
+    runInNewContext(transportScript, {
+        window,
+        localStorage: { removeItem() {} },
+        URL,
+        Request,
+        Headers,
+        console
+    });
+
+    assert.equal(window.backend_url, "http://localhost:4000");
+    assert.equal(window.frontend_url, "http://localhost:5500");
 });

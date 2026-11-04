@@ -115,7 +115,7 @@
         }
 
         try {
-            const response = await fetch(`${window.API_URL}/api/exercises?v=4`, { cache: "no-cache" });
+            const response = await fetch(`${window.backend_url}/api/exercises?v=4`, { cache: "no-cache" });
             if (!response.ok) throw new Error(`Exercise API returned ${response.status}.`);
             const exercises = await response.json();
             if (!Array.isArray(exercises)) throw new Error("Exercise API returned an invalid catalog.");

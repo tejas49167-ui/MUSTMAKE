@@ -79,7 +79,7 @@ profilePictureInput?.addEventListener("change", () => {
 
 async function loadProfile() {
     try {
-        const response = await fetch(`${window.API_URL}/api/profile`);
+        const response = await fetch(`${window.backend_url}/api/profile`);
 
         if (response.status === 401) {
             logout();
@@ -176,7 +176,7 @@ profileForm.addEventListener("submit", async event => {
         const profileEndpoint = nameInput
             ? "/api/profile/first-details"
             : "/api/profile";
-        const response = await fetch(`${window.API_URL}${profileEndpoint}`, {
+        const response = await fetch(`${window.backend_url}${profileEndpoint}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

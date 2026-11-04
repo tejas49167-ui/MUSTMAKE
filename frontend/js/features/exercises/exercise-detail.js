@@ -548,7 +548,7 @@
 
             try {
                 const response = await fetch(
-                    `${window.API_URL}/api/workouts`,
+                    `${window.backend_url}/api/workouts`,
                     {
                         method: "POST",
                         headers: {
@@ -646,7 +646,7 @@
 
         try {
             const response = await fetch(
-                `${window.API_URL}/api/exercises?v=4`,
+                `${window.backend_url}/api/exercises?v=4`,
                 { cache: "no-cache" }
             );
 

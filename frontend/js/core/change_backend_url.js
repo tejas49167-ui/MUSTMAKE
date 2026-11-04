@@ -1,7 +1,8 @@
 const isLocalFrontend = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-window.API_URL = isLocalFrontend
+window.backend_url = isLocalFrontend
     ? `http://${window.location.hostname}:4000`
     : "";
+window.frontend_url = window.location.origin;
 
 try {
     localStorage.removeItem("token");
@@ -10,7 +11,7 @@ try {
 }
 
 const originalFetch = window.fetch.bind(window);
-const apiOrigin = new URL(window.API_URL || "/", window.location.href).origin;
+const apiOrigin = new URL(window.backend_url || "/", window.location.href).origin;
 window.fetch = function (input, init = {}) {
     const requestUrl = input instanceof Request ? input.url : input;
     const url = new URL(requestUrl, window.location.href);

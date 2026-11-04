@@ -4,7 +4,7 @@ const callbackToast = window.showToast("Completing Google sign-in…", {
 
 (async () => {
     try {
-        const response = await window.fetch(`${window.API_URL}/api/auth/session`);
+        const response = await window.fetch(`${window.backend_url}/api/auth/session`);
         const session = await response.json().catch(() => ({}));
         if (!response.ok || !session.user) {
             throw new Error(session.message || "Google login information is missing.");
