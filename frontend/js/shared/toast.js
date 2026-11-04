@@ -13,13 +13,6 @@
     discardSound.preload = "none";
     finishSound.src = "/assets/finishsession.mp3";
     discardSound.src = "/assets/discardsession.mp3";
-    const icons = {
-        success: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>',
-        error: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>',
-        warning: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.8 19h18.4L12 3Z"/><path d="M12 9v4m0 3h.01"/></svg>',
-        info: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>'
-    };
-
     function getExerciseSoundPreference() {
         try {
             let user = null;
@@ -104,10 +97,6 @@
         const toast = document.createElement("article");
         toast.className = "mustmake-toast";
 
-        const icon = document.createElement("span");
-        icon.className = "toast-icon";
-        icon.setAttribute("aria-hidden", "true");
-
         const body = document.createElement("div");
         body.className = "toast-body";
 
@@ -124,7 +113,7 @@
         close.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
 
         body.append(text, actions);
-        toast.append(icon, body, close);
+        toast.append(body, close);
         root.appendChild(toast);
 
         let timer = null;
@@ -172,10 +161,6 @@
             toast.dataset.type = type;
             toast.setAttribute("role", type === "error" ? "alert" : "status");
             text.textContent = String(nextMessage ?? "");
-            icon.classList.toggle("is-loading", type === "loading");
-            icon.innerHTML = type === "loading"
-                ? '<span class="toast-spinner"></span>'
-                : icons[type];
             renderActions(nextOptions.actions || nextOptions.action);
 
             const duration = type === "loading"

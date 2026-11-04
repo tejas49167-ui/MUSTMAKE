@@ -128,9 +128,6 @@ async function loadProfile() {
         renderProfile(data);
     } catch (error) {
         console.error(error);
-        if (!cachedProfile) {
-            window.showToast(error.message || "Could not load profile.", { type: "error" });
-        }
     }
 }
 

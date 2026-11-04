@@ -67,7 +67,11 @@ async function savePendingSignup(data, res) {
     setPendingSignupCookie(res, pendingToken);
 }
 
-async function respondToFailedLogin(res, keys) {
+async function respondToFailedLogin(
+    res,
+    keys,
+    message = "Invalid username/email or password."
+) {
     await loginRateLimitService.recordIpFailure(keys.ip);
     const restriction = await loginRateLimitService.getRestriction(keys);
 
@@ -76,7 +80,7 @@ async function respondToFailedLogin(res, keys) {
     }
 
     return res.status(401).json({
-        message: "Invalid username/email or password."
+        message
     });
 }
 
@@ -224,7 +228,16 @@ const sendOtp = async (req, res) => {
 
         if (purpose === "signup" && await User.findOne({ email: cleanEmail })) {
             return res.status(409).json({
-                message: "An account with this email already exists. Please log in."
+                message: "User already exists. Please log in."
+            });
+        }
+
+        const existingUser = purpose === "login"
+            ? await User.findOne({ email: cleanEmail })
+            : null;
+        if (purpose === "login" && !existingUser) {
+            return res.status(404).json({
+                message: "User does not exist. Please sign up."
             });
         }
 
@@ -233,11 +246,8 @@ const sendOtp = async (req, res) => {
         const previousOTP = await OTP.findOne({ email: cleanEmail, purpose });
         const guard = await OTPGuard.findOne({ email: cleanEmail, purpose });
         if (isOtpLocked(guard, now)) {
-            return res.status(202).json({
-                success: true,
-                challengeToken: generateOTPChallenge(),
-                sentAt: now.getTime(),
-                message: "If the address is eligible, a verification code will be sent."
+            return res.status(429).json({
+                message: "Too many incorrect code attempts. Please try again later."
             });
         }
 
@@ -250,7 +260,7 @@ const sendOtp = async (req, res) => {
                 success: true,
                 codeAlreadySent: true,
                 sentAt: cooldownStartedAt.getTime(),
-                message: "If the address is eligible, a code was sent. Use the most recent code."
+                message: "A code was sent recently. Use the most recent code."
             });
         }
 
@@ -294,12 +304,8 @@ const sendOtp = async (req, res) => {
             }
         }
 
-        const existingUser = purpose === "login"
-            ? await User.findOne({ email: cleanEmail })
-            : null;
-        const eligible = purpose === "signup" ? true : Boolean(existingUser);
         let usernameExists = false;
-        if (eligible && purpose === "signup") {
+        if (purpose === "signup") {
             usernameExists = Boolean(await User.findOne({ username: signupData.username }));
         }
 
@@ -310,16 +316,6 @@ const sendOtp = async (req, res) => {
         }
 
         const challengeToken = generateOTPChallenge();
-        const shouldSend = eligible;
-        if (!shouldSend) {
-            return res.status(202).json({
-                success: true,
-                challengeToken,
-                sentAt: now.getTime(),
-                message: "If the address is eligible, a verification code will be sent."
-            });
-        }
-
         const allowed = await otpAbuseService.allowOtpSend(cleanEmail, ip, now);
         if (!allowed) {
             return res.status(429).json({
@@ -365,7 +361,7 @@ const sendOtp = async (req, res) => {
             success: true,
             challengeToken,
             sentAt: now.getTime(),
-            message: "If the address is eligible, a verification code will be sent."
+            message: "Verification code sent."
         });
     } catch (error) {
         logFailure("Send OTP failed.", error);
@@ -537,7 +533,6 @@ const verifyOtp = async (req, res) => {
         setSessionCookie(res, session.token);
         return res.json({
             success: true,
-            message: "Code verified successfully.",
             user: session.user
         });
     } catch (error) {
@@ -638,7 +633,11 @@ const login = async (req, res) => {
 
 
             if (!user) {
-                return respondToFailedLogin(res, keys);
+                return respondToFailedLogin(
+                    res,
+                    keys,
+                    "User does not exist. Please sign up."
+                );
             }
 
 

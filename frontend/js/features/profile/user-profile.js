@@ -292,7 +292,6 @@ async function loadPublicProfile() {
     } catch (error) {
         console.error("Public profile error:", error);
         profileRoot.replaceChildren();
-        window.showToast(error.message || "Could not load profile.", { type: "error" });
     }
 }
 

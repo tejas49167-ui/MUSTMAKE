@@ -246,7 +246,16 @@ const completeSignup = async (req, res) => {
             await PendingSignup.deleteOne({ _id: pendingSignup._id });
             clearPendingSignupCookie(res);
             return res.status(409).json({
-                message: "An account with this email already exists. Please log in."
+                message: "This email already has an account. Please log in instead."
+            });
+        }
+
+        const existingUsername = await User.findOne({
+            username: pendingSignup.username
+        });
+        if (existingUsername) {
+            return res.status(409).json({
+                message: "That username is already taken. Please restart signup with another username."
             });
         }
 
@@ -275,8 +284,19 @@ const completeSignup = async (req, res) => {
         return res.json({ success: true, user: session.user });
     } catch (error) {
         if (error.code === 11000) {
+            const duplicateFields = Object.keys(error.keyPattern || error.keyValue || {});
+            if (duplicateFields.includes("email")) {
+                return res.status(409).json({
+                    message: "This email already has an account. Please log in instead."
+                });
+            }
+            if (duplicateFields.includes("username")) {
+                return res.status(409).json({
+                    message: "That username is already taken. Please restart signup with another username."
+                });
+            }
             return res.status(409).json({
-                message: "That email or username is already in use. Please restart signup."
+                message: "An account already exists. Please log in or restart signup with different details."
             });
         }
         logFailure("Complete signup failed.", error);

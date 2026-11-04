@@ -5526,6 +5526,20 @@ body.app-page .exercise-library-page .exercise-card-media {
     text-align: center;
 }
 
+.signup-account-exists {
+    margin: 14px 0 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.signup-account-exists a {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-underline-offset: 3px;
+}
+
 .auth-footer #signupLink,
 .auth-footer #loginLink {
     color: #60a5fa !important;

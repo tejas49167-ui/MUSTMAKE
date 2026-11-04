@@ -70,11 +70,13 @@
 
             </form>
 
-            <form id="signupOtpForm" hidden>
+            <form id="signupOtpForm" class="otp-login-form" hidden>
 
-                <p class="auth-subtitle">
-                    Enter the 6-digit code sent to
-                    <strong id="signupOtpEmail"></strong>.
+                <h1>Enter the code</h1>
+
+                <p class="auth-subtitle otp-login-subtitle">
+                    We sent a 6-digit verification code to
+                    <strong id="signupOtpEmail"></strong>
                 </p>
 
                 <div class="form-group">
@@ -97,28 +99,31 @@
                     Verify email
                 </button>
 
-                <button
-                    type="button"
-                    id="signupResend"
-                    class="google-button"
-                >
-                    Resend code
-                </button>
-
-                <p
-                    id="signupResendStatus"
-                    class="auth-message signup-resend-status"
-                    aria-live="polite"
-                    hidden
-                ></p>
-
-                <button
-                    type="button"
-                    id="editSignupDetails"
-                    class="auth-text-button"
-                >
-                    Change signup details
-                </button>
+                <div class="otp-resend-block">
+                    <p
+                        id="signupResendStatus"
+                        class="auth-subtitle otp-resend-prompt"
+                        aria-live="polite"
+                        hidden
+                    ></p>
+                    <div class="otp-resend-actions">
+                        <button
+                            type="button"
+                            id="signupResend"
+                            class="otp-inline-link"
+                        >
+                            Resend code
+                        </button>
+                        <span aria-hidden="true">•</span>
+                        <button
+                            type="button"
+                            id="editSignupDetails"
+                            class="otp-inline-link"
+                        >
+                            Change signup details
+                        </button>
+                    </div>
+                </div>
 
             </form>
 

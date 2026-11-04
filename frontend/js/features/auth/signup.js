@@ -63,6 +63,7 @@ function savePendingSignup() {
 function setSignupStep(email, sentAt = Date.now(), challengeToken = "") {
     signupForm.hidden = true;
     signupOtpForm.hidden = false;
+    document.body.classList.add("otp-login-page");
     document.getElementById("signupOtpEmail").textContent = email;
     sessionStorage.setItem(SIGNUP_EMAIL_KEY, email);
     sessionStorage.setItem(SIGNUP_SENT_AT_KEY, String(sentAt));
@@ -88,9 +89,7 @@ function updateResendCooldown() {
             ? `Resend code in ${Math.ceil(remaining / 1000)}s`
             : "Resend code";
         resendStatus.hidden = false;
-        resendStatus.textContent = remaining > 0
-            ? "You can request another code when the timer ends."
-            : "Didn't receive the code? You can resend it.";
+        resendStatus.textContent = "Didn't receive the code? You can resend it.";
 
         if (remaining === 0 && resendTimer) {
             clearInterval(resendTimer);
@@ -140,6 +139,7 @@ function returnToSignup(message, isError = true) {
     sessionStorage.removeItem(SIGNUP_CHALLENGE_KEY);
     signupOtpForm.hidden = true;
     signupForm.hidden = false;
+    document.body.classList.remove("otp-login-page");
     document.getElementById("signupOtp").value = "";
     resendStatus.textContent = "";
     resendStatus.hidden = true;
@@ -178,6 +178,11 @@ if (signupForm && signupOtpForm) {
             setSignupStep(email, result.sentAt || Date.now(), result.challengeToken);
             setSignupMessage(result.message || "Verification code sent. Check your inbox and spam folder.");
         } catch (error) {
+            if (/already exists/i.test(error.message || "")) {
+                returnToSignup("User already exists. Please log in.", true);
+                return;
+            }
+
             const savedEmail = sessionStorage.getItem(SIGNUP_EMAIL_KEY);
             if (
                 error.message.includes("wait 60 seconds") &&
@@ -270,6 +275,6 @@ if (signupForm && signupOtpForm) {
     });
 
     document.getElementById("editSignupDetails").addEventListener("click", () => {
-        returnToSignup("Update your details, then request a new verification code.", false);
+        returnToSignup("", false);
     });
 }

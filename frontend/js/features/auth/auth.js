@@ -406,7 +406,7 @@ if (loginForm) {
                 const result = await postAuth("/api/auth/send-otp", { email, purpose: "login" });
                 loginIdentifier.value = email;
                 showOtpVerify(email, result.sentAt || Date.now(), result.challengeToken);
-                setLoginToast(result.message || "If the address is eligible, a sign-in code will be sent.", "success");
+                setLoginToast(result.message || "Sign-in code sent.", "success");
                 setOtpStatus("");
             } catch (error) {
                 console.error(error);
@@ -527,7 +527,7 @@ document.getElementById("loginOtpResend")?.addEventListener("click", async () =>
 
 document.getElementById("changeOtpLoginEmail")?.addEventListener("click", () => {
     resetOtpLogin(
-        "Update the email address for your account.",
+        "",
         sessionStorage.getItem(LOGIN_EMAIL_KEY) || ""
     );
 });

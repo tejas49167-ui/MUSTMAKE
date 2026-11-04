@@ -139,7 +139,6 @@ async function loadProfile() {
         }
     } catch (error) {
         console.error(error);
-        window.showToast(error.message || "Could not load profile.", { type: "error" });
     }
 }
 
