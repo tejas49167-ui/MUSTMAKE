@@ -8,10 +8,22 @@ const profilePictureInput = document.getElementById("profilePicture");
 const photoPreview = document.getElementById("photoPreview");
 const ageInput = document.getElementById("age");
 const nameInput = document.getElementById("name");
+const consentInput = document.getElementById("legalConsent");
 const socialLinksContainer = document.getElementById("social-links-container");
 const addSocialLinkButton = document.getElementById("add-social-link");
 const socialLinksCount = document.getElementById("social-links-count");
+const continueButton = document.querySelector("#profileForm .save-button");
 const maxSocialLinks = 10;
+const pendingSignup = sessionStorage.getItem("pendingSignup") === "true";
+
+function updateContinueButton() {
+    if (!nameInput || !consentInput || !continueButton) return;
+    continueButton.disabled = !nameInput.value.trim() || !consentInput.checked;
+}
+
+nameInput?.addEventListener("input", updateContinueButton);
+consentInput?.addEventListener("change", updateContinueButton);
+updateContinueButton();
 
 function updateSocialLinksCount() {
     if (!socialLinksContainer || !socialLinksCount || !addSocialLinkButton) return;
@@ -95,6 +107,7 @@ async function loadProfile() {
 
         if (nameInput) {
             nameInput.value = user.name === user.username ? "" : user.name || "";
+            updateContinueButton();
         }
 
         ageInput.value = user.age ?? "";
@@ -144,7 +157,8 @@ profileForm.addEventListener("submit", async event => {
         const payload = {
             age: ageInput.value,
             height: document.getElementById("height").value,
-            weight: document.getElementById("weight").value
+            weight: document.getElementById("weight").value,
+            legalConsent: Boolean(consentInput?.checked)
         };
 
         if (nameInput) {
@@ -173,9 +187,11 @@ profileForm.addEventListener("submit", async event => {
             });
         }
 
-        const profileEndpoint = nameInput
-            ? "/api/profile/first-details"
-            : "/api/profile";
+        const profileEndpoint = pendingSignup
+            ? "/api/auth/complete-signup"
+            : nameInput
+                ? "/api/profile/first-details"
+                : "/api/profile";
         const response = await fetch(`${window.backend_url}${profileEndpoint}`, {
             method: "PUT",
             headers: {
@@ -195,7 +211,12 @@ profileForm.addEventListener("submit", async event => {
             throw new Error(data.message || "Could not save profile.");
         }
 
-        localStorage.setItem("user", JSON.stringify(data.user));
+        if (pendingSignup) {
+            sessionStorage.removeItem("pendingSignup");
+            window.saveAuthenticatedSession(data.user);
+        } else {
+            localStorage.setItem("user", JSON.stringify(data.user));
+        }
 
         setTimeout(() => {
             if (nameInput && typeof window.redirectAfterFirstDetails === "function") {
@@ -210,4 +231,6 @@ profileForm.addEventListener("submit", async event => {
     }
 });
 
-loadProfile();
+if (!pendingSignup) {
+    loadProfile();
+}

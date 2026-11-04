@@ -40,6 +40,13 @@ function showInvalidCredentialsMessage() {
 }
 
 window.addEventListener("storage", (event) => {
+    if (event.key === "googleSignupPending" && event.newValue) {
+        localStorage.removeItem("googleSignupPending");
+        sessionStorage.setItem("pendingSignup", "true");
+        window.location.replace("/first-details");
+        return;
+    }
+
     if (event.key !== "googleLoginComplete" || !event.newValue) {
         return;
     }
@@ -290,6 +297,7 @@ function finishLogin(data) {
     sessionStorage.removeItem(LOGIN_EMAIL_KEY);
     sessionStorage.removeItem(LOGIN_SENT_AT_KEY);
     sessionStorage.removeItem(LOGIN_CHALLENGE_KEY);
+    sessionStorage.removeItem("pendingSignup");
     window.redirectAfterAuthentication(data.user);
 }
 

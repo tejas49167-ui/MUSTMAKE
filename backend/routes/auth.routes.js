@@ -1,6 +1,7 @@
 const express = require("express");
 const passport = require("passport");
 const authController = require("../controllers/auth.controller");
+const profileController = require("../controllers/profile.controller");
 const auth = require("../middleware/auth");
 const {
     limitGoogleOAuthStart,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post("/api/auth/send-otp", authController.sendOtp);
 router.post("/api/auth/verify-otp", authController.verifyOtp);
+router.put("/api/auth/complete-signup", profileController.completeSignup);
 router.post("/api/auth/signup", authController.signup);
 router.post("/api/auth/login", authController.login);
 router.get("/api/auth/login-rate-limit", authController.loginRateLimitStatus);

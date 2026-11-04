@@ -51,6 +51,15 @@ function saveSession(data) {
     window.redirectAfterAuthentication(data.user);
 }
 
+function savePendingSignup() {
+    signupToast?.dismiss();
+    sessionStorage.setItem("pendingSignup", "true");
+    sessionStorage.removeItem(SIGNUP_EMAIL_KEY);
+    sessionStorage.removeItem(SIGNUP_SENT_AT_KEY);
+    sessionStorage.removeItem(SIGNUP_CHALLENGE_KEY);
+    window.location.replace("/first-details");
+}
+
 function setSignupStep(email, sentAt = Date.now(), challengeToken = "") {
     signupForm.hidden = true;
     signupOtpForm.hidden = false;
@@ -208,7 +217,11 @@ if (signupForm && signupOtpForm) {
                 purpose: "signup"
             });
 
-            saveSession(data);
+            if (data.pendingSignup) {
+                savePendingSignup();
+            } else {
+                saveSession(data);
+            }
         } catch (error) {
             console.error(error);
             const message = error instanceof TypeError

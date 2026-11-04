@@ -5,6 +5,7 @@ const User = require("../models/User");
 const OTP = require("../models/OTP");
 const OTPGuard = require("../models/OTPGuard");
 const OTPThrottle = require("../models/OTPThrottle");
+const PendingSignup = require("../models/PendingSignup");
 const otpAbuseService = require("../services/otp-abuse.service");
 const authService = require("../services/auth.service");
 const emailService = require("../services/email.service");
@@ -20,6 +21,7 @@ emailService.sendOTPEmail = async (email, otp, purpose) => {
 };
 const authController = require("../controllers/auth.controller");
 emailService.sendOTPEmail = originalSendOTPEmail;
+const profileController = require("../controllers/profile.controller");
 
 function responseStub() {
     return {
@@ -52,7 +54,8 @@ function installControllerStubs(t, overrides = {}) {
         User,
         OTP,
         OTPGuard,
-        OTPThrottle
+        OTPThrottle,
+        PendingSignup
     };
     const originals = Object.entries(models).map(([name, model]) => ({
         model,
@@ -93,7 +96,7 @@ function installControllerStubs(t, overrides = {}) {
     });
 }
 
-test("signup OTP requests do not enumerate registered emails", async t => {
+test("signup OTP requests notify users when the email is already registered", async t => {
     const issuedRecords = [];
     installControllerStubs(t, {
         OTP: {
@@ -116,6 +119,9 @@ test("signup OTP requests do not enumerate registered emails", async t => {
             findOne: async query => {
                 if (query.email === "registered@example.test") {
                     return { _id: "registered-user" };
+                }
+                if (query.username === "taken_name") {
+                    return { _id: "username-owner" };
                 }
                 return null;
             }
@@ -144,12 +150,25 @@ test("signup OTP requests do not enumerate registered emails", async t => {
         ip: "203.0.113.10"
     }, registeredAddress);
 
+    const takenUsername = responseStub();
+    await authController.sendOtp({
+        body: {
+            email: "another@example.test",
+            purpose: "signup",
+            username: "taken_name",
+            password: "a-secure-test-password"
+        },
+        ip: "203.0.113.10"
+    }, takenUsername);
+
     assert.equal(newAddress.statusCode, 202);
-    assert.equal(registeredAddress.statusCode, 202);
-    assert.deepEqual(Object.keys(newAddress.body).sort(), Object.keys(registeredAddress.body).sort());
-    assert.equal(newAddress.body.message, registeredAddress.body.message);
+    assert.equal(registeredAddress.statusCode, 409);
+    assert.match(registeredAddress.body.message, /already exists.*log in/i);
+    assert.equal(takenUsername.statusCode, 409);
+    assert.match(takenUsername.body.message, /username is already taken/i);
     assert.equal(typeof newAddress.body.challengeToken, "string");
-    assert.equal(typeof registeredAddress.body.challengeToken, "string");
+    assert.equal(registeredAddress.body.challengeToken, undefined);
+    assert.equal(takenUsername.body.challengeToken, undefined);
     assert.equal(issuedRecords.length, 1);
     assert.equal(sentEmails.length, 1);
     assert.equal(issuedRecords[0].challengeHash, authService.hashOTP(newAddress.body.challengeToken));
@@ -162,6 +181,7 @@ test("signup details cannot be replaced while an issued OTP is in its resend coo
         passwordHash: "existing-bcrypt-hash"
     };
     let saved = false;
+    let sendLimitChecks = 0;
     installControllerStubs(t, {
         OTP: {
             init: async () => OTP,
@@ -179,6 +199,10 @@ test("signup details cannot be replaced while an issued OTP is in its resend coo
             findOne: async () => ({ lastSentAt: now, failedAttempts: 0 })
         }
     });
+    otpAbuseService.allowOtpSend = async () => {
+        sendLimitChecks += 1;
+        return true;
+    };
 
     const response = responseStub();
     await authController.sendOtp({
@@ -193,6 +217,7 @@ test("signup details cannot be replaced while an issued OTP is in its resend coo
 
     assert.equal(response.statusCode, 202);
     assert.equal(saved, false);
+    assert.equal(sendLimitChecks, 0);
     assert.deepEqual(signupDraft, {
         username: "original_user",
         passwordHash: "existing-bcrypt-hash"
@@ -252,6 +277,7 @@ test("concurrent OTP send requests cannot both claim the email resend slot", asy
 
 test("email delivery failures fail closed without logging address or OTP", async t => {
     let deleted = 0;
+    let cooldownReleased;
     installControllerStubs(t, {
         OTP: {
             init: async () => OTP,
@@ -266,7 +292,11 @@ test("email delivery failures fail closed without logging address or OTP", async
         OTPGuard: {
             init: async () => OTPGuard,
             findOne: async () => null,
-            findOneAndUpdate: async () => ({})
+            findOneAndUpdate: async () => ({}),
+            updateOne: async (...args) => {
+                cooldownReleased = args;
+                return { modifiedCount: 1 };
+            }
         },
         User: {
             findOne: async () => null
@@ -299,6 +329,13 @@ test("email delivery failures fail closed without logging address or OTP", async
         message: "Could not process the code request."
     });
     assert.equal(deleted, 1);
+    assert.deepEqual(cooldownReleased?.[0], {
+        email: "private@example.test",
+        purpose: "signup",
+        lastSentAt: cooldownReleased?.[0].lastSentAt
+    });
+    assert.ok(cooldownReleased?.[0].lastSentAt instanceof Date);
+    assert.deepEqual(cooldownReleased?.[1], { $unset: { lastSentAt: 1 } });
     assert.equal(JSON.stringify(logged).includes("private@example.test"), false);
     assert.equal(JSON.stringify(logged).includes(sentEmails[0].otp), false);
 });
@@ -361,6 +398,217 @@ test("OTP verification is single-use even when two valid requests race", async t
     const responses = await Promise.all(requests);
 
     assert.deepEqual(responses.map(response => response.statusCode).sort(), [200, 401]);
+});
+
+test("signup OTP verification defers account creation until profile completion", async t => {
+    const token = "signup-challenge-token";
+    const code = "123456";
+    const signupRecord = {
+        _id: "otp-pending-signup",
+        email: "new@example.test",
+        purpose: "signup",
+        signupData: {
+            username: "new_user",
+            passwordHash: "bcrypt-hash"
+        },
+        otpHash: "",
+        challengeHash: "",
+        expiresAt: new Date(Date.now() + 60_000),
+        attempts: 0
+    };
+    let pendingSignupUpdate;
+    let createdUser = false;
+    installControllerStubs(t, {
+        OTP: {
+            init: async () => OTP,
+            findOne: async () => signupRecord,
+            findOneAndDelete: async () => signupRecord
+        },
+        OTPGuard: {
+            init: async () => OTPGuard,
+            findOne: async () => null,
+            updateOne: async () => ({ modifiedCount: 1 })
+        },
+        PendingSignup: {
+            init: async () => PendingSignup,
+            findOneAndUpdate: async (...args) => {
+                pendingSignupUpdate = args;
+                return {};
+            }
+        },
+        User: {
+            findOne: async () => null,
+            create: async () => {
+                createdUser = true;
+                throw new Error("User must not be created during OTP verification.");
+            }
+        }
+    });
+    signupRecord.otpHash = authService.hashOTP(code);
+    signupRecord.challengeHash = authService.hashOTP(token);
+
+    const response = responseStub();
+    await authController.verifyOtp({
+        body: {
+            email: signupRecord.email,
+            otp: code,
+            challengeToken: token,
+            purpose: "signup"
+        },
+        ip: "203.0.113.16"
+    }, response);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.pendingSignup, true);
+    assert.equal(createdUser, false);
+    assert.equal(response.cookies[0][0], "mustmake_pending_signup");
+    assert.notEqual(response.cookies[0][0], "mustmake_session");
+    assert.equal(pendingSignupUpdate[0].email, signupRecord.email);
+    assert.equal(pendingSignupUpdate[1].$set.username, "new_user");
+    assert.equal(pendingSignupUpdate[1].$set.passwordHash, "bcrypt-hash");
+});
+
+test("signup OTP verification cannot create a pending signup for an existing account", async t => {
+    const token = "existing-account-challenge";
+    const code = "123456";
+    const signupRecord = {
+        _id: "otp-existing-account",
+        email: "existing@example.test",
+        purpose: "signup",
+        signupData: { username: "existing_user", passwordHash: "bcrypt-hash" },
+        otpHash: "",
+        challengeHash: "",
+        expiresAt: new Date(Date.now() + 60_000),
+        attempts: 0
+    };
+    let otpDeleted = false;
+    let pendingSignupCreated = false;
+    installControllerStubs(t, {
+        OTP: {
+            init: async () => OTP,
+            findOne: async () => signupRecord,
+            deleteOne: async () => {
+                otpDeleted = true;
+                return { deletedCount: 1 };
+            }
+        },
+        OTPGuard: {
+            init: async () => OTPGuard,
+            findOne: async () => null
+        },
+        PendingSignup: {
+            init: async () => PendingSignup,
+            findOneAndUpdate: async () => {
+                pendingSignupCreated = true;
+            }
+        },
+        User: { findOne: async () => ({ _id: "existing-user" }) }
+    });
+    signupRecord.otpHash = authService.hashOTP(code);
+    signupRecord.challengeHash = authService.hashOTP(token);
+
+    const response = responseStub();
+    await authController.verifyOtp({
+        body: {
+            email: signupRecord.email,
+            otp: code,
+            challengeToken: token,
+            purpose: "signup"
+        },
+        ip: "203.0.113.17"
+    }, response);
+
+    assert.equal(response.statusCode, 409);
+    assert.match(response.body.message, /already exists/i);
+    assert.equal(otpDeleted, true);
+    assert.equal(pendingSignupCreated, false);
+});
+
+test("first-details Continue creates the account only after required consent", async t => {
+    const pendingSignup = {
+        _id: "pending-signup",
+        email: "new@example.test",
+        username: "new_user",
+        passwordHash: "bcrypt-hash"
+    };
+    const originalSave = User.prototype.save;
+    let savedUser = null;
+    installControllerStubs(t, {
+        PendingSignup: {
+            findOne: async () => pendingSignup,
+            deleteOne: async () => ({ deletedCount: 1 })
+        },
+        User: { findOne: async () => null }
+    });
+    User.prototype.save = async function () {
+        savedUser = this;
+        return this;
+    };
+    t.after(() => {
+        User.prototype.save = originalSave;
+    });
+
+    const response = responseStub();
+    await profileController.completeSignup({
+        body: {
+            name: "New Person",
+            legalConsent: true
+        },
+        headers: {
+            cookie: "mustmake_pending_signup=verified-token"
+        }
+    }, response);
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(savedUser.name, "New Person");
+    assert.equal(savedUser.email, pendingSignup.email);
+    assert.equal(savedUser.legalConsentAt instanceof Date, true);
+    assert.equal(response.cookies[0][0], "mustmake_session");
+});
+
+test("first-details Continue rejects an email that already has an account", async t => {
+    const pendingSignup = {
+        _id: "pending-existing-signup",
+        email: "existing@example.test",
+        username: "existing_user",
+        passwordHash: "bcrypt-hash"
+    };
+    const originalSave = User.prototype.save;
+    let savedUser = false;
+    let pendingDeleted = false;
+    installControllerStubs(t, {
+        PendingSignup: {
+            findOne: async () => pendingSignup,
+            deleteOne: async () => {
+                pendingDeleted = true;
+                return { deletedCount: 1 };
+            }
+        },
+        User: { findOne: async () => ({ _id: "existing-user" }) }
+    });
+    User.prototype.save = async function () {
+        savedUser = true;
+        return this;
+    };
+    t.after(() => {
+        User.prototype.save = originalSave;
+    });
+
+    const response = responseStub();
+    await profileController.completeSignup({
+        body: {
+            name: "Existing Person",
+            legalConsent: true
+        },
+        headers: {
+            cookie: "mustmake_pending_signup=verified-token"
+        }
+    }, response);
+
+    assert.equal(response.statusCode, 409);
+    assert.match(response.body.message, /already exists/i);
+    assert.equal(savedUser, false);
+    assert.equal(pendingDeleted, true);
 });
 
 test("OTP expires and the fifth wrong code locks and consumes the challenge", async t => {

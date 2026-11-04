@@ -30,6 +30,11 @@ const userSchema = new mongoose.Schema(
             default: null
         },
 
+        legalConsentAt: {
+            type: Date,
+            default: null
+        },
+
         googleId: {
             type: String,
             unique: true,

@@ -4,6 +4,7 @@ const OTPThrottle = require("../models/OTPThrottle");
 const {
     OTP_SEND_EMAIL_LIMIT,
     OTP_SEND_IP_LIMIT,
+    OTP_SEND_WINDOW_MS,
     OTP_VERIFY_EMAIL_LIMIT,
     OTP_VERIFY_IP_LIMIT,
     createCounterPipeline,
@@ -11,6 +12,11 @@ const {
     allowOtpSend,
     allowOtpVerification
 } = require("../services/otp-abuse.service");
+
+test("OTP sends are limited to ten requests per email within thirty minutes", () => {
+    assert.equal(OTP_SEND_EMAIL_LIMIT, 10);
+    assert.equal(OTP_SEND_WINDOW_MS, 30 * 60 * 1000);
+});
 
 test("OTP throttles use keyed hashes and enforce concurrent persistent limits", async t => {
     const previousSecret = process.env.OTP_SECRET;

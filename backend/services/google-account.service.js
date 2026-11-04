@@ -21,10 +21,6 @@ function getBaseUsername(email) {
         .slice(0, 24) || "user";
 }
 
-function isDuplicateKey(error) {
-    return error?.code === 11000;
-}
-
 async function getAccountForVerifiedGoogleProfile(profile) {
     const email = getVerifiedEmail(profile);
     if (!email || typeof profile.id !== "string" || !profile.id) {
@@ -72,38 +68,15 @@ async function getAccountForVerifiedGoogleProfile(profile) {
     for (let attempt = 0; attempt < 5; attempt += 1) {
         const suffix = crypto.randomBytes(3).toString("hex");
         const username = `${baseUsername.slice(0, 30 - suffix.length)}${suffix}`;
-        try {
-            return await User.create({
-                name: profile.displayName || username,
-                username,
+        const usernameUser = await User.findOne({ username });
+        if (!usernameUser) {
+            return {
+                pendingSignup: true,
                 email,
+                username,
                 googleId: profile.id,
                 profilePicture: profile.photos?.[0]?.value || null
-            });
-        } catch (error) {
-            if (!isDuplicateKey(error)) throw error;
-
-            const [racedGoogleUser, racedEmailUser] = await Promise.all([
-                User.findOne({ googleId: profile.id }).select("+ageReferenceYear"),
-                User.findOne({ email }).select("+ageReferenceYear")
-            ]);
-            if (racedGoogleUser) return racedGoogleUser;
-            if (racedEmailUser) {
-                if (racedEmailUser.passwordHash) {
-                    throw new Error("This email is already registered. Sign in with your password.");
-                }
-
-                const linkedUser = await User.findOneAndUpdate(
-                    {
-                        _id: racedEmailUser._id,
-                        passwordHash: null,
-                        $or: [{ googleId: null }, { googleId: { $exists: false } }]
-                    },
-                    { $set: { googleId: profile.id } },
-                    { returnDocument: "after", runValidators: true }
-                ).select("+ageReferenceYear");
-                if (linkedUser) return linkedUser;
-            }
+            };
         }
     }
 

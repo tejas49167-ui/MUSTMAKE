@@ -62,6 +62,27 @@ test("Google sign-in never auto-links an existing password account", async t => 
     assert.equal(updateAttempted, false);
 });
 
+test("new verified Google signups remain pending until profile completion", async t => {
+    let accountCreated = false;
+    installUserStubs(t, {
+        init: async () => User,
+        findOne: query => query.username
+            ? Promise.resolve(null)
+            : selected(null),
+        create: async () => {
+            accountCreated = true;
+            throw new Error("Google account must not be created before Continue.");
+        }
+    });
+
+    const pendingSignup = await getAccountForVerifiedGoogleProfile(profile());
+
+    assert.equal(pendingSignup.pendingSignup, true);
+    assert.equal(pendingSignup.email, "person@example.test");
+    assert.equal(pendingSignup.googleId, "google-account-1");
+    assert.equal(accountCreated, false);
+});
+
 test("verified Google accounts link atomically and concurrent callbacks resolve to one user", async t => {
     const emailUser = {
         _id: "email-user",

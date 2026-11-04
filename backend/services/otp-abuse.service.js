@@ -2,8 +2,8 @@ const crypto = require("crypto");
 const OTPThrottle = require("../models/OTPThrottle");
 
 const OTP_SEND_EMAIL_LIMIT = 10;
-const OTP_SEND_IP_LIMIT = 30;
-const OTP_SEND_WINDOW_MS = 60 * 60 * 1000;
+const OTP_SEND_IP_LIMIT = 100;
+const OTP_SEND_WINDOW_MS = 30 * 60 * 1000;
 const OTP_VERIFY_EMAIL_LIMIT = 10;
 const OTP_VERIFY_IP_LIMIT = 60;
 const OTP_VERIFY_WINDOW_MS = 15 * 60 * 1000;

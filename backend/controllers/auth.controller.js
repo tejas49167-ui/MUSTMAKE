@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const OTP = require("../models/OTP");
 const OTPGuard = require("../models/OTPGuard");
+const PendingSignup = require("../models/PendingSignup");
 const connectDB = require("../config/database");
 const { isPlainObject, isValidEmail } = require("../utils/validation");
 const {
@@ -18,12 +19,18 @@ const {
 const { sendOTPEmail } = require("../services/email.service");
 const otpAbuseService = require("../services/otp-abuse.service");
 const loginRateLimitService = require("../services/login-rate-limit.service");
-const { setSessionCookie, clearSessionCookie } = require("../utils/auth-cookie");
+const {
+    setSessionCookie,
+    clearSessionCookie,
+    setPendingSignupCookie,
+    clearPendingSignupCookie
+} = require("../utils/auth-cookie");
 const { getFrontendRedirect } = require("../config/urls");
 const { logFailure } = require("../utils/safe-log");
 
 function sendAuthenticatedSession(res, session) {
     res.set("Cache-Control", "no-store");
+    clearPendingSignupCookie(res);
     setSessionCookie(res, session.token);
     return res.json({
         success: true,
@@ -37,6 +44,27 @@ function sendLoginRestriction(res, retryAfterMs) {
         retryAfterMs,
         message: "Login temporarily restricted."
     });
+}
+
+async function savePendingSignup(data, res) {
+    await PendingSignup.init();
+    const pendingToken = crypto.randomBytes(32).toString("base64url");
+    await PendingSignup.findOneAndUpdate(
+        { email: data.email },
+        {
+            $set: {
+                username: data.username,
+                passwordHash: data.passwordHash || null,
+                googleId: data.googleId || null,
+                profilePicture: data.profilePicture || null,
+                authProvider: data.authProvider,
+                tokenHash: hashOTP(pendingToken),
+                expiresAt: new Date(Date.now() + 30 * 60 * 1000)
+            }
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    setPendingSignupCookie(res, pendingToken);
 }
 
 async function respondToFailedLogin(res, keys) {
@@ -194,15 +222,14 @@ const sendOtp = async (req, res) => {
             return res.status(400).json({ message: "Invalid OTP purpose." });
         }
 
-        const now = new Date();
-        const ip = req.ip || req.socket?.remoteAddress || "unknown";
-        const allowed = await otpAbuseService.allowOtpSend(cleanEmail, ip, now);
-        if (!allowed) {
-            return res.status(429).json({
-                message: "Too many code requests. Please try again later."
+        if (purpose === "signup" && await User.findOne({ email: cleanEmail })) {
+            return res.status(409).json({
+                message: "An account with this email already exists. Please log in."
             });
         }
 
+        const now = new Date();
+        const ip = req.ip || req.socket?.remoteAddress || "unknown";
         const previousOTP = await OTP.findOne({ email: cleanEmail, purpose });
         const guard = await OTPGuard.findOne({ email: cleanEmail, purpose });
         if (isOtpLocked(guard, now)) {
@@ -267,28 +294,43 @@ const sendOtp = async (req, res) => {
             }
         }
 
-        const sendClaim = await claimOtpSend(cleanEmail, purpose, now);
-        if (!sendClaim) {
-            return res.status(429).json({
-                message: "Too many code requests. Please wait before trying again."
-            });
-        }
-
-        const existingUser = await User.findOne({ email: cleanEmail });
-        const eligible = purpose === "signup" ? !existingUser : Boolean(existingUser);
+        const existingUser = purpose === "login"
+            ? await User.findOne({ email: cleanEmail })
+            : null;
+        const eligible = purpose === "signup" ? true : Boolean(existingUser);
         let usernameExists = false;
         if (eligible && purpose === "signup") {
             usernameExists = Boolean(await User.findOne({ username: signupData.username }));
         }
 
+        if (usernameExists) {
+            return res.status(409).json({
+                message: "That username is already taken. Please choose another one."
+            });
+        }
+
         const challengeToken = generateOTPChallenge();
-        const shouldSend = eligible && !usernameExists;
+        const shouldSend = eligible;
         if (!shouldSend) {
             return res.status(202).json({
                 success: true,
                 challengeToken,
                 sentAt: now.getTime(),
                 message: "If the address is eligible, a verification code will be sent."
+            });
+        }
+
+        const allowed = await otpAbuseService.allowOtpSend(cleanEmail, ip, now);
+        if (!allowed) {
+            return res.status(429).json({
+                message: "Too many code requests. Please try again later."
+            });
+        }
+
+        const sendClaim = await claimOtpSend(cleanEmail, purpose, now);
+        if (!sendClaim) {
+            return res.status(429).json({
+                message: "Too many code requests. Please wait before trying again."
             });
         }
 
@@ -309,7 +351,13 @@ const sendOtp = async (req, res) => {
         try {
             await sendOTPEmail(cleanEmail, otp, purpose);
         } catch (error) {
-            await OTP.deleteOne({ _id: otpRecord._id, otpHash });
+            await Promise.all([
+                OTP.deleteOne({ _id: otpRecord._id, otpHash }),
+                OTPGuard.updateOne(
+                    { email: cleanEmail, purpose, lastSentAt: now },
+                    { $unset: { lastSentAt: 1 } }
+                )
+            ]);
             throw error;
         }
 
@@ -395,6 +443,16 @@ const verifyOtp = async (req, res) => {
             storedChallengeHash.length > 0 &&
             crypto.timingSafeEqual(submittedChallengeHash, storedChallengeHash);
 
+        if (otpMatches && challengeMatches && purpose === "signup") {
+            const existingUser = await User.findOne({ email: cleanEmail });
+            if (existingUser) {
+                await OTP.deleteOne({ _id: otpRecord._id });
+                return res.status(409).json({
+                    message: "An account with this email already exists. Please log in."
+                });
+            }
+        }
+
         if (!otpMatches || !challengeMatches) {
             const updatedRecord = await OTP.findOneAndUpdate(
                 {
@@ -445,14 +503,18 @@ const verifyOtp = async (req, res) => {
             }
         );
 
-        let user;
         if (purpose === "signup") {
             try {
-                user = await User.create({
-                    name: consumedOTP.signupData.username,
-                    username: consumedOTP.signupData.username,
+                await savePendingSignup({
                     email: cleanEmail,
-                    passwordHash: consumedOTP.signupData.passwordHash
+                    username: consumedOTP.signupData.username,
+                    passwordHash: consumedOTP.signupData.passwordHash,
+                    authProvider: "password"
+                }, res);
+                return res.json({
+                    success: true,
+                    pendingSignup: true,
+                    message: "Email verified. Complete your details to create your account."
                 });
             } catch (error) {
                 if (error.code === 11000) {
@@ -462,15 +524,16 @@ const verifyOtp = async (req, res) => {
                 }
                 throw error;
             }
-        } else {
-            user = await User.findOne({ email: cleanEmail }).select("+ageReferenceYear");
-            if (!user) {
-                return res.status(401).json({ message: "Invalid or expired code." });
-            }
+        }
+
+        const user = await User.findOne({ email: cleanEmail }).select("+ageReferenceYear");
+        if (!user) {
+            return res.status(401).json({ message: "Invalid or expired code." });
         }
 
         const session = createAuthSession(user);
         res.set("Cache-Control", "no-store");
+        clearPendingSignupCookie(res);
         setSessionCookie(res, session.token);
         return res.json({
             success: true,
@@ -622,10 +685,24 @@ const login = async (req, res) => {
 
 const googleCallback = async (req, res) => {
         try {
+            if (req.user?.pendingSignup === true) {
+                await savePendingSignup({
+                    email: req.user.email,
+                    username: req.user.username,
+                    googleId: req.user.googleId,
+                    profilePicture: req.user.profilePicture,
+                    authProvider: "google"
+                }, res);
+                res.set("Cache-Control", "no-store");
+                return res.redirect(getFrontendRedirect(
+                    "/pages/google-callback.html?pendingSignup=1"
+                ));
+            }
             if (!req.user?._id) {
                 return res.redirect(getFrontendRedirect("/pages/login.html"));
             }
             const session = createAuthSession(req.user);
+            clearPendingSignupCookie(res);
             setSessionCookie(res, session.token);
             res.set("Cache-Control", "no-store");
             return res.redirect(getFrontendRedirect("/pages/google-callback.html"));
