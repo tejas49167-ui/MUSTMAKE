@@ -475,6 +475,21 @@ test("plank timer rejects front-on poses and unreliable arm support", () => {
     assert.equal(detector.elapsedMs, 0);
 });
 
+test("plank timer rejects diagonally misaligned body posture", () => {
+    const detector = new PlankTimerDetector();
+    const diagonalPose = plankPose();
+    const radians = 68 * Math.PI / 180;
+    for (const landmark of diagonalPose) {
+        const x = landmark.x - 0.5;
+        const y = landmark.y - 0.5;
+        landmark.x = 0.5 + x * Math.cos(radians) - y * Math.sin(radians);
+        landmark.y = 0.5 + x * Math.sin(radians) + y * Math.cos(radians);
+    }
+
+    assert.equal(detector.update(diagonalPose, 0).isCorrect, false);
+    assert.equal(detector.elapsedMs, 0);
+});
+
 test("plank timer works when the user faces the camera head-on", () => {
     const detector = new PlankTimerDetector();
     const frontalPose = frontFacingPlankPose();

@@ -1,7 +1,9 @@
+const mongoose = require("mongoose");
 const User = require("../models/User");
 const Workout = require("../models/Workout");
 const Competition = require("../models/Competition");
 const OTP = require("../models/OTP");
+const OTPGuard = require("../models/OTPGuard");
 const connectDB = require("../config/database");
 const cloudinary = require("../config/cloudinary");
 const {
@@ -236,26 +238,33 @@ const updateProfile = (req, res) => saveProfile(req, res);
 const completeFirstDetails = (req, res) => saveProfile(req, res, true);
 
 const deleteAccount = async (req, res) => {
+    let session;
     try {
         await connectDB();
 
-        const user = await User.findById(req.userId).select("email profilePicture");
-        if (!user) {
-            return res.status(404).json({ message: "Account not found." });
-        }
+        session = await mongoose.startSession();
+        let user = null;
+        await session.withTransaction(async () => {
+            user = await User.findById(req.userId)
+                .select("email profilePicture")
+                .session(session);
+            if (!user) return;
 
-        await Promise.all([
-            Workout.deleteMany({ user: req.userId }),
-            Competition.deleteMany({
+            await Workout.deleteMany({ user: req.userId }, { session });
+            await Competition.deleteMany({
                 $or: [
                     { owner: req.userId },
                     { competitor: req.userId }
                 ]
-            }),
-            OTP.deleteMany({ email: user.email })
-        ]);
+            }, { session });
+            await OTP.deleteMany({ email: user.email }, { session });
+            await OTPGuard.deleteMany({ email: user.email }, { session });
+            await User.deleteOne({ _id: req.userId }, { session });
+        });
 
-        await User.deleteOne({ _id: req.userId });
+        if (!user) {
+            return res.status(404).json({ message: "Account not found." });
+        }
 
         if (user.profilePicture && user.profilePicture.includes("res.cloudinary.com")) {
             try {
@@ -272,6 +281,8 @@ const deleteAccount = async (req, res) => {
     } catch (error) {
         console.error("Delete account error:", error);
         return res.status(500).json({ message: "Could not delete your account." });
+    } finally {
+        await session?.endSession();
     }
 };
 

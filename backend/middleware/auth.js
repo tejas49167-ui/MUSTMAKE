@@ -1,4 +1,7 @@
+const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const connectDB = require("../config/database");
 const {
     SESSION_COOKIE_NAME,
     clearSessionCookie
@@ -16,7 +19,8 @@ function getCookieValue(cookieHeader, name) {
     return cookie.slice(cookie.indexOf("=") + 1).trim();
 }
 
-function auth(req, res, next) {
+async function auth(req, res, next) {
+    let decoded;
     try {
         const token = getCookieValue(req.headers.cookie, SESSION_COOKIE_NAME);
         if (!token) {
@@ -25,15 +29,42 @@ function auth(req, res, next) {
             });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.userId = decoded.userId;
-        next();
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch {
         clearSessionCookie(res);
         return res.status(401).json({
             message: "Invalid or expired session."
         });
     }
+
+    if (
+        !decoded ||
+        typeof decoded !== "object" ||
+        !mongoose.isValidObjectId(decoded.userId)
+    ) {
+        clearSessionCookie(res);
+        return res.status(401).json({
+            message: "Invalid or expired session."
+        });
+    }
+
+    let userExists;
+    try {
+        await connectDB();
+        userExists = Boolean(await User.exists({ _id: decoded.userId }));
+    } catch (error) {
+        return next(error);
+    }
+
+    if (!userExists) {
+        clearSessionCookie(res);
+        return res.status(401).json({
+            message: "Invalid or expired session."
+        });
+    }
+
+    req.userId = decoded.userId;
+    return next();
 }
 
 module.exports = auth;

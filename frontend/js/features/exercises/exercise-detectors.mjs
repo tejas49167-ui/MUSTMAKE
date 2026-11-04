@@ -41,6 +41,7 @@ export const PUSH_UP_THRESHOLDS = Object.freeze({
 export const PLANK_THRESHOLDS = Object.freeze({
     visibility: 0.35,
     maxBodyLineAngle: 60,
+    minFrontalBodyLineAngle: 75,
     maxHipDeviation: 0.24,
     minBodyLength: 0.18,
     minSupportArmAngle: 45,
@@ -248,6 +249,12 @@ export class SquatDetector extends RepDetector {
         super(thresholds, "Get set.", "Can't see legs.");
     }
 
+    loseTracking() {
+        this.resetMovement();
+        this.feedback = this.lostTrackingLabel;
+        return true;
+    }
+
     update(landmarks, now = performance.now()) {
         const angles = [];
         for (const side of Object.values(LANDMARKS)) {
@@ -311,6 +318,7 @@ export class PushUpDetector extends RepDetector {
     resetMovement() {
         super.resetMovement();
         this.startShoulderWristY = null;
+        this.expectedSideCount = null;
     }
 
     update(landmarks, now = performance.now()) {
@@ -341,7 +349,10 @@ export class PushUpDetector extends RepDetector {
         }
 
         if (!validSides.length) {
-            this.loseTracking(now);
+            if (this.loseTracking(now)) {
+                this.startShoulderWristY = null;
+                this.expectedSideCount = null;
+            }
             return this.result(this.filteredAngle);
         }
 
@@ -371,6 +382,7 @@ export class PushUpDetector extends RepDetector {
                 this.holdTransition("starting", now, t.establishMs, () => {
                     this.state = "starting";
                     this.startShoulderWristY = currentShoulderWristY;
+                    this.expectedSideCount = validSides.length;
                 });
             } else {
                 this.clearPending();
@@ -389,11 +401,19 @@ export class PushUpDetector extends RepDetector {
             }
         } else if (this.state === "bottom" || this.state === "returning") {
             if (angle >= t.starting) {
-                this.holdTransition("starting", now, t.returnMs, () => {
-                    this.state = "starting";
-                    this.startShoulderWristY = currentShoulderWristY;
-                    this.completeRep(now);
-                });
+                if (
+                    this.expectedSideCount != null &&
+                    validSides.length < this.expectedSideCount
+                ) {
+                    this.clearPending();
+                    this.state = "returning";
+                } else {
+                    this.holdTransition("starting", now, t.returnMs, () => {
+                        this.state = "starting";
+                        this.startShoulderWristY = currentShoulderWristY;
+                        this.completeRep(now);
+                    });
+                }
             } else if (angle >= t.returning) {
                 this.state = "returning";
             } else if (angle <= t.bottom) {
@@ -614,7 +634,9 @@ export class JumpingJackDetector extends RepDetector {
         ) / (2 * shoulderWidth);
         const legWidth = Math.abs(landmarks[27].x - landmarks[28].x) / hipWidth;
 
-        const jumping = armHeight >= t.armsUpMin && legWidth >= t.feetOpenMin;
+        const armsOpen = armHeight >= t.armsUpMin;
+        const legsOpen = legWidth >= t.feetOpenMin;
+        const jumping = armsOpen || legsOpen;
         const closed = armHeight <= t.armsDownMax && legWidth <= t.feetClosedMax;
 
         if (this.state === "unknown") {
@@ -792,7 +814,10 @@ export class PlankTimerDetector {
             const hipDeviation = Math.abs(
                 deltaX * (shoulder.y - hip.y) - (shoulder.x - hip.x) * deltaY
             ) / bodyLength;
-            if (bodyLineAngle > t.maxBodyLineAngle || hipDeviation > bodyLength * t.maxHipDeviation) {
+            const bodyIsAligned =
+                bodyLineAngle <= t.maxBodyLineAngle ||
+                bodyLineAngle >= t.minFrontalBodyLineAngle;
+            if (!bodyIsAligned || hipDeviation > bodyLength * t.maxHipDeviation) {
                 continue;
             }
 
