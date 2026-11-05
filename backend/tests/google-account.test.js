@@ -45,6 +45,7 @@ test("Google sign-in never auto-links an existing password account", async t => 
     const passwordUser = { _id: "password-user", passwordHash: "bcrypt-hash" };
     let updateAttempted = false;
     installUserStubs(t, {
+        collection: { indexes: async () => [], dropIndex: async () => {} },
         init: async () => User,
         findOne: query => selected(query.googleId
             ? null
@@ -65,6 +66,7 @@ test("Google sign-in never auto-links an existing password account", async t => 
 test("new verified Google signups remain pending until profile completion", async t => {
     let accountCreated = false;
     installUserStubs(t, {
+        collection: { indexes: async () => [], dropIndex: async () => {} },
         init: async () => User,
         findOne: query => query.username
             ? Promise.resolve(null)
@@ -94,6 +96,7 @@ test("verified Google accounts link atomically and concurrent callbacks resolve 
     const updateQueries = [];
 
     installUserStubs(t, {
+        collection: { indexes: async () => [], dropIndex: async () => {} },
         init: async () => User,
         findOne: query => {
             if (query.googleId) {
@@ -131,4 +134,27 @@ test("verified Google accounts link atomically and concurrent callbacks resolve 
         query.passwordHash === null &&
         query.$or.some(condition => condition.googleId === null)
     ));
+});
+
+test("Google sign-in replaces the legacy sparse googleId index", async t => {
+    const droppedIndexes = [];
+    installUserStubs(t, {
+        collection: {
+            indexes: async () => [{
+                name: "googleId_1",
+                key: { googleId: 1 },
+                unique: true,
+                sparse: true
+            }],
+            dropIndex: async name => droppedIndexes.push(name)
+        },
+        init: async () => User,
+        findOne: query => query.username
+            ? Promise.resolve(null)
+            : selected(null)
+    });
+
+    await getAccountForVerifiedGoogleProfile(profile());
+
+    assert.deepEqual(droppedIndexes, ["googleId_1"]);
 });

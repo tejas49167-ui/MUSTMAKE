@@ -21,12 +21,36 @@ function getBaseUsername(email) {
         .slice(0, 24) || "user";
 }
 
+async function initializeUserIndexes() {
+    let indexes;
+    try {
+        indexes = await User.collection.indexes();
+    } catch (error) {
+        if (error.code !== 26 && error.codeName !== "NamespaceNotFound") {
+            throw error;
+        }
+        indexes = [];
+    }
+
+    const googleIdIndex = indexes.find(index =>
+        index.key?.googleId === 1 &&
+        Object.keys(index.key).length === 1
+    );
+    const hasExpectedIndex = googleIdIndex?.unique === true &&
+        googleIdIndex.partialFilterExpression?.googleId?.$type === "string";
+
+    if (googleIdIndex && !hasExpectedIndex) {
+        await User.collection.dropIndex(googleIdIndex.name);
+    }
+    await User.init();
+}
+
 async function getAccountForVerifiedGoogleProfile(profile) {
     const email = getVerifiedEmail(profile);
     if (!email || typeof profile.id !== "string" || !profile.id) {
         throw new Error("Google account email is not verified.");
     }
-    await User.init();
+    await initializeUserIndexes();
 
     const googleUser = await User.findOne({ googleId: profile.id })
         .select("+ageReferenceYear");

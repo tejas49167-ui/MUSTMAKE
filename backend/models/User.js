@@ -36,9 +36,7 @@ const userSchema = new mongoose.Schema(
         },
 
         googleId: {
-            type: String,
-            unique: true,
-            sparse: true
+            type: String
         },
 
         profilePicture: {
@@ -87,6 +85,14 @@ const userSchema = new mongoose.Schema(
         timestamps: true,
         toJSON: { getters: true },
         toObject: { getters: true }
+    }
+);
+
+userSchema.index(
+    { googleId: 1 },
+    {
+        unique: true,
+        partialFilterExpression: { googleId: { $type: "string" } }
     }
 );
 

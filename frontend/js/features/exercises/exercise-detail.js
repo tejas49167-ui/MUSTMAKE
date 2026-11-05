@@ -138,12 +138,17 @@
     }
 
     function renderManualMode(exercise) {
+        const signInPromptHidden = localStorage.getItem("user") ? "hidden" : "";
         return `
             <div class="exercise-mode-content">
                 <form id="manualWorkoutForm" class="exercise-workout-form">
                     <div class="exercise-form-grid">
                         ${exercise.fields.map(field => renderField(field, exercise)).join("")}
                     </div>
+                    <p id="manualSignInPrompt" class="exercise-form-message" role="status" ${signInPromptHidden}>
+                        <span>Sign in to save this workout.</span>
+                        <a href="/login">Sign in</a>
+                    </p>
                     <button class="main-button exercise-done-button" type="submit">Done</button>
                 </form>
             </div>
@@ -513,6 +518,9 @@
     function bindManualForm(exercise) {
         const form = root.querySelector("#manualWorkoutForm");
         if (!form) return;
+        const signInPrompt = form.querySelector("#manualSignInPrompt");
+        const signInPromptMessage = signInPrompt?.querySelector("span");
+        const signInLink = signInPrompt?.querySelector("a");
 
         if (pendingWorkout?.mode === "manual") {
             exercise.fields.forEach(field => {
@@ -524,6 +532,17 @@
             window.showToast("You're signed in. Your workout is ready to save again.", { type: "info" });
         }
 
+        signInLink?.addEventListener("click", event => {
+            const values = Object.fromEntries(new FormData(form).entries());
+            if (!storePendingWorkout("manual", values)) {
+                event.preventDefault();
+                if (signInPromptMessage) {
+                    signInPromptMessage.textContent =
+                        "Could not preserve this workout. Please try again before signing in.";
+                }
+            }
+        });
+
         form.addEventListener("submit", async event => {
             event.preventDefault();
 
@@ -533,13 +552,13 @@
             if (!isSignedIn) {
                 const values = Object.fromEntries(new FormData(form).entries());
                 if (!storePendingWorkout("manual", values)) {
-                    window.showToast("Could not preserve your workout. Please try again before signing in.", { type: "error" });
+                    if (signInPromptMessage) {
+                        signInPromptMessage.textContent =
+                            "Could not preserve this workout. Please try again before signing in.";
+                    }
                     return;
                 }
-                window.showToast("Please sign in to save your workout.", {
-                    type: "info",
-                    action: { label: "Sign in", href: "/login" }
-                });
+                if (signInPrompt) signInPrompt.hidden = false;
                 return;
             }
 
