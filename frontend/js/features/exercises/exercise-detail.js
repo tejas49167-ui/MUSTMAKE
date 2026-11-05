@@ -85,15 +85,15 @@
 
     function renderField(field, exercise) {
         const id = `workout-${field.name}`;
-        const max = field.name === "reps"
+        const max = field.max ?? (field.name === "reps"
             ? 150
             : field.name === "sets"
                 ? 10
                 : exercise.manualType === "duration" && field.name === "duration"
-                    ? 900
+                    ? exercise.slug === "plank" ? 360 : 900
                     : exercise.manualType === "distance-duration" && field.name === "amount"
                         ? 50
-                        : null;
+                        : null);
         return `
             <div class="exercise-form-field">
                 <label for="${escapeHTML(id)}">${escapeHTML(field.label)}</label>
@@ -133,6 +133,9 @@
         const isPlank = exercise.slug === "plank";
         const isJumpCount = exercise.slug === "skipping-rope";
         const weightField = exercise.fields.find(field => field.name === "weight");
+        const maxReviewedValue = isPlank
+            ? exercise.fields.find(field => field.name === "duration")?.max ?? 360
+            : 150;
 
         const correctionLabel = isPlank
             ? "Plank time (seconds)"
@@ -199,7 +202,7 @@
                             name="${isPlank ? "reviewedDuration" : isJumpCount ? "reviewedJumps" : "reviewedReps"}"
                             type="number"
                             min="1"
-                            max="150"
+                            max="${maxReviewedValue}"
                             step="1"
                             inputmode="numeric"
                             required

@@ -1,9 +1,13 @@
 const CAMERA_MIRROR_KEY_PREFIX = "mustmake_camera_mirror:";
 const SMART_CAMERA_MODE_KEY_PREFIX = "mustmake_smart_camera_mode:";
 const EXERCISE_SOUND_KEY_PREFIX = "mustmake_exercise_sound:";
+const STRICT_AI_KEY_PREFIX = "mustmake_strict_ai:";
+const FRONT_VIEW_KEY_PREFIX = "mustmake_front_view:";
 const CAMERA_PREFERENCE_CHANGE_EVENT = "mustmake:camera-preference-change";
 const SMART_CAMERA_MODE_CHANGE_EVENT = "mustmake:smart-camera-mode-change";
 const EXERCISE_SOUND_CHANGE_EVENT = "mustmake:exercise-sound-change";
+const STRICT_AI_CHANGE_EVENT = "mustmake:strict-ai-change";
+const FRONT_VIEW_CHANGE_EVENT = "mustmake:front-view-change";
 
 function getPreferenceUserKey() {
     let user = null;
@@ -32,6 +36,14 @@ export function getSmartCameraModePreferenceKey() {
 
 export function getExerciseSoundPreferenceKey() {
     return `${EXERCISE_SOUND_KEY_PREFIX}${getPreferenceUserKey()}`;
+}
+
+export function getStrictAiPreferenceKey() {
+    return `${STRICT_AI_KEY_PREFIX}${getPreferenceUserKey()}`;
+}
+
+export function getFrontViewPreferenceKey() {
+    return `${FRONT_VIEW_KEY_PREFIX}${getPreferenceUserKey()}`;
 }
 
 export function getCameraMirrorPreference() {
@@ -115,8 +127,60 @@ export function setExerciseSoundPreference(enabled) {
     return true;
 }
 
+export function getStrictAiPreference() {
+    try {
+        return localStorage.getItem(getStrictAiPreferenceKey()) !== "false";
+    } catch {
+        return true;
+    }
+}
+
+export function setStrictAiPreference(enabled) {
+    const value = Boolean(enabled);
+
+    try {
+        localStorage.setItem(getStrictAiPreferenceKey(), String(value));
+    } catch (error) {
+        console.warn("Could not save the Strict AI preference.", error);
+        return false;
+    }
+
+    window.dispatchEvent(new CustomEvent(STRICT_AI_CHANGE_EVENT, {
+        detail: { enabled: value }
+    }));
+
+    return true;
+}
+
+export function getFrontViewPreference() {
+    try {
+        return localStorage.getItem(getFrontViewPreferenceKey()) === "true";
+    } catch {
+        return false;
+    }
+}
+
+export function setFrontViewPreference(enabled) {
+    const value = Boolean(enabled);
+
+    try {
+        localStorage.setItem(getFrontViewPreferenceKey(), String(value));
+    } catch (error) {
+        console.warn("Could not save the Front View preference.", error);
+        return false;
+    }
+
+    window.dispatchEvent(new CustomEvent(FRONT_VIEW_CHANGE_EVENT, {
+        detail: { enabled: value }
+    }));
+
+    return true;
+}
+
 export {
     CAMERA_PREFERENCE_CHANGE_EVENT,
     SMART_CAMERA_MODE_CHANGE_EVENT,
-    EXERCISE_SOUND_CHANGE_EVENT
+    EXERCISE_SOUND_CHANGE_EVENT,
+    STRICT_AI_CHANGE_EVENT,
+    FRONT_VIEW_CHANGE_EVENT
 };

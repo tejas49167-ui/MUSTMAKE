@@ -1,4 +1,5 @@
 import { createExerciseDetector } from "./exercise-detectors.mjs";
+import { MAX_PLANK_DURATION_SECONDS } from "./exercise-limits.mjs";
 import {
     CAMERA_PREFERENCE_CHANGE_EVENT,
     SMART_CAMERA_MODE_CHANGE_EVENT,
@@ -8,7 +9,9 @@ import {
     getSmartCameraModePreferenceKey,
     EXERCISE_SOUND_CHANGE_EVENT,
     getExerciseSoundPreference,
-    getExerciseSoundPreferenceKey
+    getExerciseSoundPreferenceKey,
+    getStrictAiPreference,
+    getFrontViewPreference
 } from "./camera-preference.js";
 
 const MEDIAPIPE_VERSION = "1.1.1";
@@ -142,6 +145,13 @@ function roundedDuration(milliseconds) {
     return Math.max(0, Math.floor(milliseconds / 1000));
 }
 
+export function getSmartCameraPromptState(enabled, previewFullscreen, lifecycle) {
+    if (!enabled || previewFullscreen) return null;
+    if (lifecycle === "idle" || lifecycle === "initializing") return "preparing";
+    if (lifecycle === "running") return "scroll";
+    return null;
+}
+
 export function mountAiMonitor(
     root,
     exercise,
@@ -153,6 +163,8 @@ export function mountAiMonitor(
 ) {
     const isPlank = exercise.slug === "plank";
     const isJumpCount = exercise.slug === "skipping-rope";
+    const maxPlankDuration = exercise.fields?.find(field => field.name === "duration")?.max ??
+        MAX_PLANK_DURATION_SECONDS;
 
     const video = root.querySelector("#monitorVideo");
     const canvas = root.querySelector("#monitorCanvas");
@@ -213,7 +225,10 @@ export function mountAiMonitor(
     const scrollContainer = findScrollContainer(previewSlot);
 
     const context = canvas.getContext("2d");
-    const detector = createExerciseDetector(exercise.slug);
+    const detector = createExerciseDetector(exercise.slug, {
+        mode: getStrictAiPreference() ? "strict" : "forgiving",
+        frontView: getFrontViewPreference()
+    });
     const listeners = new AbortController();
     const repSound = typeof Audio !== "undefined"
         ? new Audio("/assets/nice_rep.mp3")
@@ -325,13 +340,23 @@ export function mountAiMonitor(
     function updateSmartCameraPreview() {
         preview.dataset.smartCameraMode = String(smartCameraEnabled);
 
-        const showScrollPrompt =
-            smartCameraEnabled &&
-            !previewTargetFullscreen &&
-            !["error", "finished", "saved"].includes(lifecycle);
+        const promptState = getSmartCameraPromptState(
+            smartCameraEnabled,
+            previewTargetFullscreen,
+            lifecycle
+        );
+        const showPreparation = promptState === "preparing";
+        const showScrollPrompt = promptState === "scroll";
 
-        smartCameraPrompt.hidden = !showScrollPrompt;
-        placeholder.hidden = Boolean(landmarker) && !showScrollPrompt;
+        if (promptState === "preparing") {
+            smartCameraPrompt.textContent = "Preparing camera...";
+        } else if (promptState === "scroll") {
+            smartCameraPrompt.textContent = "Scroll ↓";
+        }
+        smartCameraPrompt.hidden = !showPreparation && !showScrollPrompt;
+        placeholder.hidden = smartCameraEnabled
+            ? !showPreparation && !showScrollPrompt
+            : Boolean(landmarker);
     }
 
     function getFullscreenPreviewGeometry() {
@@ -1335,7 +1360,7 @@ export function mountAiMonitor(
         const value = correction.value.trim();
         const parsed = Number(value);
         const minimum = 1;
-        const maximum = MAX_REVIEWED_VALUE;
+        const maximum = isPlank ? maxPlankDuration : MAX_REVIEWED_VALUE;
 
         const valid =
             value !== "" &&
@@ -1348,7 +1373,9 @@ export function mountAiMonitor(
             : parsed < minimum
                 ? "Cannot be zero."
                 : parsed > maximum
-                    ? "Don't lie, enter truth."
+                    ? isPlank
+                        ? `1–${maximum} sec.`
+                        : "Don't lie, enter truth."
                     : `${minimum}–${maximum}${isPlank ? " sec" : isJumpCount ? " jumps" : " reps"}.`;
 
         correction.setAttribute(

@@ -1,0 +1,1 @@
+export const MAX_PLANK_DURATION_SECONDS = 360;

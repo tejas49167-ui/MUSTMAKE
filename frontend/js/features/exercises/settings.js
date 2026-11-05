@@ -4,12 +4,18 @@ import {
     getSmartCameraModePreference,
     setSmartCameraModePreference,
     getExerciseSoundPreference,
-    setExerciseSoundPreference
+    setExerciseSoundPreference,
+    getStrictAiPreference,
+    setStrictAiPreference,
+    getFrontViewPreference,
+    setFrontViewPreference
 } from "./camera-preference.js";
 
 const toggle = document.getElementById("cameraMirrorToggle");
 const smartCameraToggle = document.getElementById("smartCameraToggle");
 const exerciseSoundToggle = document.getElementById("exerciseSoundToggle");
+const strictAiToggle = document.getElementById("strictAiToggle");
+const frontViewToggle = document.getElementById("frontViewToggle");
 const dangerZone = document.getElementById("dangerZone");
 const deleteAccountButton = document.getElementById("deleteAccountButton");
 
@@ -61,6 +67,28 @@ exerciseSoundToggle.addEventListener("change", () => {
     if (!saved) {
         exerciseSoundToggle.checked = getExerciseSoundPreference();
         window.showToast("Could not save exercise sound preference.", { type: "error" });
+    }
+});
+
+strictAiToggle.checked = getStrictAiPreference();
+
+strictAiToggle.addEventListener("change", () => {
+    const saved = setStrictAiPreference(strictAiToggle.checked);
+
+    if (!saved) {
+        strictAiToggle.checked = getStrictAiPreference();
+        window.showToast("Could not save Strict AI preference.", { type: "error" });
+    }
+});
+
+frontViewToggle.checked = getFrontViewPreference();
+
+frontViewToggle.addEventListener("change", () => {
+    const saved = setFrontViewPreference(frontViewToggle.checked);
+
+    if (!saved) {
+        frontViewToggle.checked = getFrontViewPreference();
+        window.showToast("Could not save Front View preference.", { type: "error" });
     }
 });
 

@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+    EXERCISE_LANDMARK_REQUIREMENTS,
     ExerciseArmDetector,
+    FrontPullUpDetector,
     JumpingJackDetector,
     PlankTimerDetector,
     PushUpDetector,
@@ -97,6 +99,21 @@ function frontFacingPushUpPose(angle) {
         16: { x: 0.6, y: 0.62 },
         24: { x: 0.55, y: 0.52 },
         28: { x: 0.52, y: 0.67 }
+    });
+}
+
+function frontFacingPullUpPose(angle, rise = 0) {
+    const landmarks = pose();
+    const elbowOffset = angle >= 180
+        ? 0
+        : 0.2 / Math.tan(angle * Math.PI / 360);
+    return setPoints(landmarks, {
+        11: { x: 0.4, y: 0.45 - rise },
+        13: { x: 0.4 + elbowOffset, y: 0.38 - rise / 2 },
+        15: { x: 0.4, y: 0.18 },
+        12: { x: 0.6, y: 0.45 - rise },
+        14: { x: 0.6 - elbowOffset, y: 0.38 - rise / 2 },
+        16: { x: 0.6, y: 0.18 }
     });
 }
 
@@ -273,6 +290,31 @@ test("push-up detector counts a full cycle when facing the camera", () => {
     assert.equal(detector.count, 1);
 });
 
+test("front-view push-up detection requires bilateral arm progression", () => {
+    const detector = createExerciseDetector("push-ups", {
+        mode: "strict",
+        frontView: true
+    });
+    let time = 0;
+    for (const [angle, drop] of [[180, 0], [130, 0.025], [90, 0.04], [130, 0.025], [180, 0]]) {
+        const landmarks = frontFacingPushUpPose(angle);
+        for (const index of [11, 12]) landmarks[index].y += drop;
+        feed(detector, landmarks, time, 6);
+        time += 600;
+    }
+    assert.equal(detector.count, 1);
+
+    const oneArm = createExerciseDetector("push-ups", { frontView: true });
+    time = 0;
+    for (const angle of [180, 90, 180]) {
+        const landmarks = frontFacingPushUpPose(angle);
+        for (const index of [12, 14, 16]) landmarks[index].visibility = 0.1;
+        feed(oneArm, landmarks, time, 8);
+        time += 800;
+    }
+    assert.equal(oneArm.count, 0);
+});
+
 test("push-up detector tracks the rep phase without visible ground-support landmarks", () => {
     const detector = new PushUpDetector();
     let time = 0;
@@ -408,6 +450,24 @@ test("push-up detector retains its phase through brief elbow occlusion only", ()
     assert.equal(detector.count, 0);
 });
 
+test("forgiving mode bridges a short tracking gap while strict mode resets after one", () => {
+    const forgiving = createExerciseDetector("push-ups", { mode: "forgiving" });
+    feed(forgiving, pushUpPose(180), 0);
+    feed(forgiving, pushUpPose(90), 800);
+    forgiving.update(null, 1600);
+    feed(forgiving, pushUpPose(130), 1800);
+    feed(forgiving, pushUpPose(180), 2400);
+    assert.equal(forgiving.count, 1);
+
+    const strict = createExerciseDetector("push-ups", { mode: "strict" });
+    feed(strict, pushUpPose(180), 0);
+    feed(strict, pushUpPose(90), 800);
+    strict.update(null, 1600);
+    feed(strict, pushUpPose(130), 1900);
+    feed(strict, pushUpPose(180), 2500);
+    assert.equal(strict.count, 0);
+});
+
 test("push-up detector counts immediately at lockout without recounting a hold", () => {
     const detector = new PushUpDetector();
     detector.update(pushUpPose(180), 0);
@@ -461,6 +521,16 @@ test("plank timer accrues only while posture is aligned and visible", () => {
     assert.equal(detector.elapsedMs, 220);
     detector.update(plankPose(), 770);
     assert.equal(detector.elapsedMs, 330);
+});
+
+test("plank timer caps valid tracked time at six minutes", () => {
+    const detector = new PlankTimerDetector();
+    for (let frame = 0; frame <= 721; frame += 1) {
+        detector.update(plankPose(), frame * 500);
+    }
+
+    assert.equal(detector.elapsedMs, 360000);
+    assert.equal(detector.result(true).count, 360);
 });
 
 test("plank timer rejects front-on poses and unreliable arm support", () => {
@@ -553,6 +623,23 @@ test("arm detectors count a smaller-range movement with moderately visible landm
     assert.equal(detector.count, 1);
 });
 
+test("side-view pull-ups do not require hip or lower-body visibility", () => {
+    const detector = createExerciseDetector("pull-ups", {
+        mode: "forgiving",
+        frontView: false
+    });
+    let time = 0;
+    for (const angle of [170, 70, 170, 170]) {
+        const landmarks = armExercisePose("pull-ups", angle);
+        for (const index of [23, 24, 25, 26, 27, 28]) {
+            landmarks[index].visibility = 0.1;
+        }
+        feed(detector, landmarks, time, 7);
+        time += 700;
+    }
+    assert.equal(detector.count, 1);
+});
+
 test("curls, triceps extensions, and shoulder presses use forgiving hand-and-arm tracking", () => {
     const cases = [
         ["biceps-curls", [140, 120, 95, 120, 140, 140]],
@@ -575,6 +662,75 @@ test("curls, triceps extensions, and shoulder presses use forgiving hand-and-arm
 
         assert.equal(detector.count, 1, `${slug} should count with wrist/arm visibility only`);
     }
+});
+
+test("curls count with only the exercise-specific arm landmarks in frame", () => {
+    const detector = new ExerciseArmDetector("biceps-curls", { mode: "strict" });
+    const required = new Set([11, 13, 15, 12, 14, 16]);
+    let time = 0;
+    for (const angle of [170, 60, 170, 170]) {
+        const landmarks = armExercisePose("biceps-curls", angle);
+        landmarks.forEach((point, index) => {
+            if (!required.has(index)) point.visibility = 0.1;
+        });
+        feed(detector, landmarks, time, 8);
+        time += 800;
+    }
+    assert.equal(detector.count, 1);
+    assert.deepEqual(EXERCISE_LANDMARK_REQUIREMENTS["biceps-curls"].side, [
+        [11, 13, 15],
+        [12, 14, 16]
+    ]);
+});
+
+test("strict and forgiving modes reject partial reps while respecting landmark confidence", () => {
+    for (const mode of ["strict", "forgiving"]) {
+        const incomplete = new ExerciseArmDetector("biceps-curls", { mode });
+        let time = 0;
+        for (const angle of [170, 120, 170, 170]) {
+            feed(incomplete, armExercisePose("biceps-curls", angle), time, 7);
+            time += 700;
+        }
+        assert.equal(incomplete.count, 0, `${mode} mode must reject a partial curl`);
+    }
+
+    const strict = new ExerciseArmDetector("biceps-curls", { mode: "strict" });
+    const forgiving = new ExerciseArmDetector("biceps-curls", { mode: "forgiving" });
+    let time = 0;
+    for (const angle of [170, 60, 170, 170]) {
+        const landmarks = armExercisePose("biceps-curls", angle);
+        for (const index of [11, 13, 15, 12, 14, 16]) {
+            landmarks[index].visibility = 0.4;
+        }
+        feed(strict, landmarks, time, 7);
+        feed(forgiving, landmarks, time, 7);
+        time += 700;
+    }
+    assert.equal(strict.count, 0);
+    assert.equal(forgiving.count, 1);
+});
+
+test("front-view pull-ups require bilateral elbow and shoulder progression", () => {
+    const detector = createExerciseDetector("pull-ups", {
+        mode: "strict",
+        frontView: true
+    });
+    assert.ok(detector instanceof FrontPullUpDetector);
+
+    let time = 0;
+    for (const [angle, rise] of [[170, 0], [135, 0.05], [75, 0.2], [115, 0.14], [170, 0]]) {
+        feed(detector, frontFacingPullUpPose(angle, rise), time, 7);
+        time += 700;
+    }
+    assert.equal(detector.count, 1);
+
+    const armOnly = createExerciseDetector("pull-ups", { frontView: true });
+    time = 0;
+    for (const angle of [170, 75, 170]) {
+        feed(armOnly, frontFacingPullUpPose(angle, 0), time, 7);
+        time += 700;
+    }
+    assert.equal(armOnly.count, 0);
 });
 
 test("arm detectors track either side independently and count alternating reps", () => {
@@ -604,6 +760,19 @@ test("jumping jack detector requires an open and returned closed position", () =
         feed(incomplete, jumpingJackPose(open), time, 6);
         time += 600;
     }
+    assert.equal(incomplete.count, 0);
+});
+
+test("strict jumping-jack detection counts a full cycle and rejects an incomplete one", () => {
+    const strict = new JumpingJackDetector(undefined, { mode: "strict" });
+    feed(strict, jumpingJackPose(false), 0, 6);
+    feed(strict, jumpingJackPose(true), 600, 6);
+    feed(strict, jumpingJackPose(false), 1200, 6);
+    assert.equal(strict.count, 1);
+
+    const incomplete = new JumpingJackDetector(undefined, { mode: "strict" });
+    feed(incomplete, jumpingJackPose(false), 0, 6);
+    feed(incomplete, jumpingJackPose(true), 600, 6);
     assert.equal(incomplete.count, 0);
 });
 
@@ -649,6 +818,16 @@ test("skipping rope detector requires a visible jump and landing cycle", () => {
     const detector = new SkippingRopeDetector();
     let time = 0;
     for (const jumping of [false, true, false, false]) {
+        feed(detector, skippingRopePose(jumping), time, 6);
+        time += 600;
+    }
+    assert.equal(detector.count, 1);
+});
+
+test("strict skipping-rope detection preserves the full jump-and-landing cycle", () => {
+    const detector = new SkippingRopeDetector(undefined, { mode: "strict" });
+    let time = 0;
+    for (const jumping of [false, true, false]) {
         feed(detector, skippingRopePose(jumping), time, 6);
         time += 600;
     }

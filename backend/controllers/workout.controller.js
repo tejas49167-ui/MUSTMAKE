@@ -54,9 +54,17 @@ const addWorkout = async (req, res) => {
                 workoutValues.weight = parsedWeight.value;
             }
         } else if (manualType === "duration") {
-            const parsedDuration = parseWorkoutNumber(duration, { integer: true, min: 1, max: 900 });
+            const durationField = config.fields?.find(field => field.name === "duration");
+            const maxDuration = durationField?.max ?? 900;
+            const parsedDuration = parseWorkoutNumber(duration, {
+                integer: true,
+                min: durationField?.min ?? 1,
+                max: maxDuration
+            });
             if (!parsedDuration.valid) {
-                return res.status(400).json({ message: "Duration must be between 1 and 900 seconds." });
+                return res.status(400).json({
+                    message: `Duration must be between ${durationField?.min ?? 1} and ${maxDuration} seconds.`
+                });
             }
             workoutValues.duration = parsedDuration.value;
         } else if (manualType === "distance-duration") {
