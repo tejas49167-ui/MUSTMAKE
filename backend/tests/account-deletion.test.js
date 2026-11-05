@@ -6,6 +6,7 @@ const Workout = require("../models/Workout");
 const Competition = require("../models/Competition");
 const OTP = require("../models/OTP");
 const OTPGuard = require("../models/OTPGuard");
+const EmailNotificationLog = require("../models/EmailNotificationLog");
 const { deleteAccount } = require("../controllers/profile.controller");
 
 function responseStub() {
@@ -24,7 +25,7 @@ function responseStub() {
 }
 
 function stubAccountDeletion(t, { failAt = null, accountExists = true } = {}) {
-    const models = [User, Workout, Competition, OTP, OTPGuard];
+    const models = [User, Workout, Competition, OTP, OTPGuard, EmailNotificationLog];
     const originalMethods = models.map(model => ({
         model,
         methods: {
@@ -80,6 +81,7 @@ function stubAccountDeletion(t, { failAt = null, accountExists = true } = {}) {
     Competition.deleteMany = deleteMany("Competition");
     OTP.deleteMany = deleteMany("OTP");
     OTPGuard.deleteMany = deleteMany("OTPGuard");
+    EmailNotificationLog.deleteMany = deleteMany("EmailNotificationLog");
     User.deleteOne = async (filter, options) => {
         calls.push({ modelName: "User", filter, options });
         if (failAt === "User") throw new Error("delete failure: User");
@@ -115,13 +117,15 @@ test("account deletion transaction removes owned records, relationships and OTP 
         "Competition",
         "OTP",
         "OTPGuard",
+        "EmailNotificationLog",
         "User"
     ]);
     assert.ok(calls.every(call => call.options.session === session));
     assert.deepEqual(calls[0].filter, { user: "user-1" });
     assert.deepEqual(calls[2].filter, { email: "athlete@example.test" });
     assert.deepEqual(calls[3].filter, { email: "athlete@example.test" });
-    assert.deepEqual(calls[4].filter, { _id: "user-1" });
+    assert.deepEqual(calls[4].filter, { user: "user-1" });
+    assert.deepEqual(calls[5].filter, { _id: "user-1" });
 });
 
 test("account deletion aborts on dependent-data failure and leaves the account record untouched", async t => {

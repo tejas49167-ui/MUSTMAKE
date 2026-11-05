@@ -35,6 +35,38 @@ const userSchema = new mongoose.Schema(
             default: null
         },
 
+        emailVerifiedAt: {
+            type: Date,
+            default: null
+        },
+
+        emailPreferences: {
+            enabled: {
+                type: Boolean,
+                default: false
+            },
+            dailyExerciseReminder: {
+                type: Boolean,
+                default: false
+            },
+            productUpdates: {
+                type: Boolean,
+                default: false
+            },
+            reminderTime: {
+                type: String,
+                default: "09:00"
+            },
+            timeZone: {
+                type: String,
+                default: "Asia/Kolkata"
+            },
+            nextReminderAt: {
+                type: Date,
+                default: null
+            }
+        },
+
         googleId: {
             type: String
         },
@@ -93,6 +125,16 @@ userSchema.index(
     {
         unique: true,
         partialFilterExpression: { googleId: { $type: "string" } }
+    }
+);
+
+userSchema.index(
+    { "emailPreferences.nextReminderAt": 1 },
+    {
+        partialFilterExpression: {
+            "emailPreferences.enabled": true,
+            "emailPreferences.dailyExerciseReminder": true
+        }
     }
 );
 

@@ -63,6 +63,27 @@ test("new verified Google signups remain pending until profile completion", asyn
     assert.equal(accountCreated, false);
 });
 
+test("Google identity does not verify a different email stored on its linked account", async t => {
+    let saved = false;
+    const user = {
+        _id: "google-user",
+        googleId: "google-account-1",
+        email: "old-address@example.test",
+        emailVerifiedAt: null,
+        async save() { saved = true; }
+    };
+    installUserStubs(t, {
+        collection: { indexes: async () => [], dropIndex: async () => {} },
+        init: async () => User,
+        findOne: () => selected(user)
+    });
+
+    await getAccountForVerifiedGoogleProfile(profile());
+
+    assert.equal(user.emailVerifiedAt, null);
+    assert.equal(saved, false);
+});
+
 test("verified Google accounts link atomically, including existing password accounts", async t => {
     const emailUser = {
         _id: "email-user",

@@ -415,13 +415,15 @@ test("email delivery failures fail closed without logging address or OTP", async
 test("OTP verification is single-use even when two valid requests race", async t => {
     const token = "test-challenge-token";
     const code = "123456";
+    let verificationSaved = false;
     const user = {
         _id: "0123456789abcdef01234567",
         name: "Test User",
         username: "test_user",
         email: "person@example.test",
         profilePicture: null,
-        age: null
+        age: null,
+        async save() { verificationSaved = true; }
     };
     let otpRecord;
     let consumed = false;
@@ -470,6 +472,8 @@ test("OTP verification is single-use even when two valid requests race", async t
     const responses = await Promise.all(requests);
 
     assert.deepEqual(responses.map(response => response.statusCode).sort(), [200, 401]);
+    assert.equal(user.emailVerifiedAt instanceof Date, true);
+    assert.equal(verificationSaved, true);
 });
 
 test("signup OTP verification defers account creation until profile completion", async t => {
@@ -634,6 +638,7 @@ test("first-details Continue creates the account only after required consent", a
     assert.equal(response.statusCode, 200);
     assert.equal(savedUser.name, "New Person");
     assert.equal(savedUser.email, pendingSignup.email);
+    assert.equal(savedUser.emailVerifiedAt instanceof Date, true);
     assert.equal(savedUser.legalConsentAt instanceof Date, true);
     assert.equal(response.cookies[0][0], "mustmake_session");
 });

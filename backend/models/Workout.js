@@ -55,6 +55,7 @@ const workoutSchema = new mongoose.Schema(
 );
 
 workoutSchema.index({ user: 1, date: -1, createdAt: -1, _id: -1 });
+workoutSchema.index({ user: 1, createdAt: 1 });
 
 module.exports = mongoose.model(
     "Workout",

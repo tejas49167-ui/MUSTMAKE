@@ -54,7 +54,13 @@ async function getAccountForVerifiedGoogleProfile(profile) {
 
     const googleUser = await User.findOne({ googleId: profile.id })
         .select("+ageReferenceYear");
-    if (googleUser) return googleUser;
+    if (googleUser) {
+        if (!googleUser.emailVerifiedAt && googleUser.email === email) {
+            googleUser.emailVerifiedAt = new Date();
+            if (typeof googleUser.save === "function") await googleUser.save();
+        }
+        return googleUser;
+    }
 
     const emailUser = await User.findOne({ email }).select("+ageReferenceYear");
     if (emailUser) {
@@ -66,6 +72,7 @@ async function getAccountForVerifiedGoogleProfile(profile) {
             {
                 $set: {
                     googleId: profile.id,
+                    emailVerifiedAt: emailUser.emailVerifiedAt || new Date(),
                     ...(profile.photos?.[0]?.value && !emailUser.profilePicture
                         ? { profilePicture: profile.photos[0].value }
                         : {})

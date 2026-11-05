@@ -5,6 +5,7 @@ const Competition = require("../models/Competition");
 const OTP = require("../models/OTP");
 const OTPGuard = require("../models/OTPGuard");
 const PendingSignup = require("../models/PendingSignup");
+const EmailNotificationLog = require("../models/EmailNotificationLog");
 const connectDB = require("../config/database");
 const cloudinary = require("../config/cloudinary");
 const { hashOTP, createAuthSession } = require("../services/auth.service");
@@ -266,6 +267,7 @@ const completeSignup = async (req, res) => {
             passwordHash: pendingSignup.passwordHash,
             googleId: pendingSignup.googleId,
             profilePicture: pendingSignup.profilePicture,
+            emailVerifiedAt: new Date(),
             legalConsentAt: new Date()
         });
         const validationError = await applyProfileData(user, req.body, true);
@@ -329,6 +331,7 @@ const deleteAccount = async (req, res) => {
             }, { session });
             await OTP.deleteMany({ email: user.email }, { session });
             await OTPGuard.deleteMany({ email: user.email }, { session });
+            await EmailNotificationLog.deleteMany({ user: req.userId }, { session });
             await User.deleteOne({ _id: req.userId }, { session });
         });
 

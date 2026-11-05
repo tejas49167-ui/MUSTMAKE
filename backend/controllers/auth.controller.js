@@ -527,6 +527,11 @@ const verifyOtp = async (req, res) => {
             return res.status(401).json({ message: "Invalid or expired code." });
         }
 
+        if (!user.emailVerifiedAt) {
+            user.emailVerifiedAt = new Date();
+            if (typeof user.save === "function") await user.save();
+        }
+
         const session = createAuthSession(user);
         res.set("Cache-Control", "no-store");
         clearPendingSignupCookie(res);

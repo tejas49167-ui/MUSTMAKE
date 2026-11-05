@@ -15,6 +15,8 @@ const usersRoutes = require("./routes/users.routes");
 const competitionRoutes = require("./routes/competition.routes");
 const workoutsRoutes = require("./routes/workouts.routes");
 const exercisesRoutes = require("./routes/exercises.routes");
+const emailPreferencesRoutes = require("./routes/email-preferences.routes");
+const notificationJobRoutes = require("./routes/notification-jobs.routes");
 const errorHandler = require("./middleware/error-handler");
 const { backend_url, frontend_url } = require("./config/urls");
 const exercises = require("./config/exercises.json");
@@ -118,6 +120,8 @@ app.use(profileRoutes);
 app.use(competitionRoutes);
 app.use(workoutsRoutes);
 app.use(exercisesRoutes);
+app.use(emailPreferencesRoutes);
+app.use(notificationJobRoutes);
 
 app.get("/", (req, res) => {
     res.json({
