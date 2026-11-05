@@ -139,8 +139,11 @@
         const currentPage = getCurrentPage();
         const isAuthenticated = getAuthenticationState();
         const isLoginPage = currentPage === "/login";
+        const isFirstSetupPage =
+            currentPage === "/first-details" ||
+            document.body.id === "firstSetupPage";
 
-        const menuButtonHTML = `
+        const menuButtonHTML = isFirstSetupPage ? "" : `
                 <button class="mobile-menu-toggle"
                     type="button"
                     aria-label="Open navigation menu"
@@ -152,7 +155,7 @@
                 </button>
             `;
 
-        const guestActionsHTML = isAuthenticated
+        const guestActionsHTML = isFirstSetupPage || isAuthenticated
             ? ""
             : `
                 <nav class="guest-actions" aria-label="Account">
@@ -164,7 +167,7 @@
             `;
 
         // Desktop navigation: always displayed at the top-right on large screens.
-        const desktopNavigationHTML = isAuthenticated
+        const desktopNavigationHTML = isAuthenticated && !isFirstSetupPage
             ? `
                 <nav class="desktop-navigation" aria-label="Desktop navigation">
                     ${navLink("/today", "Exercises", currentPage)}
@@ -209,7 +212,7 @@
                 ${navLink("/signup", "Sign up", currentPage)}
             `;
 
-        const navigationHTML = `
+        const navigationHTML = isFirstSetupPage ? "" : `
                 <div class="mobile-nav-backdrop" data-mobile-nav-close hidden></div>
 
                 <aside id="mobileNavigation"
@@ -238,7 +241,7 @@
             `;
 
         // Mobile bottom navigation: icons only.
-        const bottomNavigationHTML = isAuthenticated
+        const bottomNavigationHTML = isAuthenticated && !isFirstSetupPage
             ? `
                 <nav class="bottom-navigation" aria-label="Main navigation">
                     ${bottomNavLink(
@@ -407,7 +410,7 @@
 
         document.body.classList.toggle(
             "has-bottom-navigation",
-            isAuthenticated
+            isAuthenticated && !isFirstSetupPage
         );
 
         const menuButtons = Array.from(
