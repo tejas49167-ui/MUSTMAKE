@@ -144,7 +144,7 @@
             document.body.id === "firstSetupPage";
 
         const menuButtonHTML = isFirstSetupPage ? "" : `
-                <button class="mobile-menu-toggle"
+                <button class="mobile-menu-toggle${isAuthenticated ? "" : " guest-menu-toggle"}"
                     type="button"
                     aria-label="Open navigation menu"
                     aria-expanded="false"
@@ -216,13 +216,13 @@
                 <div class="mobile-nav-backdrop" data-mobile-nav-close hidden></div>
 
                 <aside id="mobileNavigation"
-                    class="mobile-nav-panel"
+                    class="mobile-nav-panel${isAuthenticated ? "" : " guest-mobile-nav-panel"}"
                     aria-label="Main navigation"
                     aria-hidden="true"
                     hidden>
 
                     <div class="mobile-nav-heading">
-                        <a class="mobile-nav-brand" href="/today">MUSTMAKE</a>
+                        <a class="mobile-nav-brand" href="${isAuthenticated ? "/today" : "/"}">MUSTMAKE</a>
 
                         <button class="mobile-nav-close"
                             type="button"

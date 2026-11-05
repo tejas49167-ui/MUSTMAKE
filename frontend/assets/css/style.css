@@ -4878,6 +4878,7 @@ body.mobile-nav-open {
 @media (prefers-reduced-motion: reduce) {
     .mobile-nav-panel,
     .mobile-nav-backdrop,
+    .guest-menu-toggle span,
     .bottom-nav-item,
     .bottom-nav-item::before {
         transition-duration: 0.01ms;
@@ -5266,6 +5267,45 @@ body.mobile-nav-open {
     border-color: #dadce0;
     opacity: 1;
     visibility: visible;
+}
+
+#navbar .topbar-start > .guest-menu-toggle {
+    display: flex !important;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+}
+
+#navbar .topbar-start > .guest-menu-toggle:hover {
+    background: transparent;
+}
+
+#navbar .guest-menu-toggle span {
+    transition:
+        transform 260ms cubic-bezier(0.2, 0.75, 0.25, 1),
+        opacity 160ms ease;
+}
+
+#navbar .guest-menu-toggle[aria-expanded="true"] span:first-child {
+    transform: translateY(7px) rotate(45deg);
+}
+
+#navbar .guest-menu-toggle[aria-expanded="true"] span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0.25);
+}
+
+#navbar .guest-menu-toggle[aria-expanded="true"] span:last-child {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+:root .mobile-nav-panel.guest-mobile-nav-panel {
+    background: var(--page-bg);
+    box-shadow: 12px 0 36px rgba(0, 0, 0, 0.32);
+}
+
+:root .guest-mobile-nav-panel .mobile-nav-heading {
+    border-color: var(--glass-border);
 }
 
 :root .exercise-card {
