@@ -2,7 +2,6 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const User = require("../models/User");
 const {
-    GOOGLE_PASSWORD_ACCOUNT_EXISTS,
     getVerifiedEmail,
     getAccountForVerifiedGoogleProfile
 } = require("../services/google-account.service");
@@ -42,28 +41,6 @@ test("Google linking requires Google's verified-email claim", async () => {
     );
 });
 
-test("Google sign-in never auto-links an existing password account", async t => {
-    const passwordUser = { _id: "password-user", passwordHash: "bcrypt-hash" };
-    let updateAttempted = false;
-    installUserStubs(t, {
-        collection: { indexes: async () => [], dropIndex: async () => {} },
-        init: async () => User,
-        findOne: query => selected(query.googleId
-            ? null
-            : passwordUser),
-        findOneAndUpdate: () => {
-            updateAttempted = true;
-            return selected(null);
-        }
-    });
-
-    await assert.rejects(
-        getAccountForVerifiedGoogleProfile(profile()),
-        error => error.code === GOOGLE_PASSWORD_ACCOUNT_EXISTS
-    );
-    assert.equal(updateAttempted, false);
-});
-
 test("new verified Google signups remain pending until profile completion", async t => {
     let accountCreated = false;
     installUserStubs(t, {
@@ -86,11 +63,11 @@ test("new verified Google signups remain pending until profile completion", asyn
     assert.equal(accountCreated, false);
 });
 
-test("verified Google accounts link atomically and concurrent callbacks resolve to one user", async t => {
+test("verified Google accounts link atomically, including existing password accounts", async t => {
     const emailUser = {
         _id: "email-user",
         email: "person@example.test",
-        passwordHash: null,
+        passwordHash: "bcrypt-hash",
         profilePicture: null
     };
     const usersByGoogleId = new Map();
@@ -109,7 +86,6 @@ test("verified Google accounts link atomically and concurrent callbacks resolve 
             updateQueries.push(query);
             if (
                 emailUser.googleId ||
-                query.passwordHash !== null ||
                 !query.$or
             ) {
                 return selected(null);
@@ -132,7 +108,6 @@ test("verified Google accounts link atomically and concurrent callbacks resolve 
     assert.equal(usersByGoogleId.size, 1);
     assert.equal(updateQueries.length, 2);
     assert.ok(updateQueries.every(query =>
-        query.passwordHash === null &&
         query.$or.some(condition => condition.googleId === null)
     ));
 });

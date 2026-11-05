@@ -35,16 +35,6 @@ function setLoginToast(message, type = "info") {
     }
 }
 
-if (
-    new URLSearchParams(window.location.search).get("googleError") === "password-account"
-) {
-    window.showToast(
-        "This email already has an account. Sign in with your password or email code.",
-        { type: "warning" }
-    );
-    window.history.replaceState(null, "", window.location.pathname + window.location.hash);
-}
-
 function showInvalidCredentialsMessage() {
     setLoginToast("Invalid username/email or password.", "error");
 }
