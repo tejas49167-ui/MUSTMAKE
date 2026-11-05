@@ -253,6 +253,8 @@ export function mountAiMonitor(
     let disposed = false;
     let lastInferenceAt = 0;
     let lastTimestamp = 0;
+    let cameraRequestId = 0;
+    let cameraRestartPromise = null;
     let lastFeedbackAnimationAt = -Infinity;
     let soundEnabled = getExerciseSoundPreference();
     let smartCameraEnabled = false;
@@ -867,6 +869,8 @@ export function mountAiMonitor(
     }
 
     function releaseCamera() {
+        cameraRequestId += 1;
+
         if (stream) {
             stream.getTracks().forEach(track => {
                 track.onended = null;
@@ -883,6 +887,144 @@ export function mountAiMonitor(
         cameraStatus.textContent = "Camera off";
 
         clearOverlay();
+    }
+
+    function handleCameraTrackEnded() {
+        if (!["initializing", "running"].includes(lifecycle)) {
+            return;
+        }
+
+        cameraEnded = true;
+        endActiveInterval();
+        releaseMonitoring();
+
+        const message = "Camera disconnected.";
+        setFeedback(message);
+        setStatus("error", message);
+    }
+
+    async function applyCameraZoom(videoTrack) {
+        const zoomRange = videoTrack.getCapabilities?.().zoom;
+
+        if (zoomRange && Number.isFinite(zoomRange.min)) {
+            try {
+                await videoTrack.applyConstraints({
+                    zoom: { exact: zoomRange.min }
+                });
+            } catch (error) {
+                console.warn(
+                    "Could not set the camera to its widest zoom.",
+                    error
+                );
+            }
+        }
+    }
+
+    async function resumeCamera() {
+        if (
+            cameraRestartPromise ||
+            disposed ||
+            document.hidden ||
+            lifecycle !== "running" ||
+            stream
+        ) {
+            return;
+        }
+
+        const requestId = ++cameraRequestId;
+        let resumedStream = null;
+        cameraStatus.textContent = "Connecting…";
+        cameraRestartPromise = (async () => {
+            try {
+                resumedStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: "user",
+                        width: { ideal: 1280, max: 1280 },
+                        height: { ideal: 720, max: 720 },
+                        zoom: { ideal: 1 }
+                    },
+                    audio: false
+                });
+
+                if (
+                    requestId !== cameraRequestId ||
+                    disposed ||
+                    document.hidden ||
+                    lifecycle !== "running"
+                ) {
+                    resumedStream.getTracks().forEach(track => track.stop());
+                    return;
+                }
+
+                stream = resumedStream;
+                cameraEnded = false;
+                const videoTrack = resumedStream.getVideoTracks()[0];
+                await applyCameraZoom(videoTrack);
+
+                if (
+                    requestId !== cameraRequestId ||
+                    disposed ||
+                    document.hidden ||
+                    lifecycle !== "running"
+                ) {
+                    if (stream === resumedStream) releaseCamera();
+                    return;
+                }
+
+                video.srcObject = resumedStream;
+                video.hidden = false;
+                updateSmartCameraPreview();
+                await video.play();
+
+                if (
+                    requestId !== cameraRequestId ||
+                    disposed ||
+                    document.hidden ||
+                    lifecycle !== "running"
+                ) {
+                    if (stream === resumedStream) releaseCamera();
+                    return;
+                }
+
+                videoTrack.onended = handleCameraTrackEnded;
+                cameraStatus.textContent = "Camera connected";
+                lastInferenceAt = 0;
+                lastTimestamp = 0;
+                resizeCanvas();
+                setFeedback("Welcome back.");
+                animationFrame = requestAnimationFrame(processFrames);
+            } catch (error) {
+                if (
+                    requestId !== cameraRequestId ||
+                    disposed ||
+                    document.hidden ||
+                    lifecycle !== "running"
+                ) {
+                    if (stream === resumedStream) releaseCamera();
+                    else resumedStream?.getTracks().forEach(track => track.stop());
+                    return;
+                }
+
+                if (stream === resumedStream) releaseCamera();
+                const message = cameraErrorMessage(error);
+                cameraStatus.textContent = "Camera off";
+                setFeedback(message);
+            } finally {
+                cameraRestartPromise = null;
+
+                if (
+                    !disposed &&
+                    !document.hidden &&
+                    lifecycle === "running" &&
+                    !stream &&
+                    requestId !== cameraRequestId
+                ) {
+                    void resumeCamera();
+                }
+            }
+        })();
+
+        await cameraRestartPromise;
     }
 
     function closeLandmarker() {
@@ -1080,6 +1222,7 @@ export function mountAiMonitor(
         ) {
             stopProcessing();
             clearOverlay();
+            releaseCamera();
 
             if (isPlank) {
                 detector.pause();
@@ -1097,11 +1240,7 @@ export function mountAiMonitor(
             lifecycle === "running" &&
             animationFrame == null
         ) {
-            setFeedback(
-                "Welcome back."
-            );
-
-            animationFrame = requestAnimationFrame(processFrames);
+            void resumeCamera();
         }
     }
 
@@ -1164,24 +1303,7 @@ export function mountAiMonitor(
 
             const videoTrack = stream.getVideoTracks()[0];
 
-            const zoomRange =
-                videoTrack.getCapabilities?.().zoom;
-
-            if (
-                zoomRange &&
-                Number.isFinite(zoomRange.min)
-            ) {
-                try {
-                    await videoTrack.applyConstraints({
-                        zoom: { exact: zoomRange.min }
-                    });
-                } catch (error) {
-                    console.warn(
-                        "Could not set the camera to its widest zoom.",
-                        error
-                    );
-                }
-            }
+            await applyCameraZoom(videoTrack);
 
             video.srcObject = stream;
             video.hidden = false;
@@ -1194,23 +1316,7 @@ export function mountAiMonitor(
             cameraStatus.textContent = "Camera connected";
 
             stream.getVideoTracks().forEach(track => {
-                track.onended = () => {
-                    if (
-                        !["initializing", "running"].includes(lifecycle)
-                    ) {
-                        return;
-                    }
-
-                    cameraEnded = true;
-                    endActiveInterval();
-                    releaseMonitoring();
-
-                    const message =
-                        "Camera disconnected.";
-
-                    setFeedback(message);
-                    setStatus("error", message);
-                };
+                track.onended = handleCameraTrackEnded;
             });
 
             const initializedLandmarker =
