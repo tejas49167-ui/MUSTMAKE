@@ -3,6 +3,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 
+const presentationSource = await readFile(
+    new URL("../js/shared/workout-presentation.js", import.meta.url),
+    "utf8"
+);
+
 class FakeElement {
     constructor(tagName = "div") {
         this.tagName = tagName;
@@ -153,6 +158,7 @@ test("history renders thousands of records incrementally across cursor pages", a
         }
     });
 
+    vm.runInContext(presentationSource, context);
     vm.runInContext(source, context);
     bootstrapping = false;
     for (let page = 0; page < pageCount; page += 1) {
@@ -208,6 +214,7 @@ test("public history appends thousands of dated records without rescanning the D
         fetch: () => new Promise(() => {})
     });
 
+    vm.runInContext(presentationSource, context);
     vm.runInContext(source, context);
     for (let page = 0; page < 40; page += 1) {
         const workouts = Array.from({ length: 25 }, (_, offset) => {

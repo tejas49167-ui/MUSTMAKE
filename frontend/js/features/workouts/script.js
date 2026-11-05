@@ -1,4 +1,5 @@
-const APP_TIME_ZONE = "Asia/Kolkata";
+const { escapeHTML, formatWorkoutDetails, formatDate, getTodayDateString } =
+    window.MUSTMAKE.presentation;
 
 function hasSignedInUser() {
     try {
@@ -53,75 +54,6 @@ function logout(redirectToLogin = true) {
     }
 }
 
-function formatDate(dateString) {
-    const date = new Date(dateString + "T00:00:00");
-    if (Number.isNaN(date.getTime())) return String(dateString || "");
-    return date.toLocaleDateString("en-IN", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
-    });
-}
-
-function getToday() {
-    const parts = new Intl.DateTimeFormat("en-GB", {
-        timeZone: APP_TIME_ZONE,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit"
-    }).formatToParts(new Date());
-
-    const values = {};
-    parts.forEach(part => {
-        if (part.type !== "literal") {
-            values[part.type] = part.value;
-        }
-    });
-
-    return `${values.year}-${values.month}-${values.day}`;
-}
-
-function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, character => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-    })[character]);
-}
-
-function workoutDetails(workout) {
-    const duration = Number(workout.duration);
-    const durationText = Number.isFinite(duration) && duration > 0
-        ? formatWorkoutDuration(duration)
-        : "";
-
-    if (workout.reps != null && workout.sets != null) {
-        const reps = Number(workout.reps);
-        const sets = Number(workout.sets);
-        const total = reps * sets;
-        const weight = workout.weight != null ? `${workout.weight} kg each hand · ` : "";
-        return `${weight}${reps} reps × ${sets} sets = ${total} reps`;
-    }
-
-    if (workout.amount != null) {
-        const amountText = `${workout.amount}${workout.unit ? ` ${workout.unit}` : ""}`;
-        return durationText ? `${amountText} · ${durationText}` : amountText;
-    }
-
-    return durationText;
-}
-
-function formatWorkoutDuration(seconds) {
-    const wholeSeconds = Math.round(seconds);
-    const minutes = Math.floor(wholeSeconds / 60);
-    const remainingSeconds = wholeSeconds % 60;
-    if (!minutes) return `${remainingSeconds} sec`;
-    return remainingSeconds ? `${minutes} min ${remainingSeconds} sec` : `${minutes} min`;
-}
-
 async function loadToday() {
     const userContainer = document.getElementById("userWorkouts");
     const personalDashboard = document.getElementById("personalDashboard");
@@ -141,7 +73,14 @@ async function loadToday() {
 
     const dateElement = document.getElementById("todayDate");
     const nameElement = document.getElementById("userName");
-    if (dateElement) dateElement.textContent = formatDate(getToday());
+    if (dateElement) {
+        dateElement.textContent = formatDate(getTodayDateString(), {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
+    }
     if (nameElement) {
         const greeting =  "Hello" ;
         nameElement.textContent = `${greeting}, ${user.name || "athlete"}`;
@@ -208,7 +147,7 @@ function displayTodayWorkouts(container, workouts) {
         item.className = "workout-item";
         item.innerHTML = `
             <div class="workout-name">${escapeHTML(workout.exercise)}</div>
-            <div class="workout-details">${escapeHTML(workoutDetails(workout))}</div>
+            <div class="workout-details">${escapeHTML(formatWorkoutDetails(workout))}</div>
         `;
         container.appendChild(item);
     });
@@ -270,7 +209,7 @@ function renderHistory(historyContainer, workouts) {
             workoutsHTML += `
                 <div class="history-workout">
                 <div class="workout-name">${escapeHTML(workout.exercise)}</div>
-                    <div class="workout-details">${escapeHTML(workoutDetails(workout))}</div>
+                    <div class="workout-details">${escapeHTML(formatWorkoutDetails(workout))}</div>
                 </div>
             `;
         });

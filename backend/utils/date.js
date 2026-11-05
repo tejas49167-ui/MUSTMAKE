@@ -1,4 +1,4 @@
-const APP_TIME_ZONE = process.env.APP_TIME_ZONE || "Asia/Kolkata";
+const APP_TIME_ZONE = "Asia/Kolkata";
 
 function getDateString(date = new Date()) {
     const parts = new Intl.DateTimeFormat("en-GB", {

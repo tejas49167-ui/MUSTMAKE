@@ -1,20 +1,10 @@
 (() => {
     "use strict";
 
-    const EXERCISE_CACHE_KEY = "mustmake_exercises_v4";
-    const OUTDATED_EXERCISE_CACHE_KEYS = [
-        "mustmake_exercises_v3",
-        "mustmake_exercises_v2",
-        "mustmake_exercises"
-    ];
     const PENDING_WORKOUT_KEY = "mustmake_pending_workout";
     const root = document.getElementById("exerciseDetail");
     const slug = document.body.dataset.exerciseSlug;
     if (!root || !slug) return;
-
-    function clearOutdatedExerciseCaches() {
-        OUTDATED_EXERCISE_CACHE_KEYS.forEach(key => sessionStorage.removeItem(key));
-    }
 
     function readPendingWorkout() {
         try {
@@ -56,23 +46,7 @@
 
     const pendingWorkout = readPendingWorkout();
 
-    const escapeHTML = value =>
-        String(value ?? "").replace(/[&<>"']/g, character => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;"
-        })[character]);
-
-    function cacheExercises(exercises) {
-        try {
-            sessionStorage.setItem(EXERCISE_CACHE_KEY, JSON.stringify(exercises));
-            clearOutdatedExerciseCaches();
-        } catch (error) {
-            console.warn("Could not cache the exercise catalog.", error);
-        }
-    }
+    const escapeHTML = window.MUSTMAKE.presentation.escapeHTML;
 
     function renderMedia(exercise) {
         const media = exercise.media;
@@ -621,82 +595,9 @@
         });
     }
 
-    async function loadExercises() {
-        let cachedExercises;
-
-        try {
-            cachedExercises = JSON.parse(
-                sessionStorage.getItem(EXERCISE_CACHE_KEY) || "null"
-            );
-            if (!Array.isArray(cachedExercises)) {
-                clearOutdatedExerciseCaches();
-                sessionStorage.removeItem(EXERCISE_CACHE_KEY);
-            }
-        } catch (error) {
-            console.warn("Could not read the cached exercise catalog.", error);
-        }
-
-        if (Array.isArray(cachedExercises)) {
-            return cachedExercises;
-        }
-
-        let catalogError;
-
-        try {
-            const response = await fetch("/data/exercises.json?v=4", { cache: "no-cache" });
-
-            if (!response.ok) {
-                throw new Error(
-                    `Exercise catalog returned ${response.status}.`
-                );
-            }
-
-            const exercises = await response.json();
-
-            if (!Array.isArray(exercises)) {
-                throw new Error("Exercise catalog returned invalid data.");
-            }
-
-            cacheExercises(exercises);
-            return exercises;
-        } catch (error) {
-            catalogError = error;
-        }
-
-        try {
-            const response = await fetch(
-                `${window.backend_url}/api/exercises?v=4`,
-                { cache: "no-cache" }
-            );
-
-            if (!response.ok) {
-                throw new Error(
-                    `Exercise API returned ${response.status}.`
-                );
-            }
-
-            const exercises = await response.json();
-
-            if (!Array.isArray(exercises)) {
-                throw new Error(
-                    "Exercise API returned an invalid catalog."
-                );
-            }
-
-            cacheExercises(exercises);
-            return exercises;
-        } catch (apiError) {
-            console.error(
-                "Exercise catalog fallback failed:",
-                catalogError
-            );
-            throw apiError;
-        }
-    }
-
     async function loadExercise() {
         try {
-            const exercises = await loadExercises();
+            const exercises = await window.MUSTMAKE.loadExerciseCatalog();
             const exercise = exercises.find(item => item.slug === slug);
 
             if (!exercise) {

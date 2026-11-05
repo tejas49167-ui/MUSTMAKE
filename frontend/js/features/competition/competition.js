@@ -1,3 +1,5 @@
+const { escapeHTML, formatWorkoutDetails } = window.MUSTMAKE.presentation;
+
 function hasSignedInUser() {
     try {
         return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
@@ -65,12 +67,6 @@ const addedCompetitorIds = new Set(
         .map(getCompetitorId)
         .filter(Boolean)
 );
-
-function escapeHTML(value) {
-    const div = document.createElement("div");
-    div.textContent = value ?? "";
-    return div.innerHTML;
-}
 
 let searchTimer = null;
 let searchGeneration = 0;
@@ -327,7 +323,7 @@ function renderCompetition(competitions) {
         const todayWorkouts = competitor.todayWorkouts || [];
         const workoutsMarkup = todayWorkouts.length
             ? todayWorkouts.map(workout => {
-                const details = workoutDetails(workout);
+                const details = formatWorkoutDetails(workout);
                 return `<p class="recent-workouts"><strong>${escapeHTML(workout.exercise)}</strong>${details ? ` · ${escapeHTML(details)}` : ""}</p>`;
             }).join("")
             : '<p class="recent-workouts">No workouts recorded today.</p>';
@@ -351,32 +347,6 @@ function renderCompetition(competitions) {
 
         competitionList.appendChild(card);
     }
-}
-
-function workoutDetails(workout) {
-    if (workout.reps != null && workout.sets != null) {
-        const weight = workout.weight != null ? ` · ${workout.weight} kg` : "";
-        return `${workout.reps} reps × ${workout.sets} sets${weight}`;
-    }
-    if (workout.amount != null) {
-        const amount = `${workout.amount}${workout.unit ? ` ${workout.unit}` : ""}`;
-        const duration = Number(workout.duration);
-        return Number.isFinite(duration) && duration > 0
-            ? `${amount} · ${formatWorkoutDuration(duration)}`
-            : amount;
-    }
-    const duration = Number(workout.duration);
-    return Number.isFinite(duration) && duration > 0
-        ? formatWorkoutDuration(duration)
-        : "";
-}
-
-function formatWorkoutDuration(seconds) {
-    const wholeSeconds = Math.round(seconds);
-    const minutes = Math.floor(wholeSeconds / 60);
-    const remainingSeconds = wholeSeconds % 60;
-    if (!minutes) return `${remainingSeconds} sec`;
-    return remainingSeconds ? `${minutes} min ${remainingSeconds} sec` : `${minutes} min`;
 }
 
 if (!hasSignedInUser()) {
