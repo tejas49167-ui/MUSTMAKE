@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const User = require("../models/User");
 const {
+    GOOGLE_PASSWORD_ACCOUNT_EXISTS,
     getVerifiedEmail,
     getAccountForVerifiedGoogleProfile
 } = require("../services/google-account.service");
@@ -58,7 +59,7 @@ test("Google sign-in never auto-links an existing password account", async t => 
 
     await assert.rejects(
         getAccountForVerifiedGoogleProfile(profile()),
-        /already registered/
+        error => error.code === GOOGLE_PASSWORD_ACCOUNT_EXISTS
     );
     assert.equal(updateAttempted, false);
 });

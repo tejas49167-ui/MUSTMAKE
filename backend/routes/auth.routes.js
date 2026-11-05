@@ -9,6 +9,9 @@ const {
     validateGoogleOAuthState
 } = require("../middleware/google-oauth-state");
 const { getFrontendRedirect } = require("../config/urls");
+const {
+    GOOGLE_PASSWORD_ACCOUNT_EXISTS
+} = require("../services/google-account.service");
 
 const router = express.Router();
 
@@ -35,11 +38,24 @@ router.get(
 router.get(
     "/api/auth/google/callback",
     validateGoogleOAuthState,
-    passport.authenticate("google", {
-        failureRedirect: getFrontendRedirect("/pages/login.html"),
-        session: false
-    }),
-    authController.googleCallback
+    (req, res, next) => passport.authenticate(
+        "google",
+        { session: false },
+        (error, user) => {
+            if (error?.code === GOOGLE_PASSWORD_ACCOUNT_EXISTS) {
+                return res.redirect(getFrontendRedirect(
+                    "/pages/login.html?googleError=password-account"
+                ));
+            }
+            if (error) return next(error);
+            if (!user) {
+                return res.redirect(getFrontendRedirect("/pages/login.html"));
+            }
+
+            req.user = user;
+            return authController.googleCallback(req, res, next);
+        }
+    )(req, res, next)
 );
 
 module.exports = router;

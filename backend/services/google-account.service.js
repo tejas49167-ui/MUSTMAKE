@@ -1,6 +1,8 @@
 const crypto = require("crypto");
 const User = require("../models/User");
 
+const GOOGLE_PASSWORD_ACCOUNT_EXISTS = "GOOGLE_PASSWORD_ACCOUNT_EXISTS";
+
 function getVerifiedEmail(profile) {
     const email = profile?._json?.email;
     if (
@@ -59,7 +61,9 @@ async function getAccountForVerifiedGoogleProfile(profile) {
     const emailUser = await User.findOne({ email }).select("+ageReferenceYear");
     if (emailUser) {
         if (emailUser.passwordHash) {
-            throw new Error("This email is already registered. Sign in with your password.");
+            const error = new Error("This email is already registered.");
+            error.code = GOOGLE_PASSWORD_ACCOUNT_EXISTS;
+            throw error;
         }
 
         const linkedUser = await User.findOneAndUpdate(
@@ -108,6 +112,7 @@ async function getAccountForVerifiedGoogleProfile(profile) {
 }
 
 module.exports = {
+    GOOGLE_PASSWORD_ACCOUNT_EXISTS,
     getVerifiedEmail,
     getAccountForVerifiedGoogleProfile
 };
