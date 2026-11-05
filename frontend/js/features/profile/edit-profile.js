@@ -15,10 +15,17 @@ const socialLinksCount = document.getElementById("social-links-count");
 const continueButton = document.querySelector("#profileForm .save-button");
 const maxSocialLinks = 10;
 const pendingSignup = sessionStorage.getItem("pendingSignup") === "true";
+let profileLoaded = pendingSignup;
+let profileSaving = false;
+let profileSaved = false;
 
 function updateContinueButton() {
     if (!nameInput || !consentInput || !continueButton) return;
-    continueButton.disabled = !nameInput.value.trim() || !consentInput.checked;
+    continueButton.disabled = profileSaving ||
+        profileSaved ||
+        !profileLoaded ||
+        !nameInput.value.trim() ||
+        !consentInput.checked;
 }
 
 nameInput?.addEventListener("input", updateContinueButton);
@@ -137,8 +144,14 @@ async function loadProfile() {
                 savedSocialLinks.forEach(url => addSocialLink(url));
             }
         }
+        profileLoaded = true;
+        updateContinueButton();
     } catch (error) {
         console.error(error);
+        window.showToast("Your profile details could not be loaded.", {
+            type: "error",
+            action: { label: "Try again", onClick: loadProfile }
+        });
     }
 }
 
@@ -146,6 +159,10 @@ const profileForm = document.getElementById("profileForm");
 
 profileForm.addEventListener("submit", async event => {
     event.preventDefault();
+    if (profileSaving) return;
+    profileSaving = true;
+    updateContinueButton();
+    const saveToast = window.showToast("Saving your profile…", { type: "loading" });
 
     try {
         const name = nameInput?.value.trim();
@@ -210,6 +227,7 @@ profileForm.addEventListener("submit", async event => {
             throw new Error(data.message || "Could not save profile.");
         }
 
+        profileSaved = true;
         if (pendingSignup) {
             sessionStorage.removeItem("pendingSignup");
             window.saveAuthenticatedSession(data.user);
@@ -217,6 +235,8 @@ profileForm.addEventListener("submit", async event => {
             localStorage.setItem("user", JSON.stringify(data.user));
         }
 
+        saveToast?.dismiss();
+        window.queueToast("Profile saved.", "success");
         setTimeout(() => {
             if (nameInput && typeof window.redirectAfterFirstDetails === "function") {
                 window.redirectAfterFirstDetails();
@@ -226,7 +246,10 @@ profileForm.addEventListener("submit", async event => {
         }, 700);
     } catch (error) {
         console.error(error);
-        window.showToast(error.message || "Could not save profile.", { type: "error" });
+        saveToast?.update(error.message || "Could not save profile.", { type: "error" });
+    } finally {
+        profileSaving = false;
+        updateContinueButton();
     }
 });
 

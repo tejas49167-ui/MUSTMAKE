@@ -128,6 +128,15 @@ async function loadProfile() {
         renderProfile(data);
     } catch (error) {
         console.error(error);
+        window.showToast(
+            cachedProfile
+                ? "Could not refresh your profile. Showing saved details."
+                : "Your profile could not be loaded.",
+            {
+                type: cachedProfile ? "warning" : "error",
+                action: { label: "Try again", onClick: loadProfile }
+            }
+        );
     }
 }
 
@@ -238,13 +247,18 @@ function closeProfileValueDialog() {
 
 async function saveProfileValue() {
     const value = profileValueInput.value.trim();
-    profileValueInput.setCustomValidity(value ? "" : "Value cannot be empty.");
+    const clearingAge = activeProfileValue === "age" && value === "";
+    profileValueInput.setCustomValidity(
+        value || clearingAge ? "" : "Value cannot be empty."
+    );
     if (!profileValueInput.reportValidity()) return;
 
     profileValueSaving = true;
     saveProfileValueButton.disabled = true;
     try {
-        await updateProfile({ [activeProfileValue]: value });
+        await updateProfile({
+            [activeProfileValue]: clearingAge ? null : value
+        });
         profileValueSaving = false;
         closeProfileValueDialog();
     } catch (error) {
@@ -262,6 +276,7 @@ function openProfileValueDialog(field, trigger) {
     activeProfileValueTrigger = trigger;
     profileValueDialogTitle.textContent = `Change ${field}`;
     profileValueInput.type = rules ? "number" : "text";
+    profileValueInput.required = field !== "age";
     profileValueInput.inputMode = rules?.inputmode || "text";
     profileValueInput.removeAttribute("min");
     profileValueInput.removeAttribute("max");
@@ -298,7 +313,9 @@ document.getElementById("profileNameEdit").addEventListener("click", event => {
 
 profileValueInput.addEventListener("input", () => {
     profileValueInput.setCustomValidity(
-        profileValueInput.value.trim() ? "" : "Value cannot be empty."
+        profileValueInput.value.trim() || activeProfileValue === "age"
+            ? ""
+            : "Value cannot be empty."
     );
 });
 profileValueInput.addEventListener("keydown", event => {

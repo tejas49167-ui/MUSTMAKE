@@ -1,4 +1,9 @@
 const profileRoot = document.getElementById("publicProfile");
+const {
+    escapeHTML,
+    formatDate,
+    formatWorkoutDetails
+} = window.MUSTMAKE.presentation;
 const profileToken = (() => {
     try {
         return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
@@ -15,49 +20,8 @@ let publicHistoryLoading = false;
 const publicHistoryDays = new Map();
 let publicHistoryLoadMoreButton = null;
 
-function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, character => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-    })[character]);
-}
-
 function formatWorkoutDate(value) {
-    const date = new Date(`${value}T00:00:00`);
-    return Number.isNaN(date.getTime())
-        ? String(value ?? "")
-        : date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-}
-
-function workoutDetails(workout) {
-    if (workout.reps != null && workout.sets != null) {
-        const volume = Number(workout.reps) * Number(workout.sets);
-        const weight = workout.weight != null ? ` · ${escapeHtml(workout.weight)} kg` : "";
-        return `${escapeHtml(workout.reps)} reps × ${escapeHtml(workout.sets)} sets = ${escapeHtml(volume)} reps${weight}`;
-    }
-    if (workout.amount != null) {
-        const amount = `${escapeHtml(workout.amount)}${workout.unit ? ` ${escapeHtml(workout.unit)}` : ""}`;
-        const duration = Number(workout.duration);
-        return Number.isFinite(duration) && duration > 0
-            ? `${amount} · ${escapeHtml(formatWorkoutDuration(duration))}`
-            : amount;
-    }
-    const duration = Number(workout.duration);
-    if (Number.isFinite(duration) && duration > 0) {
-        return escapeHtml(formatWorkoutDuration(duration));
-    }
-    return "Workout details not recorded";
-}
-
-function formatWorkoutDuration(seconds) {
-    const wholeSeconds = Math.round(seconds);
-    const minutes = Math.floor(wholeSeconds / 60);
-    const remainingSeconds = wholeSeconds % 60;
-    if (!minutes) return `${remainingSeconds} sec`;
-    return remainingSeconds ? `${minutes} min ${remainingSeconds} sec` : `${minutes} min`;
+    return formatDate(value, { day: "numeric", month: "short", year: "numeric" });
 }
 
 function safeSocialUrl(value) {
@@ -81,8 +45,8 @@ function safeImageUrl(value) {
 function publicWorkoutMarkup(workout) {
     return `
         <div class="history-workout">
-            <div class="workout-name">${escapeHtml(workout.exercise)}</div>
-            <div class="workout-details">${workoutDetails(workout)}</div>
+            <div class="workout-name">${escapeHTML(workout.exercise)}</div>
+            <div class="workout-details">${escapeHTML(formatWorkoutDetails(workout))}</div>
         </div>
     `;
 }
@@ -188,13 +152,13 @@ function displayProfile({ user, workoutHistory = [], workoutHistoryNextCursor = 
         String(user.weight).trim() !== "";
     const profileDetails = [
         age !== null
-            ? `<div class="profile-detail"><strong>${escapeHtml(age)}</strong><span>years old</span></div>`
+            ? `<div class="profile-detail"><strong>${escapeHTML(age)}</strong><span>years old</span></div>`
             : "",
         hasHeight
-            ? `<div class="profile-detail"><strong>${escapeHtml(user.height)}</strong><span>cm tall</span></div>`
+            ? `<div class="profile-detail"><strong>${escapeHTML(user.height)}</strong><span>cm tall</span></div>`
             : "",
         hasWeight
-            ? `<div class="profile-detail"><strong>${escapeHtml(user.weight)}</strong><span>kg</span></div>`
+            ? `<div class="profile-detail"><strong>${escapeHTML(user.weight)}</strong><span>kg</span></div>`
             : ""
     ].filter(Boolean).join("");
     const socialLinks = Array.isArray(user.socials)
@@ -203,7 +167,7 @@ function displayProfile({ user, workoutHistory = [], workoutHistoryNextCursor = 
     const socials = socialLinks
         .map(value => {
             const href = safeSocialUrl(value);
-            return href ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(href)}</a>` : "";
+            return href ? `<a href="${escapeHTML(href)}" target="_blank" rel="noopener noreferrer">${escapeHTML(href)}</a>` : "";
         })
         .filter(Boolean)
         .join("");
@@ -214,10 +178,10 @@ function displayProfile({ user, workoutHistory = [], workoutHistoryNextCursor = 
     profileRoot.innerHTML = `
         <header class="public-profile-header">
             <button type="button" class="public-profile-photo-button" aria-label="View profile photo">
-                <img class="public-profile-photo" src="${escapeHtml(photo)}" alt="${escapeHtml(user.name || "User")}">
+                <img class="public-profile-photo" src="${escapeHTML(photo)}" alt="${escapeHTML(user.name || "User")}">
             </button>
-            <h2>${escapeHtml(user.name || "User")}</h2>
-            <p class="profile-username">${user.username ? `@${escapeHtml(user.username)}` : ""}</p>
+            <h2>${escapeHTML(user.name || "User")}</h2>
+            <p class="profile-username">${user.username ? `@${escapeHTML(user.username)}` : ""}</p>
         </header>
         ${profileDetails ? `<p id="publicProfileIs">is</p><div class="profile-details">${profileDetails}</div>` : ""}
         ${socials ? `<section class="profile-socials"><h3>Socials</h3>${socials}</section>` : ""}

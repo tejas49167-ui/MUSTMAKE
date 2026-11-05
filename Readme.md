@@ -53,8 +53,6 @@ MUSTMAKE/
 │   │   ├── user-profile.html
 │   │   ├── competition.html
 │   │   └── firstdetails.html
-│   ├── data/
-│   │   └── exercises.json
 │   ├── assets/
 │   │   ├── css/
 │   │   │   ├── style.css
@@ -67,7 +65,9 @@ MUSTMAKE/
 │       ├── core/change_backend_url.js
 │       ├── shared/
 │       │   ├── auth-redirect.js
-│       │   └── navbar.js
+│       │   ├── exercise-catalog.js
+│       │   ├── navbar.js
+│       │   └── workout-presentation.js
 │       └── features/
 │           ├── auth/
 │           │   ├── auth.js
@@ -88,6 +88,7 @@ MUSTMAKE/
 │   ├── config/
 │   │   ├── database.js
 │   │   ├── cloudinary.js
+│   │   ├── exercises.json
 │   │   └── passport.js
 │   ├── routes/
 │   │   ├── auth.routes.js
