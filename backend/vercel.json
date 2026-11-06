@@ -1,10 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "api/[...path].js": {
-      "maxDuration": 60
-    }
-  },
   "crons": [
     {
       "path": "/api/cron/exercise-reminders",
