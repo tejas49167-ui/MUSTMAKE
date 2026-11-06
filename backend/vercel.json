@@ -8,7 +8,7 @@
   "crons": [
     {
       "path": "/api/cron/exercise-reminders",
-      "schedule": "* * * * *"
+      "schedule": "30 3 * * *"
     }
   ]
 }
