@@ -333,8 +333,8 @@ test("a worker crossing local midnight does not send the previous day's reminder
 
 test("reminders only run during the 6 PM India delivery window", () => {
     assert.equal(isReminderWindow(new Date("2026-03-08T12:30:00.000Z")), true);
-    assert.equal(isReminderWindow(new Date("2026-03-08T13:30:00.000Z")), true);
     assert.equal(isReminderWindow(new Date("2026-03-08T12:25:00.000Z")), false);
+    assert.equal(isReminderWindow(new Date("2026-03-08T13:30:00.000Z")), false);
     assert.equal(isReminderWindow(new Date("2026-03-08T15:00:00.000Z")), false);
 });
 

@@ -54,7 +54,7 @@ function getNextReminderAt(now, reminderTime, timeZone) {
 
 function isReminderWindow(date) {
     const localHour = DateTime.fromJSDate(date, { zone: "Asia/Kolkata" }).hour;
-    return localHour === 18 || localHour === 19;
+    return localHour === 18;
 }
 
 module.exports = {
