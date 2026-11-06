@@ -25,19 +25,21 @@ function previousDateString(dateString) {
     return date.toISOString().split("T")[0];
 }
 
-function calculateStreak(workouts) {
+function calculateStreak(workouts, today = getDateString()) {
     if (!workouts || workouts.length === 0) {
         return 0;
     }
 
     const dates = new Set(
         workouts
-            .map(workout => String(workout.date || "").slice(0, 10))
+            .map(workout => String(
+                typeof workout === "string" ? workout : workout.date || ""
+            ).slice(0, 10))
             .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date))
     );
 
     let streak = 0;
-    let currentDate = getDateString();
+    let currentDate = today;
 
     // Keep yesterday's streak alive until the current app-local day ends.
     if (!dates.has(currentDate)) {

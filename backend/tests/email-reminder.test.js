@@ -3,7 +3,8 @@ const assert = require("node:assert/strict");
 const {
     getLocalDate,
     getLocalDayBounds,
-    getNextReminderAt
+    getNextReminderAt,
+    isReminderWindow
 } = require("../utils/email-reminder-time");
 const {
     NOTIFICATION_TYPE,
@@ -11,8 +12,8 @@ const {
     runDueReminders
 } = require("../services/email-reminder.service");
 
-const now = new Date("2026-03-08T15:00:00.000Z");
-const dueAt = new Date("2026-03-08T14:30:00.000Z");
+const now = new Date("2026-03-08T12:35:00.000Z");
+const dueAt = new Date("2026-03-08T12:30:00.000Z");
 
 function createFixture(options = {}) {
     const user = {
@@ -23,9 +24,6 @@ function createFixture(options = {}) {
         emailPreferences: {
             enabled: true,
             dailyExerciseReminder: true,
-            productUpdates: false,
-            reminderTime: "20:00",
-            timeZone: "Asia/Kolkata",
             nextReminderAt: dueAt
         },
         ...(options.user || {})
@@ -71,6 +69,9 @@ function createFixture(options = {}) {
             options.onExerciseCheck?.(exerciseChecks, filter);
             return options.exerciseCompleted === true ||
                 (options.exerciseCompleted === "after-claim" && exerciseChecks > 1);
+        },
+        async distinct() {
+            return options.workoutDates || [];
         }
     };
 
@@ -165,8 +166,10 @@ test("a workout completed on the user's local day suppresses the reminder", asyn
     assert.equal(fixture.updates[0].filter["emailPreferences.nextReminderAt"], dueAt);
 });
 
-test("no workout today sends one reminder and records Resend delivery details", async () => {
-    const fixture = createFixture();
+test("no workout today sends one reminder with the current streak", async () => {
+    const fixture = createFixture({
+        workoutDates: ["2026-03-07", "2026-03-06"]
+    });
 
     const result = await processDueUser(fixture.user, now, fixture.dependencies);
 
@@ -175,6 +178,10 @@ test("no workout today sends one reminder and records Resend delivery details", 
     assert.equal(fixture.sent[0][2], "2026-03-08");
     assert.equal(
         fixture.sent[0][3],
+        2
+    );
+    assert.equal(
+        fixture.sent[0][4],
         `${NOTIFICATION_TYPE}:user-1:2026-03-08`
     );
     assert.equal(fixture.getLog().status, "sent");
@@ -263,7 +270,7 @@ test("an expired final lease stops retrying and advances to the next day", async
     assert.equal(fixture.getLog().status, "failed");
     assert.equal(
         fixture.user.emailPreferences.nextReminderAt.toISOString(),
-        "2026-03-09T14:30:00.000Z"
+        "2026-03-09T12:30:00.000Z"
     );
 });
 
@@ -298,33 +305,20 @@ test("preference changes before delivery cancel an already claimed reminder", as
     assert.equal(fixture.sent.length, 0);
 });
 
-test("a reminder time changed after selection cancels delivery at the old time", async () => {
-    const changedUser = createFixture().user;
-    changedUser.emailPreferences.reminderTime = "21:00";
-    const fixture = createFixture({ currentUser: changedUser });
-
-    const result = await processDueUser(fixture.user, now, fixture.dependencies);
-
-    assert.equal(result.result, "preferences-changed");
-    assert.equal(fixture.sent.length, 0);
-    assert.equal(fixture.getLog().status, "skipped");
-});
-
-test("a due timestamp from a prior local date is rescheduled instead of sent", async () => {
+test("a legacy reminder schedule does not prevent the fixed daily reminder", async () => {
     const yesterdayDue = new Date("2026-03-07T14:30:00.000Z");
     const fixture = createFixture();
     fixture.user.emailPreferences.nextReminderAt = yesterdayDue;
 
     const result = await processDueUser(fixture.user, now, fixture.dependencies);
 
-    assert.equal(result.result, "stale-reminder");
-    assert.equal(fixture.sent.length, 0);
-    assert.equal(fixture.updates[0].filter["emailPreferences.nextReminderAt"], yesterdayDue);
+    assert.equal(result.result, "sent");
+    assert.equal(fixture.sent.length, 1);
 });
 
 test("a worker crossing local midnight does not send the previous day's reminder", async () => {
     const fixture = createFixture();
-    fixture.dependencies.nowProvider = () => new Date("2026-03-09T15:00:00.000Z");
+    fixture.dependencies.nowProvider = () => new Date("2026-03-09T12:35:00.000Z");
 
     const result = await processDueUser(fixture.user, now, fixture.dependencies);
 
@@ -333,8 +327,15 @@ test("a worker crossing local midnight does not send the previous day's reminder
     assert.equal(fixture.getLog().status, "skipped");
     assert.equal(
         fixture.user.emailPreferences.nextReminderAt.toISOString(),
-        "2026-03-10T14:30:00.000Z"
+        "2026-03-10T12:30:00.000Z"
     );
+});
+
+test("reminders only run during the 6 PM India delivery window", () => {
+    assert.equal(isReminderWindow(new Date("2026-03-08T12:30:00.000Z")), true);
+    assert.equal(isReminderWindow(new Date("2026-03-08T13:30:00.000Z")), true);
+    assert.equal(isReminderWindow(new Date("2026-03-08T12:25:00.000Z")), false);
+    assert.equal(isReminderWindow(new Date("2026-03-08T15:00:00.000Z")), false);
 });
 
 test("local-midnight calculation follows the configured IANA timezone", () => {

@@ -18,11 +18,7 @@ const strictAiToggle = document.getElementById("strictAiToggle");
 const frontViewToggle = document.getElementById("frontViewToggle");
 const dangerZone = document.getElementById("dangerZone");
 const deleteAccountButton = document.getElementById("deleteAccountButton");
-const emailMasterToggle = document.getElementById("emailMasterToggle");
 const dailyReminderToggle = document.getElementById("dailyReminderToggle");
-const productUpdatesToggle = document.getElementById("productUpdatesToggle");
-const reminderTimeInput = document.getElementById("reminderTime");
-const reminderTimeZoneInput = document.getElementById("reminderTimeZone");
 const emailNotificationStatus = document.getElementById("emailNotificationStatus");
 const emailVerification = document.getElementById("emailVerification");
 const emailVerificationMessage = document.getElementById("emailVerificationMessage");
@@ -111,21 +107,13 @@ frontViewToggle.addEventListener("change", () => {
 
 function updateEmailPreferencesUI() {
     const loading = !emailPreferences;
-    const masterEnabled = emailPreferences?.enabled === true;
-    const reminderEnabled = emailPreferences?.dailyExerciseReminder === true;
+    const reminderEnabled = emailPreferences?.enabled === true &&
+        emailPreferences?.dailyExerciseReminder === true;
     const locked = loading || emailPreferencesSaving;
 
-    emailMasterToggle.checked = masterEnabled;
     dailyReminderToggle.checked = reminderEnabled;
-    productUpdatesToggle.checked = emailPreferences?.productUpdates === true;
-    reminderTimeInput.value = emailPreferences?.reminderTime || "09:00";
-    reminderTimeZoneInput.value = emailPreferences?.timeZone || "Asia/Kolkata";
 
-    emailMasterToggle.disabled = locked;
-    dailyReminderToggle.disabled = locked || !masterEnabled;
-    productUpdatesToggle.disabled = locked || !masterEnabled;
-    reminderTimeInput.disabled = locked || !masterEnabled || !reminderEnabled;
-    reminderTimeZoneInput.disabled = locked || !masterEnabled || !reminderEnabled;
+    dailyReminderToggle.disabled = locked;
 
     const emailVerified = emailPreferences?.emailVerified === true;
     emailVerification.hidden = loading || emailVerified;
@@ -155,7 +143,7 @@ async function loadEmailPreferences() {
     } catch (error) {
         emailPreferences = null;
         updateEmailPreferencesUI();
-        emailMasterToggle.disabled = true;
+        dailyReminderToggle.disabled = true;
         emailNotificationStatus.textContent = error.status === 401
             ? "Sign in to manage email notifications."
             : error.message;
@@ -166,7 +154,10 @@ async function saveEmailPreference(key, value) {
     if (!emailPreferences || emailPreferencesSaving) return;
 
     const previous = { ...emailPreferences };
-    emailPreferences = { ...emailPreferences, [key]: value };
+    const updatedPreferences = key === "enabled"
+        ? { enabled: value, dailyExerciseReminder: value }
+        : { [key]: value };
+    emailPreferences = { ...emailPreferences, ...updatedPreferences };
     emailPreferencesSaving = true;
     emailNotificationStatus.textContent = "Saving…";
     updateEmailPreferencesUI();
@@ -175,7 +166,7 @@ async function saveEmailPreference(key, value) {
         const data = await requestJson("/api/settings/email-notifications", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ [key]: value })
+            body: JSON.stringify(updatedPreferences)
         });
         emailPreferences = data.preferences;
         emailNotificationStatus.textContent = "Preferences saved.";
@@ -189,16 +180,8 @@ async function saveEmailPreference(key, value) {
     }
 }
 
-emailMasterToggle.addEventListener("change", () =>
-    saveEmailPreference("enabled", emailMasterToggle.checked));
 dailyReminderToggle.addEventListener("change", () =>
-    saveEmailPreference("dailyExerciseReminder", dailyReminderToggle.checked));
-productUpdatesToggle.addEventListener("change", () =>
-    saveEmailPreference("productUpdates", productUpdatesToggle.checked));
-reminderTimeInput.addEventListener("change", () =>
-    saveEmailPreference("reminderTime", reminderTimeInput.value));
-reminderTimeZoneInput.addEventListener("change", () =>
-    saveEmailPreference("timeZone", reminderTimeZoneInput.value.trim()));
+    saveEmailPreference("enabled", dailyReminderToggle.checked));
 
 sendEmailVerificationCode.addEventListener("click", async () => {
     sendEmailVerificationCode.disabled = true;

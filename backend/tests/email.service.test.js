@@ -225,6 +225,7 @@ test("exercise reminder uses Resend and returns its message ID", async t => {
         "person@example.com",
         "<Athlete>",
         "2026-03-08",
+        4,
         "daily-exercise-reminder:user:2026-03-08"
     );
 
@@ -238,7 +239,10 @@ test("exercise reminder uses Resend and returns its message ID", async t => {
     );
     const message = JSON.parse(requests[0][1].body);
     assert.equal(message.to, "person@example.com");
-    assert.equal(message.subject, "A little reminder to move today");
+    assert.equal(message.subject, "Your MUSTMAKE streak is waiting");
     assert.match(message.html, /&lt;Athlete&gt;/);
     assert.match(message.html, /2026-03-08/);
+    assert.match(message.html, /4-day streak/);
+    assert.match(message.html, /Don't give up/);
+    assert.match(message.html, /https:\/\/mustmake\.vercel\.site/);
 });

@@ -52,11 +52,17 @@ function getNextReminderAt(now, reminderTime, timeZone) {
     return next.toUTC().toJSDate();
 }
 
+function isReminderWindow(date) {
+    const localHour = DateTime.fromJSDate(date, { zone: "Asia/Kolkata" }).hour;
+    return localHour === 18 || localHour === 19;
+}
+
 module.exports = {
     getLocalDate,
     getLocalDayBounds,
     getReminderAtForDate,
     getNextReminderAt,
+    isReminderWindow,
     isValidReminderTime,
     isValidTimeZone
 };

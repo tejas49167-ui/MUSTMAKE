@@ -3,17 +3,18 @@ const User = require("../models/User");
 const Workout = require("../models/Workout");
 const EmailNotificationLog = require("../models/EmailNotificationLog");
 const emailService = require("./email.service");
+const { calculateStreak } = require("../utils/date");
 const {
     getLocalDate,
     getLocalDayBounds,
-    getReminderAtForDate,
     getNextReminderAt,
-    isValidReminderTime,
-    isValidTimeZone
+    isReminderWindow
 } = require("../utils/email-reminder-time");
 const { logFailure } = require("../utils/safe-log");
 
 const NOTIFICATION_TYPE = "daily-exercise-reminder";
+const REMINDER_TIME = "18:00";
+const REMINDER_TIME_ZONE = "Asia/Kolkata";
 const LEASE_DURATION_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 const BATCH_SIZE = 50;
@@ -26,10 +27,7 @@ function isReminderEligible(user) {
         user?.emailVerifiedAt &&
         typeof user.email === "string" &&
         preferences?.enabled === true &&
-        preferences?.dailyExerciseReminder === true &&
-        preferences?.nextReminderAt instanceof Date &&
-        isValidReminderTime(preferences.reminderTime) &&
-        isValidTimeZone(preferences.timeZone)
+        preferences?.dailyExerciseReminder === true
     );
 }
 
@@ -39,11 +37,10 @@ function sameInstant(left, right) {
         left.getTime() === right.getTime();
 }
 
-async function hasExerciseToday(userId, now, timeZone, workoutModel = Workout) {
-    const { start, end } = getLocalDayBounds(now, timeZone);
+async function hasExerciseToday(userId, localDate, workoutModel = Workout) {
     return Boolean(await workoutModel.exists({
         user: userId,
-        createdAt: { $gte: start, $lt: end }
+        date: localDate
     }));
 }
 
@@ -52,7 +49,7 @@ async function scheduleNextReminder(user, now, userModel = User, expectedDueAt) 
     const active = preferences.enabled === true &&
         preferences.dailyExerciseReminder === true;
     const nextReminderAt = active
-        ? getNextReminderAt(now, preferences.reminderTime, preferences.timeZone)
+        ? getNextReminderAt(now, REMINDER_TIME, REMINDER_TIME_ZONE)
         : null;
     const filter = { _id: user._id };
     if (expectedDueAt) {
@@ -144,6 +141,16 @@ async function processDueUser(user, now, dependencies = {}) {
     const sendReminder = dependencies.sendReminder ||
         emailService.sendExerciseReminderEmail;
     const nowProvider = dependencies.nowProvider || (() => new Date());
+    const getStreak = dependencies.getStreak || (async (userId, localDate) => {
+        const workoutDates = await workoutModel.distinct("date", {
+            user: userId,
+            date: {
+                $lte: `${localDate}\uffff`,
+                $regex: /^\d{4}-\d{2}-\d{2}/
+            }
+        });
+        return calculateStreak(workoutDates, localDate);
+    });
 
     if (!isReminderEligible(user)) {
         return { result: "ineligible" };
@@ -151,23 +158,7 @@ async function processDueUser(user, now, dependencies = {}) {
 
     const preferences = user.emailPreferences;
     const dueAt = preferences.nextReminderAt;
-    if (dueAt.getTime() > now.getTime()) {
-        return { result: "not-due" };
-    }
-
-    const localDate = getLocalDate(now, preferences.timeZone);
-    const expectedDueAt = getReminderAtForDate(
-        localDate,
-        preferences.reminderTime,
-        preferences.timeZone
-    );
-    if (
-        getLocalDate(dueAt, preferences.timeZone) !== localDate ||
-        !sameInstant(dueAt, expectedDueAt)
-    ) {
-        await scheduleNextReminder(user, now, userModel, dueAt);
-        return { result: "stale-reminder" };
-    }
+    const localDate = getLocalDate(now, REMINDER_TIME_ZONE);
 
     const identity = {
         user: user._id,
@@ -175,7 +166,7 @@ async function processDueUser(user, now, dependencies = {}) {
         localDate
     };
 
-    if (await hasExerciseToday(user._id, now, preferences.timeZone, workoutModel)) {
+    if (await hasExerciseToday(user._id, localDate, workoutModel)) {
         await scheduleNextReminder(user, now, userModel, dueAt);
         return { result: "exercise-completed" };
     }
@@ -217,15 +208,7 @@ async function processDueUser(user, now, dependencies = {}) {
         const preferencesUnchanged = currentUser &&
             isReminderEligible(currentUser) &&
             sameInstant(currentPreferences.nextReminderAt, dueAt) &&
-            getLocalDate(attemptNow, currentPreferences.timeZone) === localDate &&
-            sameInstant(
-                getReminderAtForDate(
-                    localDate,
-                    currentPreferences.reminderTime,
-                    currentPreferences.timeZone
-                ),
-                dueAt
-            );
+            getLocalDate(attemptNow, REMINDER_TIME_ZONE) === localDate;
 
         if (!preferencesUnchanged) {
             await updateLog(logModel, identity, claim.leaseToken, {
@@ -242,8 +225,7 @@ async function processDueUser(user, now, dependencies = {}) {
 
         if (await hasExerciseToday(
             currentUser._id,
-            attemptNow,
-            currentPreferences.timeZone,
+            localDate,
             workoutModel
         )) {
             await updateLog(logModel, identity, claim.leaseToken, {
@@ -253,10 +235,12 @@ async function processDueUser(user, now, dependencies = {}) {
             return { result: "exercise-completed" };
         }
 
+        const streak = await getStreak(currentUser._id, localDate);
         const delivery = await sendReminder(
             currentUser.email,
             currentUser.name,
             localDate,
+            streak,
             `${NOTIFICATION_TYPE}:${currentUser._id}:${localDate}`
         );
 
@@ -290,6 +274,10 @@ async function processDueUser(user, now, dependencies = {}) {
 }
 
 async function runDueReminders(now = new Date(), dependencies = {}) {
+    if (!isReminderWindow(now)) {
+        return { checked: 0, sent: 0, failed: 0, skipped: 0 };
+    }
+
     const userModel = dependencies.UserModel || User;
     const workoutModel = dependencies.WorkoutModel || Workout;
     const logModel = dependencies.LogModel || EmailNotificationLog;
@@ -298,11 +286,12 @@ async function runDueReminders(now = new Date(), dependencies = {}) {
             .filter(model => typeof model.init === "function")
             .map(model => model.init())
     );
+    const { end } = getLocalDayBounds(now, REMINDER_TIME_ZONE);
     const users = await userModel.find({
         emailVerifiedAt: { $ne: null },
         "emailPreferences.enabled": true,
         "emailPreferences.dailyExerciseReminder": true,
-        "emailPreferences.nextReminderAt": { $lte: now }
+        "emailPreferences.nextReminderAt": { $lt: end }
     })
         .select("_id email name emailVerifiedAt emailPreferences")
         .sort({ "emailPreferences.nextReminderAt": 1 })
@@ -333,8 +322,7 @@ async function runDueReminders(now = new Date(), dependencies = {}) {
             if (
                 outcome.result === "exercise-completed" ||
                 outcome.result === "preferences-changed" ||
-                outcome.result === "ineligible" ||
-                outcome.result === "stale-reminder"
+                outcome.result === "ineligible"
             ) {
                 results.skipped += 1;
             }

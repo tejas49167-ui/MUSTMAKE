@@ -1,27 +1,16 @@
 const User = require("../models/User");
 const connectDB = require("../config/database");
 const { isPlainObject } = require("../utils/validation");
-const {
-    getNextReminderAt,
-    isValidReminderTime,
-    isValidTimeZone
-} = require("../utils/email-reminder-time");
+const { getNextReminderAt } = require("../utils/email-reminder-time");
 const { logFailure } = require("../utils/safe-log");
 
-const BOOLEAN_PREFERENCES = [
-    "enabled",
-    "dailyExerciseReminder",
-    "productUpdates"
-];
+const BOOLEAN_PREFERENCES = ["enabled", "dailyExerciseReminder"];
 
 function serializePreferences(user) {
     const preferences = user.emailPreferences || {};
     return {
         enabled: preferences.enabled === true,
         dailyExerciseReminder: preferences.dailyExerciseReminder === true,
-        productUpdates: preferences.productUpdates === true,
-        reminderTime: preferences.reminderTime || "09:00",
-        timeZone: preferences.timeZone || "Asia/Kolkata",
         emailVerified: Boolean(user.emailVerifiedAt)
     };
 }
@@ -48,11 +37,7 @@ async function updatePreferences(req, res) {
         return res.status(400).json({ message: "Email preferences must be an object." });
     }
 
-    const allowedKeys = new Set([
-        ...BOOLEAN_PREFERENCES,
-        "reminderTime",
-        "timeZone"
-    ]);
+    const allowedKeys = new Set(BOOLEAN_PREFERENCES);
     if (Object.keys(req.body).some(key => !allowedKeys.has(key))) {
         return res.status(400).json({ message: "Email preferences contain an unsupported field." });
     }
@@ -62,16 +47,6 @@ async function updatePreferences(req, res) {
             return res.status(400).json({ message: `${key} must be a boolean.` });
         }
     }
-    if (
-        req.body.reminderTime !== undefined &&
-        !isValidReminderTime(req.body.reminderTime)
-    ) {
-        return res.status(400).json({ message: "Reminder time must use HH:MM (24-hour) format." });
-    }
-    if (req.body.timeZone !== undefined && !isValidTimeZone(req.body.timeZone)) {
-        return res.status(400).json({ message: "Select a valid IANA timezone." });
-    }
-
     try {
         await connectDB();
         const user = await User.findById(req.userId)
@@ -82,14 +57,11 @@ async function updatePreferences(req, res) {
         const updated = {
             enabled: req.body.enabled ?? current.enabled ?? false,
             dailyExerciseReminder: req.body.dailyExerciseReminder ??
-                current.dailyExerciseReminder ?? false,
-            productUpdates: req.body.productUpdates ?? current.productUpdates ?? false,
-            reminderTime: req.body.reminderTime ?? current.reminderTime ?? "09:00",
-            timeZone: req.body.timeZone ?? current.timeZone ?? "Asia/Kolkata"
+                current.dailyExerciseReminder ?? false
         };
         const isReminderEnabled = updated.enabled && updated.dailyExerciseReminder;
         const nextReminderAt = isReminderEnabled
-            ? getNextReminderAt(new Date(), updated.reminderTime, updated.timeZone)
+            ? getNextReminderAt(new Date(), "18:00", "Asia/Kolkata")
             : null;
         const fieldsToSave = {};
         for (const [key, value] of Object.entries(req.body)) {

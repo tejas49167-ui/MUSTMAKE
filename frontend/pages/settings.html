@@ -28,45 +28,16 @@
                 </p>
             </div>
 
-            <section class="settings-row" aria-labelledby="emailMasterTitle">
+            <section class="settings-row" aria-labelledby="dailyReminderTitle">
                 <div class="settings-row-copy">
-                    <h3 id="emailMasterTitle">Email notifications</h3>
-                    <p>Allow MUSTMAKE to send optional email notifications.</p>
-                </div>
-                <label class="settings-switch">
-                    <input id="emailMasterToggle" type="checkbox" role="switch" aria-labelledby="emailMasterTitle" disabled>
-                    <span class="settings-switch-track" aria-hidden="true"></span>
-                </label>
-            </section>
-
-            <section class="settings-row settings-row-smart-camera" aria-labelledby="dailyReminderTitle">
-                <div class="settings-row-copy">
-                    <h3 id="dailyReminderTitle">Daily exercise reminder</h3>
-                    <p>Get one reminder on days when you have not logged an exercise.</p>
+                    <h3 id="dailyReminderTitle">Daily workout reminder</h3>
+                    <p>At 6:00 PM India time, get an encouraging email if you have not logged a workout today.</p>
                 </div>
                 <label class="settings-switch">
                     <input id="dailyReminderToggle" type="checkbox" role="switch" aria-labelledby="dailyReminderTitle" disabled>
                     <span class="settings-switch-track" aria-hidden="true"></span>
                 </label>
             </section>
-
-            <section class="settings-row settings-row-smart-camera" aria-labelledby="productUpdatesTitle">
-                <div class="settings-row-copy">
-                    <h3 id="productUpdatesTitle">Product updates</h3>
-                    <p>Receive occasional news about MUSTMAKE features.</p>
-                </div>
-                <label class="settings-switch">
-                    <input id="productUpdatesToggle" type="checkbox" role="switch" aria-labelledby="productUpdatesTitle" disabled>
-                    <span class="settings-switch-track" aria-hidden="true"></span>
-                </label>
-            </section>
-
-            <div class="settings-email-fields">
-                <label for="reminderTime">Reminder time</label>
-                <input id="reminderTime" type="time" value="09:00" disabled>
-                <label for="reminderTimeZone">IANA timezone</label>
-                <input id="reminderTimeZone" type="text" value="Asia/Kolkata" maxlength="100" placeholder="America/New_York" autocomplete="off" disabled>
-            </div>
 
             <div id="emailVerification" class="settings-email-verification" hidden>
                 <p id="emailVerificationMessage"></p>

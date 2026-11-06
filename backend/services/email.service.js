@@ -1,7 +1,6 @@
 const nodemailer = require("nodemailer");
 const { OTP_EXPIRY_MINUTES } = require("./auth.service");
 const { logFailure } = require("../utils/safe-log");
-const { getFrontendRedirect } = require("../config/urls");
 
 function getEmailProvider() {
     const configuredProvider = process.env.EMAIL_PROVIDER?.trim().toLowerCase();
@@ -114,7 +113,7 @@ function escapeHtml(value) {
    })[character]);
 }
 
-async function sendExerciseReminderEmail(email, name, localDate, idempotencyKey) {
+async function sendExerciseReminderEmail(email, name, localDate, streak, idempotencyKey) {
    if (getEmailProvider() !== "resend") {
        throw new Error("Exercise reminders require the Resend email provider.");
    }
@@ -126,22 +125,26 @@ async function sendExerciseReminderEmail(email, name, localDate, idempotencyKey)
    }
 
    const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi there,";
-   const todayUrl = escapeHtml(getFrontendRedirect("/today"));
+   const todayUrl = "https://mustmake.vercel.app";
+   const streakMessage = streak > 0
+       ? `You're on a ${streak}-day streak. Keep it alive by logging today's workout.`
+       : "A new streak starts with one workout. You can still get today's session in.";
    const message = {
        from,
        to: email,
-       subject: "A little reminder to move today",
+       subject: "Your MUSTMAKE streak is waiting",
        html: `<!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;background:#f3f4f6;font-family:Arial,sans-serif;color:#111827">
  <div style="max-width:560px;margin:32px auto;padding:32px 24px;background:#fff;border-radius:16px">
    <p style="margin:0 0 24px;color:#2563eb;font-size:14px;font-weight:700;letter-spacing:2px">MUSTMAKE</p>
-   <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3">Your daily movement reminder</h1>
+   <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3">Don't give up on today</h1>
    <p style="margin:0 0 16px;font-size:16px;line-height:1.6">${greeting}</p>
-   <p style="margin:0 0 24px;font-size:16px;line-height:1.6">You haven't logged an exercise for ${escapeHtml(localDate)} yet. A short session is a great way to keep your momentum going.</p>
-   <a href="${todayUrl}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700">Log today's exercise</a>
-   <p style="margin:28px 0 0;color:#6b7280;font-size:12px;line-height:1.5">You can change your email notification preferences in MUSTMAKE Settings.</p>
+   <p style="margin:0 0 12px;font-size:16px;line-height:1.6">You haven't logged a workout for ${escapeHtml(localDate)} yet.</p>
+   <p style="margin:0 0 24px;font-size:18px;line-height:1.6;font-weight:700">${escapeHtml(streakMessage)}</p>
+   <a href="${todayUrl}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700">Go to MUSTMAKE</a>
+   <p style="margin:16px 0 0;color:#6b7280;font-size:14px;line-height:1.5"><a href="${todayUrl}" style="color:#2563eb">mustmake.vercel.app</a></p>
  </div>
 </body>
 </html>`
