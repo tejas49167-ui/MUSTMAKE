@@ -19,7 +19,6 @@ const frontViewToggle = document.getElementById("frontViewToggle");
 const dangerZone = document.getElementById("dangerZone");
 const deleteAccountButton = document.getElementById("deleteAccountButton");
 const dailyReminderToggle = document.getElementById("dailyReminderToggle");
-const emailNotificationStatus = document.getElementById("emailNotificationStatus");
 
 let emailPreferences = null;
 let emailPreferencesSaving = false;
@@ -124,14 +123,13 @@ async function loadEmailPreferences() {
         const data = await requestJson("/api/settings/email-notifications");
         emailPreferences = data.preferences;
         updateEmailPreferencesUI();
-        emailNotificationStatus.textContent = "Preferences loaded.";
     } catch (error) {
         emailPreferences = null;
         updateEmailPreferencesUI();
         dailyReminderToggle.disabled = true;
-        emailNotificationStatus.textContent = error.status === 401
+        window.showToast(error.status === 401
             ? "Sign in to manage email notifications."
-            : error.message;
+            : error.message, { type: "error" });
     }
 }
 
@@ -144,7 +142,6 @@ async function saveEmailPreference(key, value) {
         : { [key]: value };
     emailPreferences = { ...emailPreferences, ...updatedPreferences };
     emailPreferencesSaving = true;
-    emailNotificationStatus.textContent = "Saving…";
     updateEmailPreferencesUI();
 
     try {
@@ -154,11 +151,9 @@ async function saveEmailPreference(key, value) {
             body: JSON.stringify(updatedPreferences)
         });
         emailPreferences = data.preferences;
-        emailNotificationStatus.textContent = "Preferences saved.";
     } catch (error) {
         emailPreferences = previous;
-        emailNotificationStatus.textContent = error.message || "Could not save preferences.";
-        window.showToast(emailNotificationStatus.textContent, { type: "error" });
+        window.showToast(error.message || "Could not save preferences.", { type: "error" });
     } finally {
         emailPreferencesSaving = false;
         updateEmailPreferencesUI();

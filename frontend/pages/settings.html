@@ -20,25 +20,15 @@
     <main class="settings-container">
         <h1>Settings</h1>
 
-        <section class="settings-email" aria-labelledby="emailNotificationsTitle">
-            <div class="settings-email-heading">
-                <h2 id="emailNotificationsTitle">Email Notifications</h2>
-                <p id="emailNotificationStatus" class="settings-status" role="status" aria-live="polite">
-                    Loading your preferences…
-                </p>
+        <section class="settings-row" aria-labelledby="dailyReminderTitle">
+            <div class="settings-row-copy">
+                <h3 id="dailyReminderTitle">Daily workout reminder</h3>
+                <p>At 6:00 PM India time, get an encouraging email if you have not logged a workout today.</p>
             </div>
-
-            <section class="settings-row" aria-labelledby="dailyReminderTitle">
-                <div class="settings-row-copy">
-                    <h3 id="dailyReminderTitle">Daily workout reminder</h3>
-                    <p>At 6:00 PM India time, get an encouraging email if you have not logged a workout today.</p>
-                </div>
-                <label class="settings-switch">
-                    <input id="dailyReminderToggle" type="checkbox" role="switch" aria-labelledby="dailyReminderTitle" disabled>
-                    <span class="settings-switch-track" aria-hidden="true"></span>
-                </label>
-            </section>
-
+            <label class="settings-switch">
+                <input id="dailyReminderToggle" type="checkbox" role="switch" aria-labelledby="dailyReminderTitle" disabled>
+                <span class="settings-switch-track" aria-hidden="true"></span>
+            </label>
         </section>
 
         <section class="settings-row" aria-labelledby="cameraSettingTitle">

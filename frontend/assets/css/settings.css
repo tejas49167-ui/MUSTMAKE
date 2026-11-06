@@ -11,96 +11,6 @@
     font-size: clamp(1.8rem, 5vw, 2.35rem);
 }
 
-.settings-email {
-    margin-bottom: 2rem;
-    padding: 1.25rem;
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    background: var(--glass-subtle);
-}
-
-.settings-email-heading h2 {
-    margin: 0;
-    color: var(--text-primary);
-    font-size: 1.15rem;
-}
-
-.settings-email .settings-status {
-    margin: 0.4rem 0 1rem;
-}
-
-.settings-email h3 {
-    margin: 0;
-    color: var(--text-primary);
-    font-size: 0.95rem;
-}
-
-.settings-email-fields {
-    display: grid;
-    grid-template-columns: minmax(8rem, 0.4fr) minmax(10rem, 1fr);
-    align-items: center;
-    gap: 0.75rem 1rem;
-    padding-top: 1rem;
-}
-
-.settings-email-fields label,
-.settings-email-verification label {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-}
-
-.settings-email-fields input,
-.settings-email-verification input {
-    min-width: 0;
-    padding: 0.65rem 0.75rem;
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    color: var(--text-primary);
-    background: var(--glass-subtle);
-    font: inherit;
-}
-
-.settings-email-fields input:focus-visible,
-.settings-email-verification input:focus-visible,
-.settings-email-button:focus-visible {
-    outline: 2px solid #60a5fa;
-    outline-offset: 3px;
-}
-
-.settings-email-verification {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--glass-border);
-}
-
-.settings-email-verification p {
-    margin: 0 0 0.75rem;
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-    line-height: 1.5;
-}
-
-.settings-email-verification input {
-    width: 9rem;
-    margin: 0 0.5rem;
-}
-
-.settings-email-button {
-    padding: 0.65rem 0.9rem;
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    color: var(--text-primary);
-    background: var(--glass-subtle);
-    font: inherit;
-    font-size: 0.85rem;
-    cursor: pointer;
-}
-
-.settings-email-button:disabled {
-    cursor: wait;
-    opacity: 0.65;
-}
-
 .settings-row {
     display: flex;
     align-items: center;
@@ -182,13 +92,6 @@
 .settings-switch input:focus-visible + .settings-switch-track {
     outline: 2px solid #60a5fa;
     outline-offset: 3px;
-}
-
-.settings-status {
-    min-height: 1.2em;
-    margin-top: 0.65rem;
-    color: var(--text-muted);
-    font-size: 0.75rem;
 }
 
 .settings-danger-zone {
