@@ -20,17 +20,9 @@ const dangerZone = document.getElementById("dangerZone");
 const deleteAccountButton = document.getElementById("deleteAccountButton");
 const dailyReminderToggle = document.getElementById("dailyReminderToggle");
 const emailNotificationStatus = document.getElementById("emailNotificationStatus");
-const emailVerification = document.getElementById("emailVerification");
-const emailVerificationMessage = document.getElementById("emailVerificationMessage");
-const emailVerificationForm = document.getElementById("emailVerificationForm");
-const emailVerificationCode = document.getElementById("emailVerificationCode");
-const sendEmailVerificationCode = document.getElementById("sendEmailVerificationCode");
-const confirmEmailVerification = document.getElementById("confirmEmailVerification");
 
 let emailPreferences = null;
 let emailPreferencesSaving = false;
-let verificationEmail = null;
-let verificationChallenge = null;
 
 function hasSignedInUser() {
     try {
@@ -114,13 +106,6 @@ function updateEmailPreferencesUI() {
     dailyReminderToggle.checked = reminderEnabled;
 
     dailyReminderToggle.disabled = locked;
-
-    const emailVerified = emailPreferences?.emailVerified === true;
-    emailVerification.hidden = loading || emailVerified;
-    if (!loading && !emailVerified) {
-        emailVerificationMessage.textContent =
-            "Verify your email address with a one-time code before MUSTMAKE can send notifications.";
-    }
 }
 
 async function requestJson(path, options = {}) {
@@ -182,61 +167,6 @@ async function saveEmailPreference(key, value) {
 
 dailyReminderToggle.addEventListener("change", () =>
     saveEmailPreference("enabled", dailyReminderToggle.checked));
-
-sendEmailVerificationCode.addEventListener("click", async () => {
-    sendEmailVerificationCode.disabled = true;
-    try {
-        const currentUser = await requestJson("/api/auth/me");
-        verificationEmail = currentUser.user.email;
-        const result = await requestJson("/api/auth/send-otp", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: verificationEmail, purpose: "login" })
-        });
-        verificationChallenge = result.challengeToken;
-        emailVerificationForm.hidden = false;
-        emailVerificationCode.focus();
-        emailVerificationMessage.textContent = "Enter the one-time code sent to your email.";
-    } catch (error) {
-        emailVerificationMessage.textContent = error.message;
-        window.showToast(error.message, { type: "error" });
-    } finally {
-        sendEmailVerificationCode.disabled = false;
-    }
-});
-
-confirmEmailVerification.addEventListener("click", async () => {
-    const code = emailVerificationCode.value.trim();
-    if (!verificationEmail || !verificationChallenge || !/^\d{6}$/.test(code)) {
-        emailVerificationMessage.textContent = "Enter the six-digit verification code.";
-        return;
-    }
-
-    confirmEmailVerification.disabled = true;
-    try {
-        await requestJson("/api/auth/verify-otp", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                email: verificationEmail,
-                otp: code,
-                purpose: "login",
-                challengeToken: verificationChallenge
-            })
-        });
-        verificationChallenge = null;
-        verificationEmail = null;
-        emailVerificationCode.value = "";
-        emailVerificationForm.hidden = true;
-        await loadEmailPreferences();
-        emailNotificationStatus.textContent = "Email address verified.";
-    } catch (error) {
-        emailVerificationMessage.textContent = error.message;
-        window.showToast(error.message, { type: "error" });
-    } finally {
-        confirmEmailVerification.disabled = false;
-    }
-});
 
 updateEmailPreferencesUI();
 loadEmailPreferences();
