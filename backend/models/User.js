@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { getDateString } = require("../utils/date");
+const { getNextReminderAt } = require("../utils/email-reminder-time");
 
 const userSchema = new mongoose.Schema(
     {
@@ -43,11 +44,11 @@ const userSchema = new mongoose.Schema(
         emailPreferences: {
             enabled: {
                 type: Boolean,
-                default: false
+                default: true
             },
             dailyExerciseReminder: {
                 type: Boolean,
-                default: false
+                default: true
             },
             productUpdates: {
                 type: Boolean,
@@ -63,8 +64,14 @@ const userSchema = new mongoose.Schema(
             },
             nextReminderAt: {
                 type: Date,
-                default: null
+                default: () => getNextReminderAt(new Date(), "18:00", "Asia/Kolkata")
             }
+        },
+
+        emailReminderDefaultsMigrationVersion: {
+            type: Number,
+            default: null,
+            select: false
         },
 
         googleId: {

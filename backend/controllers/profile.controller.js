@@ -267,6 +267,7 @@ const completeSignup = async (req, res) => {
             passwordHash: pendingSignup.passwordHash,
             googleId: pendingSignup.googleId,
             profilePicture: pendingSignup.profilePicture,
+            emailReminderDefaultsMigrationVersion: 1,
             emailVerifiedAt: new Date(),
             legalConsentAt: new Date()
         });
