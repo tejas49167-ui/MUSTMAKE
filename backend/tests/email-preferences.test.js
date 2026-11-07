@@ -56,15 +56,26 @@ function stubUserModel(t, user) {
     return { getSavedPreferences: () => savedPreferences };
 }
 
-test("new users are opted out of optional email notifications by default", () => {
+test("new users are opted in to daily email reminders by default", () => {
     const user = new User({
         name: "Athlete",
         email: "athlete@example.test"
     });
 
-    assert.equal(user.emailPreferences.enabled, false);
-    assert.equal(user.emailPreferences.dailyExerciseReminder, false);
+    assert.equal(user.emailPreferences.enabled, true);
+    assert.equal(user.emailPreferences.dailyExerciseReminder, true);
     assert.equal(user.emailPreferences.productUpdates, false);
+    assert.ok(user.emailPreferences.nextReminderAt instanceof Date);
+    assert.ok(user.emailPreferences.nextReminderAt > new Date());
+    assert.equal(
+        new Intl.DateTimeFormat("en-GB", {
+            timeZone: "Asia/Kolkata",
+            hour: "2-digit",
+            minute: "2-digit",
+            hourCycle: "h23"
+        }).format(user.emailPreferences.nextReminderAt),
+        "18:00"
+    );
 });
 
 test("enabling reminders schedules them for 6 PM India time", async t => {
