@@ -18,11 +18,10 @@
     <div id="navbar"></div>
 
     <main class="settings-container">
-        <h1>Settings</h1>
 
         <section class="settings-row" aria-labelledby="dailyReminderTitle">
             <div class="settings-row-copy">
-                <h3 id="dailyReminderTitle">Daily workout reminder</h3>
+                <h2 id="dailyReminderTitle">Daily workout reminder</h2>
                 <p>At 6:00 PM India time, get an encouraging email if you have not logged a workout today.</p>
             </div>
             <label class="settings-switch">
@@ -32,7 +31,10 @@
         </section>
 
         <section class="settings-row" aria-labelledby="cameraSettingTitle">
-            <h2 id="cameraSettingTitle">Mirror camera</h2>
+            <div class="settings-row-copy">
+                <h2 id="cameraSettingTitle">Mirror camera</h2>
+                <p>Camera preference</p>
+            </div>
 
             <label class="settings-switch">
                 <input id="cameraMirrorToggle" type="checkbox" role="switch" aria-labelledby="cameraSettingTitle" checked>
@@ -43,6 +45,7 @@
         <section class="settings-row settings-row-smart-camera" aria-labelledby="smartCameraSettingTitle">
             <div class="settings-row-copy">
                 <h2 id="smartCameraSettingTitle">Camera full screen</h2>
+                <p> On scroll up full screen camera opens on scroll down camera closes</p>
             </div>
 
             <label class="settings-switch">
@@ -54,6 +57,7 @@
         <section class="settings-row settings-row-smart-camera" aria-labelledby="exerciseSoundSettingTitle">
             <div class="settings-row-copy">
                 <h2 id="exerciseSoundSettingTitle">Sounds</h2>
+                <p>Sound of exercise detection</p>
             </div>
 
             <label class="settings-switch">
