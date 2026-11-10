@@ -72,7 +72,7 @@ async function ensureLogRecord(logModel, identity, now) {
                     updatedAt: now
                 }
             },
-            { upsert: true }
+            { upsert: true, timestamps: false }
         );
     } catch (error) {
         if (error.code !== 11000) throw error;

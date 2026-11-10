@@ -29,6 +29,7 @@ function createFixture(options = {}) {
         ...(options.user || {})
     };
     let log = null;
+    let upsertOptions = null;
     let exerciseChecks = 0;
     const sent = [];
     const updates = [];
@@ -79,11 +80,14 @@ function createFixture(options = {}) {
     const LogModel = {
         async updateOne(filter, update, config) {
             if (config?.upsert) {
+                upsertOptions = config;
                 if (!log) {
                     log = {
                         ...filter,
                         status: update.$setOnInsert.status,
                         attemptCount: update.$setOnInsert.attemptCount,
+                        createdAt: update.$setOnInsert.createdAt,
+                        updatedAt: update.$setOnInsert.updatedAt,
                         leaseToken: null,
                         leaseExpiresAt: null,
                         nextAttemptAt: null
@@ -145,6 +149,7 @@ function createFixture(options = {}) {
         user,
         logModel: LogModel,
         getLog() { return log; },
+        getUpsertOptions() { return upsertOptions; },
         sent,
         updates,
         dependencies,
@@ -188,6 +193,16 @@ test("no workout today sends one reminder with the current streak", async () => 
     assert.equal(fixture.getLog().status, "sent");
     assert.equal(fixture.getLog().attemptCount, 1);
     assert.equal(fixture.getLog().resendMessageId, "resend-message-1");
+});
+
+test("notification log upserts do not conflict with Mongoose timestamps", async () => {
+    const fixture = createFixture();
+
+    await processDueUser(fixture.user, now, fixture.dependencies);
+
+    assert.equal(fixture.getUpsertOptions().timestamps, false);
+    assert.equal(fixture.getLog().createdAt, now);
+    assert.equal(fixture.getLog().updatedAt, now);
 });
 
 test("disabled reminder preferences suppress delivery", async t => {
