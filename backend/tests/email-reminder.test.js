@@ -52,7 +52,8 @@ function createFixture(options = {}) {
         findById() {
             return { select: async () => options.currentUser || user };
         },
-        find() {
+        find(filter) {
+            options.onUserQuery?.(filter);
             const query = {
                 select() { return this; },
                 sort() { return this; },
@@ -189,11 +190,10 @@ test("no workout today sends one reminder with the current streak", async () => 
     assert.equal(fixture.getLog().resendMessageId, "resend-message-1");
 });
 
-test("master and individual reminder preferences and unverified email all suppress delivery", async t => {
+test("disabled reminder preferences suppress delivery", async t => {
     for (const user of [
         { emailPreferences: { ...createFixture().user.emailPreferences, enabled: false } },
-        { emailPreferences: { ...createFixture().user.emailPreferences, dailyExerciseReminder: false } },
-        { emailVerifiedAt: null }
+        { emailPreferences: { ...createFixture().user.emailPreferences, dailyExerciseReminder: false } }
     ]) {
         await t.test(JSON.stringify(user), async () => {
             const fixture = createFixture({ user });
@@ -203,6 +203,20 @@ test("master and individual reminder preferences and unverified email all suppre
             assert.equal(fixture.sent.length, 0);
         });
     }
+});
+
+test("reminders do not require an email verification field", async () => {
+    let userQuery;
+    const fixture = createFixture({
+        user: { emailVerifiedAt: null },
+        onUserQuery: query => { userQuery = query; }
+    });
+
+    const result = await runDueReminders(now, fixture.dependencies);
+
+    assert.equal(result.sent, 1);
+    assert.equal(fixture.sent.length, 1);
+    assert.equal(Object.hasOwn(userQuery, "emailVerifiedAt"), false);
 });
 
 test("duplicate scheduler invocations claim the same user only once", async () => {

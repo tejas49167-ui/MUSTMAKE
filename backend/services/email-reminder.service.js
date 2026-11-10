@@ -24,7 +24,6 @@ const RETRY_DELAYS_MS = [60_000, 2 * 60_000, 5 * 60_000, 15 * 60_000];
 function isReminderEligible(user) {
     const preferences = user?.emailPreferences;
     return Boolean(
-        user?.emailVerifiedAt &&
         typeof user.email === "string" &&
         preferences?.enabled === true &&
         preferences?.dailyExerciseReminder === true
@@ -202,7 +201,7 @@ async function processDueUser(user, now, dependencies = {}) {
     let attemptNow = now;
     try {
         const currentUser = await userModel.findById(user._id)
-            .select("email name emailVerifiedAt emailPreferences");
+            .select("email name emailPreferences");
         attemptNow = nowProvider();
         const currentPreferences = currentUser?.emailPreferences;
         const preferencesUnchanged = currentUser &&
@@ -288,12 +287,11 @@ async function runDueReminders(now = new Date(), dependencies = {}) {
     );
     const { end } = getLocalDayBounds(now, REMINDER_TIME_ZONE);
     const users = await userModel.find({
-        emailVerifiedAt: { $ne: null },
         "emailPreferences.enabled": true,
         "emailPreferences.dailyExerciseReminder": true,
         "emailPreferences.nextReminderAt": { $lt: end }
     })
-        .select("_id email name emailVerifiedAt emailPreferences")
+        .select("_id email name emailPreferences")
         .sort({ "emailPreferences.nextReminderAt": 1 })
         .limit(BATCH_SIZE)
         .lean();
