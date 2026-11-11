@@ -4,19 +4,20 @@ const User = require("../models/User");
 const Workout = require("../models/Workout");
 const connectDB = require("../config/database");
 const { getDateString } = require("../utils/date");
+const { isPlainObject } = require("../utils/validation");
 const { logFailure } = require("../utils/safe-log");
 
 const addCompetitor = async (req, res) => {
 
         try {
+            if (!isPlainObject(req.body)) {
+                return res.status(400).json({
+                    message: "Competition data must be an object."
+                });
+            }
 
             await connectDB();
-
-
-            const {
-                competitorId
-            } = req.body;
-
+            const { competitorId } = req.body;
 
             if (!competitorId) {
 
