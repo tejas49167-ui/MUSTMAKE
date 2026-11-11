@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const LoginRateLimit = require("../models/LoginRateLimit");
+const { getCookieValue } = require("../utils/cookie");
 
 const DEVICE_COOKIE_NAME = "mm_login_device";
 const DEVICE_LOCK_ATTEMPT = 7;
@@ -9,22 +10,8 @@ const RESTRICTION_MS = 5 * 60 * 1000;
 const DOCUMENT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const DEVICE_ID_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 
-function getCookieValue(req, name) {
-    const cookieHeader = req.headers.cookie;
-    if (!cookieHeader) return null;
-
-    for (const cookie of cookieHeader.split(";")) {
-        const separator = cookie.indexOf("=");
-        if (separator < 0 || cookie.slice(0, separator).trim() !== name) continue;
-
-        return cookie.slice(separator + 1).trim();
-    }
-
-    return null;
-}
-
 function getDeviceId(req, res) {
-    const existingId = getCookieValue(req, DEVICE_COOKIE_NAME);
+    const existingId = getCookieValue(req.headers.cookie, DEVICE_COOKIE_NAME);
     if (existingId && DEVICE_ID_PATTERN.test(existingId)) {
         return existingId;
     }

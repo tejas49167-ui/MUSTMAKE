@@ -14,6 +14,7 @@ const {
     setSessionCookie,
     clearPendingSignupCookie
 } = require("../utils/auth-cookie");
+const { getCookieValue } = require("../utils/cookie");
 const {
     isPlainObject
 } = require("../utils/validation");
@@ -204,16 +205,6 @@ const saveProfile = async (req, res, requireName = false) => {
         return res.status(500).json({ message: "Could not update profile." });
     }
 };
-
-function getCookieValue(cookieHeader, name) {
-    if (!cookieHeader) return null;
-    const cookie = cookieHeader.split(";").find(part => {
-        const separator = part.indexOf("=");
-        return separator >= 0 && part.slice(0, separator).trim() === name;
-    });
-    if (!cookie) return null;
-    return cookie.slice(cookie.indexOf("=") + 1).trim();
-}
 
 const completeSignup = async (req, res) => {
     try {

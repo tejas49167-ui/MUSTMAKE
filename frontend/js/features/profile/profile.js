@@ -4,14 +4,7 @@ function logout() {
     window.location.href = "/login";
 }
 
-function safeSocialUrl(value) {
-    try {
-        const url = new URL(value);
-        return ["http:", "https:"].includes(url.protocol) ? url.href : null;
-    } catch {
-        return null;
-    }
-}
+const safeSocialUrl = window.MUSTMAKE.safeSocialUrl;
 
 function optimizeCloudinaryImage(url) {
     if (!url) return url;

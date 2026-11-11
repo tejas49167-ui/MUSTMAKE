@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const GoogleOAuthState = require("../models/GoogleOAuthState");
 const connectDB = require("../config/database");
 const { allowRequest } = require("../services/otp-abuse.service");
+const { getCookieValue } = require("../utils/cookie");
 
 const STATE_COOKIE_NAME = "mustmake_google_oauth_state";
 const STATE_TTL_MS = 5 * 60 * 1000;
@@ -31,11 +32,7 @@ function stateCookieOptions() {
 }
 
 function getStateCookie(req) {
-    const cookies = req.headers.cookie || "";
-    const prefix = `${STATE_COOKIE_NAME}=`;
-    const entry = cookies.split(";").map(value => value.trim())
-        .find(value => value.startsWith(prefix));
-    return entry ? entry.slice(prefix.length) : "";
+    return getCookieValue(req.headers.cookie, STATE_COOKIE_NAME) || "";
 }
 
 function safeEqual(left, right) {

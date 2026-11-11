@@ -6,18 +6,7 @@ const {
     SESSION_COOKIE_NAME,
     clearSessionCookie
 } = require("../utils/auth-cookie");
-
-function getCookieValue(cookieHeader, name) {
-    if (!cookieHeader) return null;
-
-    const cookie = cookieHeader.split(";").find(part => {
-        const separator = part.indexOf("=");
-        return separator >= 0 && part.slice(0, separator).trim() === name;
-    });
-
-    if (!cookie) return null;
-    return cookie.slice(cookie.indexOf("=") + 1).trim();
-}
+const { getCookieValue } = require("../utils/cookie");
 
 async function auth(req, res, next) {
     res.set("Cache-Control", "no-store");

@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Workout = require("../models/Workout");
 const EmailNotificationLog = require("../models/EmailNotificationLog");
 const emailService = require("./email.service");
-const { calculateStreak } = require("../utils/date");
+const { getWorkoutStreak } = require("./workout-streak.service");
 const {
     REMINDER_TIME,
     REMINDER_TIME_ZONE,
@@ -144,16 +144,8 @@ async function processDueUser(user, now, dependencies = {}) {
     const sendReminder = dependencies.sendReminder ||
         emailService.sendExerciseReminderEmail;
     const nowProvider = dependencies.nowProvider || (() => new Date());
-    const getStreak = dependencies.getStreak || (async (userId, localDate) => {
-        const workoutDates = await workoutModel.distinct("date", {
-            user: userId,
-            date: {
-                $lte: `${localDate}\uffff`,
-                $regex: /^\d{4}-\d{2}-\d{2}/
-            }
-        });
-        return calculateStreak(workoutDates, localDate);
-    });
+    const getStreak = dependencies.getStreak ||
+        ((userId, localDate) => getWorkoutStreak(userId, localDate, workoutModel));
 
     if (!isReminderEligible(user)) {
         return { result: "ineligible" };

@@ -4,6 +4,7 @@ const {
     formatDate,
     formatWorkoutDetails
 } = window.MUSTMAKE.presentation;
+const safeSocialUrl = window.MUSTMAKE.safeSocialUrl;
 const profileToken = (() => {
     try {
         return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
@@ -22,15 +23,6 @@ let publicHistoryLoadMoreButton = null;
 
 function formatWorkoutDate(value) {
     return formatDate(value, { day: "numeric", month: "short", year: "numeric" });
-}
-
-function safeSocialUrl(value) {
-    try {
-        const url = new URL(value);
-        return ["http:", "https:"].includes(url.protocol) ? url.href : null;
-    } catch {
-        return null;
-    }
 }
 
 function safeImageUrl(value) {

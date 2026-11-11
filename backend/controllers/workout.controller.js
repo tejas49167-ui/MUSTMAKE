@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
 const Workout = require("../models/Workout");
 const connectDB = require("../config/database");
-const { getDateString, previousDateString } = require("../utils/date");
+const { getDateString } = require("../utils/date");
 const { isPlainObject, parseWorkoutNumber } = require("../utils/validation");
 const { createWorkoutRecord } = require("../services/workout.service");
 const { getWorkoutHistoryPage } = require("../services/workout-history.service");
+const { getWorkoutStreak } = require("../services/workout-streak.service");
 const exercises = require("../config/exercises.json");
 const { logFailure } = require("../utils/safe-log");
 
@@ -24,7 +25,7 @@ const addWorkout = async (req, res) => {
             return res.status(400).json({ message: "Select a supported exercise." });
         }
 
-        let workoutValues = {
+        const workoutValues = {
             reps: null,
             sets: null,
             weight: null,
@@ -34,18 +35,28 @@ const addWorkout = async (req, res) => {
         };
 
         if (manualType === "sets-reps" || manualType === "weighted-sets-reps") {
-            const parsedReps = parseWorkoutNumber(reps, { integer: true, min: 1, max: 150 });
-            const parsedSets = parseWorkoutNumber(sets, { integer: true, min: 1, max: 10 });
+            const parsedReps = parseWorkoutNumber(reps, {
+                integer: true,
+                min: 1,
+                max: 150
+            });
+            const parsedSets = parseWorkoutNumber(sets, {
+                integer: true,
+                min: 1,
+                max: 10
+            });
             if (!parsedReps.valid || !parsedSets.valid ||
                 !Number.isSafeInteger(parsedReps.value * parsedSets.value)) {
-                return res.status(400).json({ message: "Reps must be 1–150 and sets must be 1–10." });
+                return res.status(400).json({
+                    message: "Reps must be 1–150 and sets must be 1–10."
+                });
             }
 
             workoutValues.reps = parsedReps.value;
             workoutValues.sets = parsedSets.value;
 
             if (manualType === "weighted-sets-reps") {
-                const weightField = config?.fields?.find(field => field.name === "weight");
+                const weightField = config.fields?.find(field => field.name === "weight");
                 const minWeight = weightField?.min ?? 0;
                 const maxWeight = weightField?.max ?? 60;
                 const weightStep = weightField?.step ?? 0.5;
@@ -53,6 +64,7 @@ const addWorkout = async (req, res) => {
                     min: minWeight,
                     max: maxWeight
                 });
+
                 if (
                     !parsedWeight.valid ||
                     !Number.isInteger((parsedWeight.value - minWeight) / weightStep)
@@ -65,15 +77,17 @@ const addWorkout = async (req, res) => {
             }
         } else if (manualType === "duration") {
             const durationField = config.fields?.find(field => field.name === "duration");
+            const minDuration = durationField?.min ?? 1;
             const maxDuration = durationField?.max ?? 900;
             const parsedDuration = parseWorkoutNumber(duration, {
                 integer: true,
-                min: durationField?.min ?? 1,
+                min: minDuration,
                 max: maxDuration
             });
+
             if (!parsedDuration.valid) {
                 return res.status(400).json({
-                    message: `Duration must be between ${durationField?.min ?? 1} and ${maxDuration} seconds.`
+                    message: `Duration must be between ${minDuration} and ${maxDuration} seconds.`
                 });
             }
             workoutValues.duration = parsedDuration.value;
@@ -82,8 +96,11 @@ const addWorkout = async (req, res) => {
             const parsedDuration = duration == null || duration === ""
                 ? { valid: true, value: null }
                 : parseWorkoutNumber(duration, { integer: true, min: 1 });
+
             if (!parsedDistance.valid || !parsedDuration.valid) {
-                return res.status(400).json({ message: "Distance must be 50 km or less, with a valid duration." });
+                return res.status(400).json({
+                    message: "Distance must be 50 km or less, with a valid duration."
+                });
             }
             workoutValues.amount = parsedDistance.value;
             workoutValues.duration = parsedDuration.value;
@@ -93,14 +110,19 @@ const addWorkout = async (req, res) => {
             const parsedDuration = duration == null || duration === ""
                 ? { valid: true, value: null }
                 : parseWorkoutNumber(duration, { integer: true, min: 1 });
+
             if (!parsedJumps.valid || !parsedDuration.valid) {
-                return res.status(400).json({ message: "Enter a positive jump count and a valid duration." });
+                return res.status(400).json({
+                    message: "Enter a positive jump count and a valid duration."
+                });
             }
             workoutValues.amount = parsedJumps.value;
             workoutValues.duration = parsedDuration.value;
             workoutValues.unit = "jumps";
         } else {
-            return res.status(400).json({ message: "This exercise does not support manual entry yet." });
+            return res.status(400).json({
+                message: "This exercise does not support manual entry yet."
+            });
         }
 
         await connectDB();
@@ -119,252 +141,71 @@ const addWorkout = async (req, res) => {
 };
 
 const getTodayWorkouts = async (req, res) => {
+    try {
+        await connectDB();
+        const workouts = await Workout.find({
+            user: req.userId,
+            date: getDateString()
+        }).sort({ createdAt: -1 });
 
-        try {
-
-            await connectDB();
-
-
-            const today =
-                getDateString();
-
-
-            const workouts =
-                await Workout.find({
-
-                    user:
-                        req.userId,
-
-                    date:
-                        today
-
-                }).sort({
-                    createdAt:
-                        -1
-                });
-
-
-            res.json(
-                workouts
-            );
-
-
-        } catch (error) {
-
-            logFailure("Load today's workouts failed.", error);
-
-
-            res.status(500).json({
-                message:
-                    "Could not load workouts."
-            });
-        }
-    };
+        return res.json(workouts);
+    } catch (error) {
+        logFailure("Load today's workouts failed.", error);
+        return res.status(500).json({ message: "Could not load workouts." });
+    }
+};
 
 const getStreak = async (req, res) => {
-
-        try {
-
-            await connectDB();
-
-            const today = getDateString();
-            const yesterday = previousDateString(today);
-            const [result] = await Workout.aggregate([
-                {
-                    $match: {
-                        user: new mongoose.Types.ObjectId(req.userId),
-                        date: {
-                            $lte: `${today}\uffff`,
-                            $regex: /^\d{4}-\d{2}-\d{2}/
-                        }
-                    }
-                },
-                { $group: { _id: { $substrBytes: ["$date", 0, 10] } } },
-                {
-                    $set: {
-                        dateValue: {
-                            $dateFromString: {
-                                dateString: "$_id",
-                                format: "%Y-%m-%d",
-                                onError: null
-                            }
-                        }
-                    }
-                },
-                { $match: { dateValue: { $ne: null } } },
-                { $sort: { dateValue: -1 } },
-                {
-                    $setWindowFields: {
-                        sortBy: { dateValue: -1 },
-                        output: {
-                            newerDate: {
-                                $shift: {
-                                    output: "$dateValue",
-                                    by: -1,
-                                    default: null
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    $set: {
-                        hasGap: {
-                            $cond: [
-                                { $eq: ["$newerDate", null] },
-                                0,
-                                {
-                                    $cond: [
-                                        {
-                                            $eq: [
-                                                {
-                                                    $dateDiff: {
-                                                        startDate: "$dateValue",
-                                                        endDate: "$newerDate",
-                                                        unit: "day"
-                                                    }
-                                                },
-                                                1
-                                            ]
-                                        },
-                                        0,
-                                        1
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                },
-                {
-                    $setWindowFields: {
-                        sortBy: { dateValue: -1 },
-                        output: {
-                            cumulativeGaps: {
-                                $sum: "$hasGap",
-                                window: { documents: ["unbounded", "current"] }
-                            }
-                        }
-                    }
-                },
-                {
-                    $group: {
-                        _id: null,
-                        streak: {
-                            $sum: {
-                                $cond: [{ $eq: ["$cumulativeGaps", 0] }, 1, 0]
-                            }
-                        },
-                        hasActiveDay: {
-                            $max: {
-                                $cond: [{ $in: ["$_id", [today, yesterday]] }, 1, 0]
-                            }
-                        }
-                    }
-                },
-                {
-                    $project: {
-                        _id: 0,
-                        streak: {
-                            $cond: ["$hasActiveDay", "$streak", 0]
-                        }
-                    }
-                }
-            ]);
-
-
-            res.json({
-                streak: result?.streak || 0
-            });
-
-
-        } catch (error) {
-
-            logFailure("Load streak failed.", error);
-
-
-            res.status(500).json({
-                message:
-                    "Could not load streak."
-            });
-        }
-    };
+    try {
+        await connectDB();
+        const streak = await getWorkoutStreak(req.userId, getDateString());
+        return res.json({ streak });
+    } catch (error) {
+        logFailure("Load streak failed.", error);
+        return res.status(500).json({ message: "Could not load streak." });
+    }
+};
 
 const getWorkoutHistory = async (req, res) => {
-
-        try {
-
-            await connectDB();
-
-            const page = await getWorkoutHistoryPage(req.userId, req.query);
-            if (page.invalidCursor) {
-                return res.status(400).json({ message: "Invalid workout history cursor." });
-            }
-
-            res.json({ workouts: page.workouts, nextCursor: page.nextCursor });
-
-
-        } catch (error) {
-
-            logFailure("Load workout history failed.", error);
-
-
-            res.status(500).json({
-                message:
-                    "Could not load history."
-            });
+    try {
+        await connectDB();
+        const page = await getWorkoutHistoryPage(req.userId, req.query);
+        if (page.invalidCursor) {
+            return res.status(400).json({ message: "Invalid workout history cursor." });
         }
-    };
+
+        return res.json({
+            workouts: page.workouts,
+            nextCursor: page.nextCursor
+        });
+    } catch (error) {
+        logFailure("Load workout history failed.", error);
+        return res.status(500).json({ message: "Could not load history." });
+    }
+};
 
 const deleteWorkout = async (req, res) => {
-
-        try {
-
-            if (!mongoose.isValidObjectId(req.params.id)) {
-                return res.status(400).json({ message: "Invalid workout ID." });
-            }
-
-            await connectDB();
-
-
-            const workout =
-                await Workout.findOneAndDelete({
-
-                    _id:
-                        req.params.id,
-
-                    // IMPORTANT:
-                    // A user can delete only
-                    // their own workout.
-                    user:
-                        req.userId
-                });
-
-
-            if (!workout) {
-
-                return res.status(404).json({
-                    message:
-                        "Workout not found."
-                });
-            }
-
-
-            res.json({
-                success: true
-            });
-
-
-        } catch (error) {
-
-            logFailure("Delete workout failed.", error);
-
-
-            res.status(500).json({
-                message:
-                    "Could not delete workout."
-            });
+    try {
+        if (!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(400).json({ message: "Invalid workout ID." });
         }
-    };
+
+        await connectDB();
+        const workout = await Workout.findOneAndDelete({
+            _id: req.params.id,
+            user: req.userId
+        });
+
+        if (!workout) {
+            return res.status(404).json({ message: "Workout not found." });
+        }
+
+        return res.json({ success: true });
+    } catch (error) {
+        logFailure("Delete workout failed.", error);
+        return res.status(500).json({ message: "Could not delete workout." });
+    }
+};
 
 module.exports = {
     addWorkout,
