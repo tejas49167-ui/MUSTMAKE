@@ -547,6 +547,20 @@ export function mountAiMonitor(
         });
     }
 
+    function handleSmartCameraWheel(event) {
+        if (
+            !smartCameraEnabled ||
+            lifecycle !== "running" ||
+            event.ctrlKey ||
+            event.deltaY === 0 ||
+            scrollContainer.scrollHeight > scrollContainer.clientHeight + 1
+        ) {
+            return;
+        }
+
+        transitionPreview(event.deltaY > 0);
+    }
+
     function handlePreviewTransitionEnd(event) {
         if (
             event.target === preview &&
@@ -1803,6 +1817,11 @@ export function mountAiMonitor(
 
     document.addEventListener("scroll", scheduleSmartCameraScrollUpdate, {
         capture: true,
+        passive: true,
+        signal: listeners.signal
+    });
+
+    document.addEventListener("wheel", handleSmartCameraWheel, {
         passive: true,
         signal: listeners.signal
     });
