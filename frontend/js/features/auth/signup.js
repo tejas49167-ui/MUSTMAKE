@@ -8,7 +8,52 @@ const signupForm = document.getElementById("signupForm");
 const signupOtpForm = document.getElementById("signupOtpForm");
 const signupResend = document.getElementById("signupResend");
 const resendStatus = document.getElementById("signupResendStatus");
+const googleSignupLink = document.getElementById("googleSignupLink");
 let signupToast = null;
+
+window.addEventListener("storage", event => {
+    if (event.key === "googleSignupPending" && event.newValue) {
+        localStorage.removeItem("googleSignupPending");
+        sessionStorage.setItem("pendingSignup", "true");
+        window.location.replace("/first-details");
+        return;
+    }
+
+    if (event.key !== "googleLoginComplete" || !event.newValue) return;
+
+    localStorage.removeItem("googleLoginComplete");
+    if (!localStorage.getItem("user")) return;
+
+    try {
+        window.redirectAfterAuthentication(JSON.parse(localStorage.getItem("user")));
+    } catch (error) {
+        console.error("Could not read the signed-in user.", error);
+        window.location.replace("/today");
+    }
+});
+
+if (googleSignupLink) {
+    googleSignupLink.href = `${window.backend_url}/api/auth/google`;
+    googleSignupLink.addEventListener("click", event => {
+        if (
+            event.button !== 0 ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.shiftKey ||
+            event.altKey
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        const oauthWindow = window.open(googleSignupLink.href, "_blank");
+        if (oauthWindow) {
+            oauthWindow.opener = null;
+        } else {
+            window.location.replace(googleSignupLink.href);
+        }
+    });
+}
 
 if (loginLink) {
     loginLink.addEventListener("click", (event) => {
