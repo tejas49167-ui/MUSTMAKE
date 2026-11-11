@@ -18,9 +18,7 @@ const addWorkout = async (req, res) => {
 
         const { exercise, reps, sets, weight, amount, duration } = req.body;
         const config = exercisesByName.get(exercise);
-        const manualType = exercise === "Dumbbell"
-            ? "weighted-sets-reps"
-            : config?.manualType;
+        const manualType = config?.manualType;
 
         if (typeof exercise !== "string" || !manualType) {
             return res.status(400).json({ message: "Select a supported exercise." });

@@ -1,7 +1,11 @@
 const User = require("../models/User");
 const connectDB = require("../config/database");
 const { isPlainObject } = require("../utils/validation");
-const { getNextReminderAt } = require("../utils/email-reminder-time");
+const {
+    REMINDER_TIME,
+    REMINDER_TIME_ZONE,
+    getNextReminderAt
+} = require("../utils/email-reminder-time");
 const { logFailure } = require("../utils/safe-log");
 
 const BOOLEAN_PREFERENCES = ["enabled", "dailyExerciseReminder"];
@@ -61,7 +65,11 @@ async function updatePreferences(req, res) {
         };
         const isReminderEnabled = updated.enabled && updated.dailyExerciseReminder;
         const nextReminderAt = isReminderEnabled
-            ? getNextReminderAt(new Date(), "18:00", "Asia/Kolkata")
+            ? getNextReminderAt(
+                new Date(),
+                REMINDER_TIME,
+                REMINDER_TIME_ZONE
+            )
             : null;
         const fieldsToSave = {};
         for (const [key, value] of Object.entries(req.body)) {

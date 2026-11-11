@@ -88,7 +88,6 @@ test("production responses include secure headers and protected routes reject an
         { method: "GET", path: "/api/profile" },
         { method: "GET", path: "/api/workouts/today" },
         { method: "GET", path: "/api/competition" },
-        { method: "GET", path: "/api/auth/me" },
         { method: "GET", path: "/api/users/0123456789abcdef01234567" },
         { method: "POST", path: "/api/workouts", body: { exercise: "Squats" } },
         { method: "POST", path: "/api/competition/add", body: { competitorId: "0123456789abcdef01234567" } },

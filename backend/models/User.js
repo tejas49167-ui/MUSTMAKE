@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 const { getDateString } = require("../utils/date");
-const { getNextReminderAt } = require("../utils/email-reminder-time");
+const {
+    REMINDER_TIME,
+    REMINDER_TIME_ZONE,
+    getNextReminderAt
+} = require("../utils/email-reminder-time");
 
 const userSchema = new mongoose.Schema(
     {
@@ -61,17 +65,13 @@ const userSchema = new mongoose.Schema(
                 type: Boolean,
                 default: false
             },
-            reminderTime: {
-                type: String,
-                default: "09:00"
-            },
-            timeZone: {
-                type: String,
-                default: "Asia/Kolkata"
-            },
             nextReminderAt: {
                 type: Date,
-                default: () => getNextReminderAt(new Date(), "18:00", "Asia/Kolkata")
+                default: () => getNextReminderAt(
+                    new Date(),
+                    REMINDER_TIME,
+                    REMINDER_TIME_ZONE
+                )
             }
         },
 

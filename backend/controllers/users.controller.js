@@ -7,50 +7,6 @@ const { escapeRegex } = require("../utils/validation");
 const { getWorkoutHistoryPage } = require("../services/workout-history.service");
 const { logFailure } = require("../utils/safe-log");
 
-const currentUser = async (req, res) => {
-
-        try {
-
-            await connectDB();
-
-
-            const user =
-                await User.findById(
-                    req.userId
-                ).select(
-                    "-passwordHash +ageReferenceYear"
-                );
-
-
-            if (!user) {
-
-                return res.status(404).json({
-                    message:
-                        "User not found."
-                });
-            }
-
-
-            res.json({
-
-                success: true,
-
-                user
-            });
-
-
-        } catch (error) {
-
-            logFailure("Current user lookup failed.", error);
-
-
-            res.status(500).json({
-                message:
-                    "Could not get user."
-            });
-        }
-    };
-
 const searchUsers = async (req, res) => {
 
         try {
@@ -172,7 +128,6 @@ const getPublicProfile = async (req, res) => {
     };
 
 module.exports = {
-    currentUser,
     searchUsers,
     getPublicProfile
 };

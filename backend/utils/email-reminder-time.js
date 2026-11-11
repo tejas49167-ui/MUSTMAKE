@@ -1,25 +1,10 @@
 const { DateTime } = require("luxon");
 
-function isValidTimeZone(timeZone) {
-    return typeof timeZone === "string" &&
-        timeZone.length <= 100 &&
-        DateTime.now().setZone(timeZone).isValid;
-}
-
-function isValidReminderTime(reminderTime) {
-    return typeof reminderTime === "string" &&
-        /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(reminderTime);
-}
+const REMINDER_TIME = "18:00";
+const REMINDER_TIME_ZONE = "Asia/Kolkata";
 
 function getLocalDate(date, timeZone) {
     return DateTime.fromJSDate(date, { zone: timeZone }).toISODate();
-}
-
-function getReminderAtForDate(localDate, reminderTime, timeZone) {
-    const reminder = DateTime.fromISO(`${localDate}T${reminderTime}`, {
-        zone: timeZone
-    });
-    return reminder.isValid ? reminder.toUTC().toJSDate() : null;
 }
 
 function getLocalDayBounds(date, timeZone) {
@@ -53,16 +38,18 @@ function getNextReminderAt(now, reminderTime, timeZone) {
 }
 
 function isReminderWindow(date) {
-    const localHour = DateTime.fromJSDate(date, { zone: "Asia/Kolkata" }).hour;
-    return localHour === 18;
+    const [hour] = REMINDER_TIME.split(":").map(Number);
+    const localHour = DateTime.fromJSDate(date, {
+        zone: REMINDER_TIME_ZONE
+    }).hour;
+    return localHour === hour;
 }
 
 module.exports = {
+    REMINDER_TIME,
+    REMINDER_TIME_ZONE,
     getLocalDate,
     getLocalDayBounds,
-    getReminderAtForDate,
     getNextReminderAt,
-    isReminderWindow,
-    isValidReminderTime,
-    isValidTimeZone
+    isReminderWindow
 };

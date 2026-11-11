@@ -547,10 +547,6 @@ const verifyOtp = async (req, res) => {
     }
 };
 
-const signup = (req, res) => res.status(410).json({
-        message: "Email verification is required. Request a signup code to create an account."
-    });
-
 const login = async (req, res) => {
 
         try {
@@ -764,7 +760,6 @@ const logout = async (req, res) => {
 module.exports = {
     sendOtp,
     verifyOtp,
-    signup,
     login,
     loginRateLimitStatus,
     googleCallback,

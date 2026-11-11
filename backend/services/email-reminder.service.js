@@ -5,6 +5,8 @@ const EmailNotificationLog = require("../models/EmailNotificationLog");
 const emailService = require("./email.service");
 const { calculateStreak } = require("../utils/date");
 const {
+    REMINDER_TIME,
+    REMINDER_TIME_ZONE,
     getLocalDate,
     getLocalDayBounds,
     getNextReminderAt,
@@ -13,8 +15,6 @@ const {
 const { logFailure } = require("../utils/safe-log");
 
 const NOTIFICATION_TYPE = "daily-exercise-reminder";
-const REMINDER_TIME = "18:00";
-const REMINDER_TIME_ZONE = "Asia/Kolkata";
 const LEASE_DURATION_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 const BATCH_SIZE = 50;
@@ -48,7 +48,11 @@ async function scheduleNextReminder(user, now, userModel = User, expectedDueAt) 
     const active = preferences.enabled === true &&
         preferences.dailyExerciseReminder === true;
     const nextReminderAt = active
-        ? getNextReminderAt(now, REMINDER_TIME, REMINDER_TIME_ZONE)
+        ? getNextReminderAt(
+            now,
+            REMINDER_TIME,
+            REMINDER_TIME_ZONE
+        )
         : null;
     const filter = { _id: user._id };
     if (expectedDueAt) {
