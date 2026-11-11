@@ -163,6 +163,10 @@ export function mountAiMonitor(
 ) {
     const isPlank = exercise.slug === "plank";
     const isJumpCount = exercise.slug === "skipping-rope";
+    const weightField = exercise.fields?.find(field => field.name === "weight");
+    const minWeight = weightField?.min ?? 0;
+    const maxWeight = weightField?.max ?? 60;
+    const weightStep = weightField?.step ?? 0.5;
     const maxPlankDuration = exercise.fields?.find(field => field.name === "duration")?.max ??
         MAX_PLANK_DURATION_SECONDS;
 
@@ -1528,13 +1532,13 @@ export function mountAiMonitor(
             weightInput &&
             (
                 !Number.isFinite(weight) ||
-                weight < 0.5 ||
-                weight > 1000 ||
-                !Number.isInteger(weight * 2)
+                weight < minWeight ||
+                weight > maxWeight ||
+                !Number.isInteger((weight - minWeight) / weightStep)
             )
         ) {
             weightInput.setCustomValidity(
-                "Enter a weight of at least 0.5 kg in 0.5 kg increments."
+                `Enter a weight from ${minWeight} to ${maxWeight} kg in ${weightStep} kg increments.`
             );
 
             weightInput.reportValidity();

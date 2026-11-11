@@ -1,0 +1,66 @@
+
+## 3\. Medium-priority bugs and security findings
+
+2. **Workout API accepts implausible weight values — confirmed.** The server validates weighted exercises with only `min: 0`; it sets no upper bound and does not enforce the UI’s 0.5 kg minimum and increments. An in-memory controller probe submitted `1e308` kg and received status `201`. See backend/controllers/workout.controller.js:49, compared with the exercise form constraints in backend/config/exercises.json:129. This can corrupt workout history and competition displays.
+4. **Reminders default on and do not require verified email — privacy/consent risk.** New users default to enabled daily reminders, and the migration enables reminders for existing users. Eligibility checks the reminder toggles and email string, but not `emailVerifiedAt`. A test explicitly confirms delivery to an unverified address. Verify that this default and behavior match the intended consent policy. See backend/models/User.js:44, backend/services/email-reminder.service.js:24, backend/scripts/enable-email-reminders.js:8, and backend/tests/email-reminder.test.js:223.
+5. **Logout does not revoke a copied session token.** JWTs remain valid for seven days. Logout clears the browser cookie, but there is no server-side session record or token revocation check; a copied token can still authenticate until it expires. See backend/services/auth.service.js:34 and backend/controllers/auth.controller.js:745.
+6. **IP-based limits depend on deployed proxy configuration.** `TRUST_PROXY` defaults to `false`. If the production backend sits behind a proxy and this setting is unset, Express may group requests by the proxy connection address instead of the client address. That can make IP-based login and OTP limits ineffective per client or cause users to share a limit. Confirm the production setting and configure only the trusted proxy hops. See backend/app.js:27 and backend/services/login-rate-limit.service.js:57.
+9. **Email destination host differs from the canonical site.** Reminder emails link to `mustmake.vercel.app`, while the configured and canonical frontend is `mustmake.site`. The Vercel host may be a valid alias, but the difference should be verified and centralized. See backend/services/email.service.js:128, backend/config/urls.js:2, and frontend/index.html:49.
+10. **A null competition request body becomes a 500.** `addCompetitor` destructures `req.body` without first checking it is an object. A JSON `null` body throws and is caught as a server error instead of returning a client validation response. It also connects to the database before validating the body. See backend/controllers/competition.controller.js:13.
+
+## 4\. Confirmed unused or deprecated code
+
+- **Deprecated signup endpoint:** `/api/auth/signup` is still mounted, but always returns `410`; the current frontend uses OTP signup. Keep or remove it only after checking external clients. See backend/routes/auth.routes.js:18 and backend/controllers/auth.controller.js:549.
+- **Unreferenced reminder helpers:** `getReminderAtForDate`, `isValidReminderTime`, and `isValidTimeZone` are exported but have no callers in the repository. See backend/utils/email-reminder-time.js:3.
+- **Reminder settings drift:** the user model has a `reminderTime` default of `09:00`, while scheduling and delivery are fixed to `18:00` Asia/Kolkata. The time and timezone fields do not currently drive delivery. See backend/models/User.js:57 and backend/services/email-reminder.service.js:16.
+- **Unused API candidate:** `/api/auth/me` has no frontend caller; only its route declaration and tests reference it. Check external clients before treating it as deprecated.
+- **Legacy workout compatibility candidate:** the API accepts an exercise named `Dumbbell`, but no current exercise catalog or frontend flow uses that name. See backend/controllers/workout.controller.js:21.
+- **Unused CSS selectors by repository reference scan:** 67 unique class names in `style.css`, five in `profiles.css`, five in `exercise-monitor.css`, two in `legal.css`, and one in `settings.css` have no literal HTML or JavaScript references. Examples include `.page-heading` at frontend/assets/css/style.css:196, `.profile-header` at frontend/assets/css/profiles.css:95, `.monitor-eyebrow` at frontend/assets/css/exercise-monitor.css:15, `.legal-eyebrow` at frontend/assets/css/legal.css:19, and `.settings-delete-status` at frontend/assets/css/settings.css:147. The full `style.css` candidate set is: `account-danger-zone`, `account-delete-message`, `age-validation-message`, `art-dumbbell`, `art-ground`, `art-orbit`, `art-person`, `art-rope`, `art-spark`, `art-spark-small`, `auth-brand`, `auth-button`, `auth-form`, `auth-logo`, `auth-page`, `auth-text-button`, `card-kicker`, `competition-search`, `competition-section`, `desktop-nav-logout`, `error-message`, `exercise-ai-coming-soon`, `exercise-ai-icon`, `exercise-alternative`, `exercise-card-topline`, `exercise-category`, `exercise-coming-soon-badge`, `exercise-detail-content`, `exercise-detail-eyebrow`, `exercise-detail-media`, `exercise-details`, `exercise-equipment`, `exercise-level`, `exercise-media-placeholder`, `exercise-mode-intro`, `exercise-mode-kicker`, `exercise-muscles`, `exercise-tag`, `exercise-today-dashboard`, `eyebrow`, `library-note`, `logoutBtn`, `mobile-login`, `optional-label`, `otp-login-status`, `page-heading`, `people-grid`, `person-card`, `privacy-icon`, `privacy-note`, `profile-header`, `profile-upload`, `public-workout`, `required-mark`, `search-box`, `search-close`, `setup-card`, `setup-footer`, `setup-header`, `setup-intro`, `setup-message`, `setup-step`, `signup-account-exists`, `small-title`, `step-indicator`, `topbar-actions`, `wordmark`.
+- **No whole JavaScript module or direct dependency was confirmed unused.** Frontend modules are loaded by pages or imports. Backend dependencies in `package.json` have source references. The one-line backend/config/cloudinary.js:1 wrapper and backend/services/workout.service.js:3 wrapper add little abstraction. `formatWorkoutDuration` is exported but only used internally.
+
+## 5\. Code quality and architecture
+
+Largest maintenance hotspots include frontend/js/features/exercises/ai-monitor.js:1 (1,975 lines), frontend/assets/css/style.css:1 (5,566 lines), backend/controllers/auth.controller.js:1 (760 lines), frontend/js/shared/navbar.js:1 (629 lines), and frontend/js/features/exercises/exercise-detail.js:1 (622 lines).
+
+Repeated logic includes cookie parsing in authentication, profile, and rate-limit code; social URL validation in profile views; and two streak implementations—Mongo aggregation for the API and date-set logic for reminders. Controller formatting is inconsistent, especially in workout, competition, and users controllers.
+
+A behavior-preserving refactor could split backend auth into OTP, password/session, and OAuth units; move request validation into shared schemas; consolidate cookie and URL helpers; split pose monitoring into camera lifecycle, inference, rendering, and save flows; and scope CSS to shared components and page features. Exercise pages already share JavaScript behavior, but still duplicate much of their HTML shell.
+
+## 6\. Security review summary
+
+Positive controls confirmed in code and tests:
+
+- Session and pending-signup cookies are HttpOnly; production cookies are Secure and use `SameSite=None`.
+- Unsafe requests require an allowed `Origin`.
+- JWT verification restricts the algorithm to HS256 and validates the user ID.
+- Google OAuth state is random, cookie-bound, short-lived, constant-time compared, and consumed once.
+- OTP and login limits use persistent counters; OTPs are hashed, expire, and are consumed atomically.
+- Workout and competition mutations are scoped to the authenticated owner.
+- User-provided workout, profile, and social text is escaped before HTML insertion in the reviewed UI paths.
+- Helmet/CSP headers are present; static frontend CSP is compatible with same-origin API rewrites.
+- `npm audit --omit=dev` reported **0 vulnerabilities**.
+
+The `.env` file is ignored and untracked. Its contents were not inspected.
+
+## 7\. Tests and execution
+
+- Backend: **82 passed, 1 failed** across the existing suite. The failure is backend/tests/email.service.test.js:247: it expects `mustmake.vercel.site`, while the implementation emits `mustmake.vercel.app`. This is a test/host mismatch; verify the intended canonical domain.
+- Frontend: **6 passed, 0 failed** with `node --test tests/*.test.mjs`.
+- `node --check` passed for all repository JavaScript and MJS files.
+- Two non-writing probes reproduced the email enumeration responses and the accepted `1e308` kg workout value.
+- The listener-based backend API/security tests passed after allowing their ephemeral local HTTP listeners. No test used Atlas or external email/OAuth accounts.
+- No Playwright setup or frontend browser E2E suite exists. Browser flows remain unverified. I did not add test files because you asked for no file changes; the existing suites and in-memory probes were used.
+
+## 8\. Recommended order
+
+1. Decide privacy behavior for public profiles and reminder opt-in/verification.
+2. Normalize authentication errors and strengthen server-side workout bounds.
+3. Confirm production `TRUST_PROXY` and the reminder email destination host.
+4. Add authenticated API and browser E2E coverage, then increase validation and error-path coverage.
+5. Remove confirmed stale CSS and deprecated compatibility code after checking external clients.
+6. Split the oversized controllers, pose monitor, and styles into feature-owned modules.
+
+No changes have been applied; the repository is ready for your review.
+```
+  Worked for 21m 56s • 7:39 PM
+```

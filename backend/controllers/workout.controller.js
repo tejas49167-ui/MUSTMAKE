@@ -47,9 +47,21 @@ const addWorkout = async (req, res) => {
             workoutValues.sets = parsedSets.value;
 
             if (manualType === "weighted-sets-reps") {
-                const parsedWeight = parseWorkoutNumber(weight, { min: 0 });
-                if (!parsedWeight.valid) {
-                    return res.status(400).json({ message: "Enter a valid weight." });
+                const weightField = config?.fields?.find(field => field.name === "weight");
+                const minWeight = weightField?.min ?? 0;
+                const maxWeight = weightField?.max ?? 60;
+                const weightStep = weightField?.step ?? 0.5;
+                const parsedWeight = parseWorkoutNumber(weight, {
+                    min: minWeight,
+                    max: maxWeight
+                });
+                if (
+                    !parsedWeight.valid ||
+                    !Number.isInteger((parsedWeight.value - minWeight) / weightStep)
+                ) {
+                    return res.status(400).json({
+                        message: `Weight must be between ${minWeight} and ${maxWeight} kg in ${weightStep} kg increments.`
+                    });
                 }
                 workoutValues.weight = parsedWeight.value;
             }

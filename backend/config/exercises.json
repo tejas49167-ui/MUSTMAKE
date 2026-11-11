@@ -126,7 +126,7 @@
         "modes": ["ai", "manual"],
         "manualType": "weighted-sets-reps",
         "fields": [
-            { "name": "weight", "label": "Weight per hand (kg)", "min": 0.5, "step": 0.5 },
+            { "name": "weight", "label": "Weight per hand (kg)", "min": 0, "max": 60, "step": 0.5 },
             { "name": "reps", "label": "Reps", "min": 1, "step": 1 },
             { "name": "sets", "label": "Sets", "min": 1, "step": 1 }
         ]
@@ -139,7 +139,7 @@
         "modes": ["ai", "manual"],
         "manualType": "weighted-sets-reps",
         "fields": [
-            { "name": "weight", "label": "Weight per hand (kg)", "min": 0.5, "step": 0.5 },
+            { "name": "weight", "label": "Weight per hand (kg)", "min": 0, "max": 60, "step": 0.5 },
             { "name": "reps", "label": "Reps", "min": 1, "step": 1 },
             { "name": "sets", "label": "Sets", "min": 1, "step": 1 }
         ]
@@ -152,7 +152,7 @@
         "modes": ["ai", "manual"],
         "manualType": "weighted-sets-reps",
         "fields": [
-            { "name": "weight", "label": "Weight per hand (kg)", "min": 0.5, "step": 0.5 },
+            { "name": "weight", "label": "Weight per hand (kg)", "min": 0, "max": 60, "step": 0.5 },
             { "name": "reps", "label": "Reps", "min": 1, "step": 1 },
             { "name": "sets", "label": "Sets", "min": 1, "step": 1 }
         ]
@@ -165,7 +165,7 @@
         "modes": ["ai", "manual"],
         "manualType": "weighted-sets-reps",
         "fields": [
-            { "name": "weight", "label": "Weight per hand (kg)", "min": 0.5, "step": 0.5 },
+            { "name": "weight", "label": "Weight per hand (kg)", "min": 0, "max": 60, "step": 0.5 },
             { "name": "reps", "label": "Reps", "min": 1, "step": 1 },
             { "name": "sets", "label": "Sets", "min": 1, "step": 1 }
         ]
