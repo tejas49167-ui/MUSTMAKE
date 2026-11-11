@@ -522,7 +522,8 @@ const verifyOtp = async (req, res) => {
             }
         }
 
-        const user = await User.findOne({ email: cleanEmail }).select("+ageReferenceYear");
+        const user = await User.findOne({ email: cleanEmail })
+            .select("+ageReferenceYear +sessionVersion");
         if (!user) {
             return res.status(401).json({ message: "Invalid or expired code." });
         }
@@ -634,7 +635,7 @@ const login = async (req, res) => {
                         }
 
                     ]
-                }).select("+ageReferenceYear");
+                }).select("+ageReferenceYear +sessionVersion");
 
 
             if (!user) {
@@ -742,10 +743,22 @@ const currentSession = async (req, res) => {
     }
 };
 
-const logout = (req, res) => {
+const logout = async (req, res) => {
     res.set("Cache-Control", "no-store");
-    clearSessionCookie(res);
-    return res.json({ success: true });
+    try {
+        await connectDB();
+        await User.updateOne(
+            { _id: req.userId },
+            { $inc: { sessionVersion: 1 } },
+            { timestamps: false }
+        );
+        clearSessionCookie(res);
+        return res.json({ success: true });
+    } catch (error) {
+        clearSessionCookie(res);
+        logFailure("Logout failed.", error);
+        return res.status(500).json({ message: "Could not end the server session." });
+    }
 };
 
 module.exports = {

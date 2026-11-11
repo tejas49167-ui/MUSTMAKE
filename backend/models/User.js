@@ -31,6 +31,13 @@ const userSchema = new mongoose.Schema(
             default: null
         },
 
+        sessionVersion: {
+            type: Number,
+            min: 0,
+            default: 0,
+            select: false
+        },
+
         legalConsentAt: {
             type: Date,
             default: null

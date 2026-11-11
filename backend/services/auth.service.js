@@ -31,8 +31,11 @@ function createAuthSession(user) {
         throw new Error("JWT_SECRET is missing.");
     }
 
+    const sessionVersion = Number.isSafeInteger(user.sessionVersion) && user.sessionVersion >= 0
+        ? user.sessionVersion
+        : 0;
     const token = jwt.sign(
-        { userId: user._id.toString() },
+        { userId: user._id.toString(), sessionVersion },
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
     );

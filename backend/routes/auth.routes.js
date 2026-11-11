@@ -19,7 +19,7 @@ router.post("/api/auth/signup", authController.signup);
 router.post("/api/auth/login", authController.login);
 router.get("/api/auth/login-rate-limit", authController.loginRateLimitStatus);
 router.get("/api/auth/session", auth, authController.currentSession);
-router.post("/api/auth/logout", authController.logout);
+router.post("/api/auth/logout", auth, authController.logout);
 
 router.get(
     "/api/auth/google",

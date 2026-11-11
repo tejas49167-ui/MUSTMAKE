@@ -24,20 +24,25 @@ const { getFrontendOrigins } = require("./utils/auth-cookie");
 const csrfOrigin = require("./middleware/csrf-origin");
 
 const app = express();
-const configuredTrustProxy = process.env.TRUST_PROXY;
-let trustProxy = false;
-if (configuredTrustProxy === "true") {
-    trustProxy = 1;
-} else if (configuredTrustProxy === "false" || !configuredTrustProxy) {
-    trustProxy = false;
-} else if (/^\d+$/.test(configuredTrustProxy)) {
-    const proxyHops = Number(configuredTrustProxy);
-    if (!Number.isSafeInteger(proxyHops) || proxyHops > 5) {
+const configuredTrustProxy = process.env.TRUST_PROXY?.trim();
+// This backend runs behind Vercel in production; trust only its first proxy hop by default.
+let trustProxy = process.env.VERCEL === "1" || process.env.NODE_ENV === "production"
+    ? 1
+    : false;
+if (configuredTrustProxy) {
+    if (configuredTrustProxy === "true") {
+        trustProxy = 1;
+    } else if (configuredTrustProxy === "false") {
+        trustProxy = false;
+    } else if (/^\d+$/.test(configuredTrustProxy)) {
+        const proxyHops = Number(configuredTrustProxy);
+        if (!Number.isSafeInteger(proxyHops) || proxyHops > 5) {
+            throw new Error("TRUST_PROXY must be true, false, or a numeric hop count from 0 to 5.");
+        }
+        trustProxy = proxyHops;
+    } else {
         throw new Error("TRUST_PROXY must be true, false, or a numeric hop count from 0 to 5.");
     }
-    trustProxy = proxyHops;
-} else {
-    throw new Error("TRUST_PROXY must be true, false, or a numeric hop count from 0 to 5.");
 }
 app.set("trust proxy", trustProxy);
 

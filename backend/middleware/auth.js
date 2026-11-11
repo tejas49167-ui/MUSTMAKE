@@ -43,7 +43,9 @@ async function auth(req, res, next) {
     if (
         !decoded ||
         typeof decoded !== "object" ||
-        !mongoose.isValidObjectId(decoded.userId)
+        !mongoose.isValidObjectId(decoded.userId) ||
+        (decoded.sessionVersion !== undefined &&
+            (!Number.isSafeInteger(decoded.sessionVersion) || decoded.sessionVersion < 0))
     ) {
         clearSessionCookie(res);
         return res.status(401).json({
@@ -51,10 +53,16 @@ async function auth(req, res, next) {
         });
     }
 
+    const sessionVersion = decoded.sessionVersion ?? 0;
     let userExists;
     try {
         await connectDB();
-        userExists = Boolean(await User.exists({ _id: decoded.userId }));
+        userExists = Boolean(await User.exists({
+            _id: decoded.userId,
+            sessionVersion: sessionVersion === 0
+                ? { $in: [0, null] }
+                : sessionVersion
+        }));
     } catch (error) {
         return next(error);
     }

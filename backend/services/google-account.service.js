@@ -53,7 +53,7 @@ async function getAccountForVerifiedGoogleProfile(profile) {
     await initializeUserIndexes();
 
     const googleUser = await User.findOne({ googleId: profile.id })
-        .select("+ageReferenceYear");
+        .select("+ageReferenceYear +sessionVersion");
     if (googleUser) {
         if (!googleUser.emailVerifiedAt && googleUser.email === email) {
             googleUser.emailVerifiedAt = new Date();
@@ -62,7 +62,8 @@ async function getAccountForVerifiedGoogleProfile(profile) {
         return googleUser;
     }
 
-    const emailUser = await User.findOne({ email }).select("+ageReferenceYear");
+    const emailUser = await User.findOne({ email })
+        .select("+ageReferenceYear +sessionVersion");
     if (emailUser) {
         const linkedUser = await User.findOneAndUpdate(
             {
@@ -79,12 +80,12 @@ async function getAccountForVerifiedGoogleProfile(profile) {
                 }
             },
             { returnDocument: "after", runValidators: true }
-        ).select("+ageReferenceYear");
+        ).select("+ageReferenceYear +sessionVersion");
 
         if (linkedUser) return linkedUser;
 
         const racedGoogleUser = await User.findOne({ googleId: profile.id })
-            .select("+ageReferenceYear");
+            .select("+ageReferenceYear +sessionVersion");
         if (racedGoogleUser) return racedGoogleUser;
 
         throw new Error("Google account could not be linked safely.");
