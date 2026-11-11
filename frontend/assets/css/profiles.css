@@ -59,11 +59,6 @@
     margin: 1rem auto 0;
 }
 
-.profile-container > .logoutBtn {
-    display: block;
-    margin: 1rem auto 0;
-}
-
 .social-section {
     margin: 0 0 1.5rem;
     padding-top: 1.25rem;
@@ -92,14 +87,6 @@
     -webkit-backdrop-filter: blur(10px);
 }
 
-.profile-header {
-    text-align: center;
-
-    padding-bottom: 28px;
-
-    border-bottom: 0;
-}
-
 .profile-photo {
     width: 120px;
 
@@ -117,12 +104,6 @@
 
     display: block;
     margin: 0 auto 18px;
-}
-
-.profile-header h2 {
-    font-size: 28px;
-
-    margin-bottom: 5px;
 }
 
 .profile-username {
@@ -201,34 +182,6 @@
 
 /* PROFILE UPLOAD */
 
-.profile-upload {
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    gap: 15px;
-
-    padding: 20px;
-
-    background: rgba(22, 10, 12, 0.34);
-
-    border: 1px solid rgba(255, 255, 255, 0.16);
-
-    border-radius: 9px;
-}
-
-.profile-upload .profile-photo {
-    margin: 0;
-}
-
-.profile-upload input[type="file"] {
-    padding: 10px;
-
-    background: rgba(22, 10, 12, 0.38);
-}
-
 /* PUBLIC PROFILE */
 
 .public-profile-header {
@@ -282,26 +235,6 @@
 
 .public-workout-list {
     display: grid;
-}
-
-.public-workout {
-    padding: 14px;
-    
-}
-
-.public-workout > div {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.public-workout time,
-.public-workout p {
-    color: #999;
-}
-
-.public-workout p {
-    margin: 8px 0 0;
 }
 
 .profile-photo-button {
@@ -614,10 +547,6 @@
     cursor: pointer;
 }
 
-.profile-photo-dialog .profile-interaction-message {
-    margin-top: 0.25rem;
-}
-
 .profile-photo-dialog .profile-interaction-actions {
     margin-top: 0.5rem;
 }
@@ -711,14 +640,6 @@
 .profile-social-dialog select option {
     color: #f5f5f5;
     background: #202020;
-}
-
-.profile-interaction-message {
-    min-height: 1.35rem;
-    margin: 0.75rem 0 0;
-    color: var(--text-secondary);
-    font-size: 0.82rem;
-    text-align: center;
 }
 
 .profile-interaction-actions {

@@ -143,10 +143,3 @@
     cursor: wait;
     opacity: 0.65;
 }
-
-.settings-delete-status {
-    min-height: 1.2em;
-    margin-top: 0.5rem;
-    color: var(--text-muted);
-    font-size: 0.75rem;
-}

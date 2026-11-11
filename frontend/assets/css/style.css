@@ -193,22 +193,7 @@ a {
     margin-bottom: 45px;
 }
 
-.page-heading {
-    margin-bottom: 40px;
-}
-
-.small-title {
-    color: var(--text-secondary);
-
-    font-size: 12px;
-
-
-
-    margin-bottom: 10px;
-}
-
-.hero h1,
-.page-heading h1 {
+.hero h1 {
     color: var(--text-primary);
 
 }
@@ -222,18 +207,6 @@ a {
 }
 /* Activity */
 /* TODAY PAGE */
-
-.people-grid {
-    display: grid;
-
-    grid-template-columns: 1fr;
-
-    gap: 20px;
-}
-
-.person-card {
-    padding: 28px;
-}
 
 .person-top {
     display: flex;
@@ -312,9 +285,7 @@ a {
 .workout-item,
 .history-workout,
 .competition-result,
-.profile-detail,
-.profile-upload,
-.public-workout {
+.profile-detail {
     background: var(--glass-subtle);
 
     border: 1px solid rgba(255, 255, 255, 0.24);
@@ -511,30 +482,6 @@ textarea {
 /* Competition */
 /* COMPETITION */
 
-.competition-search,
-.competition-section {
-    background: rgba(22, 10, 12, 0.46);
-
-    border: 1px solid rgba(255, 255, 255, 0.2);
-
-    border-radius: 14px;
-
-    padding: 25px;
-
-    margin-bottom: 25px;
-}
-
-.competition-search h2,
-.competition-section h2 {
-    font-size: 17px;
-
-    margin-bottom: 16px;
-}
-
-.search-box {
-    width: 100%;
-}
-
 .competition-results {
     display: flex;
 
@@ -543,25 +490,6 @@ textarea {
     gap: 10px;
 
     margin-top: 15px;
-}
-.logoutBtn {
-    background: #e53935;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.logoutBtn:hover {
-    background: #c62828;
-}
-
-.logoutBtn:active {
-    transform: scale(0.97);
 }
 .competition-result {
     display: flex;
@@ -758,11 +686,6 @@ textarea {
     margin: 1rem auto 0;
 }
 
-.profile-container > .logoutBtn {
-    display: block;
-    margin: 1rem auto 0;
-}
-
 .social-section {
     margin: 0 0 1.5rem;
     padding-top: 1.25rem;
@@ -791,14 +714,6 @@ textarea {
     -webkit-backdrop-filter: blur(10px);
 }
 
-.profile-header {
-    text-align: center;
-
-    padding-bottom: 28px;
-
-    border-bottom: none;
-}
-
 .profile-photo {
     width: 120px;
 
@@ -813,12 +728,6 @@ textarea {
     display: block;
 
     margin: 0 auto 18px;
-}
-
-.profile-header h2 {
-    font-size: 28px;
-
-    margin-bottom: 5px;
 }
 
 .profile-username {
@@ -897,33 +806,6 @@ textarea {
 
 /* PROFILE UPLOAD */
 
-.profile-upload {
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    gap: 15px;
-
-    padding: 20px;
-
-
-    border: 1px solid rgba(255, 255, 255, 0.16);
-
-    border-radius: 9px;
-}
-
-.profile-upload .profile-photo {
-    margin: 0;
-}
-
-.profile-upload input[type="file"] {
-    padding: 10px;
-
-    background: rgba(22, 10, 12, 0.38);
-}
-
 /* PUBLIC PROFILE */
 
 .public-profile-header {
@@ -969,54 +851,8 @@ textarea {
     gap: 10px;
 }
 
-.public-workout {
-    padding: 14px;
-    background: rgba(22, 10, 12, 0.34);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 9px;
-}
-
-.public-workout > div {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.public-workout time,
-.public-workout p {
-    color: #999;
-}
-
-.public-workout p {
-    margin: 8px 0 0;
-}
-
 /* Authentication */
 /* LOGIN / SIGNUP */
-
-.auth-page {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 30px;
-}
-
-.auth-brand {
-    position: fixed;
-    top: 28px;
-    left: 32px;
-    z-index: 100;
-    color: var(--text-primary);
-    font-size: 21px;
-    font-weight: 800;
-    letter-spacing: 3px;
-    text-decoration: none;
-}
-
-.auth-brand:hover {
-    opacity: 0.8;
-}
 
 .auth-container {
     width: 100%;
@@ -1055,7 +891,6 @@ textarea {
     margin-bottom: 42px;
 }
 
-.auth-form .form-group,
 .auth-content .form-group {
     margin-bottom: 28px;
 }
@@ -1161,11 +996,6 @@ textarea {
     box-shadow: var(--shadow-soft);
 }
 
-.auth-button {
-    width: 100%;
-    margin-top: 5px;
-}
-
 .auth-content .main-button {
     width: 100%;
     margin-top: 8px;
@@ -1193,24 +1023,6 @@ textarea {
 
 .auth-footer a:hover {
     text-decoration: underline;
-}
-
-.auth-text-button {
-    display: block;
-    width: max-content;
-    margin: 20px auto 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: 14px;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    cursor: pointer;
-}
-
-.auth-text-button:hover {
-    color: var(--text-primary);
 }
 
 .auth-content strong {
@@ -1283,14 +1095,6 @@ small {
 
 /* ERROR */
 
-.error-message {
-    color: #aaa;
-
-    font-size: 14px;
-
-    padding: 15px 0;
-}
-
 /* HIDDEN */
 
 .hidden {
@@ -1300,22 +1104,14 @@ small {
 /* Visual refinements */
 /* PREMIUM GLASS REFINEMENTS */
 
-.competition-search,
-.competition-section,
 .competition-card,
 
 .competition-result,
 .profile-detail,
-.profile-upload,
-.public-workout,
 .social-links a,
 .google-button {
     background: var(--glass-subtle);
     border-color: rgba(255, 255, 255, 0.24);
-}
-
-.profile-upload input[type="file"] {
-    background: rgba(42, 12, 16, 0.16);
 }
 
 .google-button:hover {
@@ -1325,7 +1121,6 @@ small {
 .person-top,
 .history-date,
 .social-section,
-.profile-header,
 .profile-socials,
 .public-profile-header {
     border-color: rgba(255, 255, 255, 0.22);
@@ -1339,8 +1134,6 @@ small {
 .competition-card-header p,
 .recent-workouts,
 .profile-detail span,
-.public-workout time,
-.public-workout p,
 .auth-subtitle,
 .auth-message,
 .auth-footer,
@@ -1390,8 +1183,7 @@ small,
         padding: 40px 0;
     }
 
-    .hero h1,
-    .page-heading h1 {
+    .hero h1 {
         font-size: clamp(2rem, 4vw, 2.5rem);
     }
 
@@ -1411,10 +1203,7 @@ small,
 
 @media (max-width: 600px) {
 
-    .person-card,
-    .profile-card,
-    .competition-search,
-    .competition-section {
+    .profile-card {
         padding: 22px;
     }
 
@@ -1436,10 +1225,6 @@ small,
 
     .competition-result {
         align-items: flex-start;
-    }
-
-    .auth-page {
-        padding: 20px;
     }
 
     .auth-container {
@@ -1473,7 +1258,6 @@ small,
 
 h1,
 .hero h1,
-.page-heading h1,
 .exercise-detail-heading h1,
 .auth-content h1 {
     font-size: clamp(2rem, 4vw, 2.5rem);
@@ -1484,10 +1268,7 @@ h1,
 
 h2,
 .person-top h2,
-.profile-header h2,
 .public-profile-header h2,
-.competition-search h2,
-.competition-section h2,
 .workout-section h3,
 .exercise-section-heading h2,
 .library-heading h2,
@@ -1507,14 +1288,10 @@ p,
 
 .topbar nav button,
 .hero h1,
-.page-heading h1,
 .person-top h2,
 .workout-name,
 .history-date,
-.competition-search h2,
-.competition-section h2,
 .competition-card h4,
-.profile-header h2,
 .public-profile-header h2,
 .profile-detail strong,
 .auth-content h1,
@@ -1525,7 +1302,6 @@ p,
 
 .topbar nav a,
 .topbar nav button,
-.small-title,
 .subtitle,
 .person-top p,
 .streak small,
@@ -1539,8 +1315,6 @@ p,
 .profile-username,
 .profile-detail span,
 .profile-socials a,
-.public-workout time,
-.public-workout p,
 .auth-subtitle,
 .auth-message,
 .auth-footer,
@@ -1551,18 +1325,13 @@ p,
 }
 
 .card,
-.person-card,
 .profile-card,
-.competition-search,
-.competition-section,
 .competition-card,
 
 .workout-item,
 .history-workout,
 .competition-result,
 .profile-detail,
-.profile-upload,
-.public-workout,
 .social-links a,
 .google-button {
     color: var(--text-primary);
@@ -1575,8 +1344,7 @@ p,
 
 
 
-.hero h1,
-.page-heading h1 {
+.hero h1 {
     font-size: clamp(2rem, 4vw, 2.5rem);
     font-weight: 600;
     line-height: 1.12;
@@ -1593,25 +1361,12 @@ p,
     text-shadow: none;
 }
 
-.small-title {
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-}
-
 .person-top h2,
-.profile-header h2,
 .public-profile-header h2 {
     font-size: clamp(1.25rem, 2.5vw, 1.5rem);
     font-weight: 600;
     line-height: 1.3;
     letter-spacing: -0.02em;
-}
-
-.auth-logo {
-    font-size: 20px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
 }
 
 .auth-content h1 {
@@ -1628,8 +1383,6 @@ p,
     letter-spacing: -0.03em;
 }
 
-.competition-search h2,
-.competition-section h2,
 .social-section h2,
 .profile-socials h3,
 .public-workout-history h2 {
@@ -1693,7 +1446,6 @@ textarea:focus {
 .person-top,
 .history-date,
 .social-section,
-.profile-header,
 .profile-socials,
 .public-profile-header,
 .auth-divider::before,
@@ -1714,8 +1466,6 @@ textarea:focus {
 .competition-card-header p,
 .recent-workouts,
 .profile-detail span,
-.public-workout time,
-.public-workout p,
 .auth-subtitle,
 .auth-message,
 .auth-footer,
@@ -1754,7 +1504,6 @@ small,
 .auth-message,
 .auth-footer,
 .loading,
-.error-message,
 .search-status {
     font-size: 14px;
 }
@@ -1771,7 +1520,6 @@ small,
 .main-button:focus-visible,
 .secondary-button:focus-visible,
 .google-button:focus-visible,
-.auth-text-button:focus-visible,
 .login-method-toggle button:focus-visible,
 .otp-inline-link:focus-visible,
 input:focus-visible,
@@ -1782,8 +1530,7 @@ textarea:focus-visible {
 }
 
 @media (max-width: 800px) {
-    .hero h1,
-    .page-heading h1 {
+    .hero h1 {
         font-size: clamp(2rem, 7vw, 2.5rem);
     }
 
@@ -1803,8 +1550,7 @@ textarea:focus-visible {
     -webkit-backdrop-filter: blur(16px);
 }
 
-.hero,
-.page-heading {
+.hero {
     width: auto;
     max-width: 100%;
     padding: 0;
@@ -1817,18 +1563,13 @@ textarea:focus-visible {
 }
 
 .card,
-.person-card,
 .profile-card,
-.competition-search,
-.competition-section,
 .competition-card,
 
 .workout-item,
 .history-workout,
 .competition-result,
 .profile-detail,
-.profile-upload,
-.public-workout,
 .social-links a,
 .google-button {
     background: var(--glass-subtle);
@@ -1838,13 +1579,9 @@ textarea:focus-visible {
     -webkit-backdrop-filter: none;
 }
 
-.competition-search,
-.competition-section,
 .competition-card,
 .competition-result,
 .profile-detail,
-.profile-upload,
-.public-workout,
 .social-links a,
 .google-button {
     color: var(--text-primary);
@@ -1853,7 +1590,6 @@ textarea:focus-visible {
 .person-top,
 .history-date,
 .social-section,
-.profile-header,
 .profile-socials,
 .public-profile-header,
 .auth-divider::before,
@@ -1894,8 +1630,7 @@ textarea {
     min-height: 48px;
 }
 
-.search-trigger,
-.search-close {
+.search-trigger {
     display: inline-grid;
     flex: 0 0 auto;
     place-items: center;
@@ -1921,8 +1656,7 @@ textarea {
     border-color: var(--glass-border);
 }
 
-.search-trigger:focus-visible,
-.search-close:focus-visible {
+.search-trigger:focus-visible {
     outline: 3px solid var(--focus-ring);
     outline-offset: 3px;
 }
@@ -1993,28 +1727,6 @@ textarea {
 
 .search-overlay input:focus-visible {
     outline: 0;
-}
-
-.search-close {
-    width: 36px;
-    height: 36px;
-    margin-right: 5px;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-}
-
-.search-close:hover {
-    background: var(--glass-subtle);
-}
-
-.search-close svg {
-    width: 17px;
-    height: 17px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.7;
-    stroke-linecap: round;
 }
 
 .visually-hidden {
@@ -2114,24 +1826,18 @@ main.container,
 body,
 .topbar,
 .card,
-.person-card,
 .profile-card,
-.competition-search,
-.competition-section,
 .competition-card,
 .workout-item,
 .history-workout,
 .competition-result,
 .profile-detail,
-.profile-upload,
-.public-workout,
 .social-links a,
 .main-button,
 .secondary-button,
 .google-button,
 .search-trigger,
 .search-overlay,
-.search-close,
 input,
 select,
 textarea,
@@ -2180,7 +1886,6 @@ h6 {
 .person-top,
 .history-date,
 .social-section,
-.profile-header,
 .profile-socials,
 .public-profile-header,
 .auth-divider::before,
@@ -2203,14 +1908,12 @@ textarea:focus {
     background: var(--glass-panel);
 }
 
-.search-trigger,
-.search-close {
+.search-trigger {
     background: var(--glass-panel);
     border-color: var(--glass-border);
 }
 
-.search-trigger:hover,
-.search-close:hover {
+.search-trigger:hover {
     background: var(--glass-subtle);
 }
 
@@ -2218,8 +1921,6 @@ textarea:focus {
 .workout-item,
 .history-workout,
 .profile-detail,
-.profile-upload,
-.public-workout,
 .social-links a,
 .google-button {
     background: var(--glass-subtle);
@@ -2254,14 +1955,10 @@ textarea:focus {
 
 
 @media (max-width: 800px) {
-    .topbar-actions {
-        margin-left: 0;
-    }
 }
 
 @media (max-width: 600px) {
-    .hero,
-    .page-heading {
+    .hero {
         padding: 16px 18px 18px;
     }
 
@@ -2291,39 +1988,6 @@ textarea:focus {
     padding: 26px 0 64px;
 }
 
-#firstSetupPage .setup-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 42px;
-    margin-bottom: clamp(42px, 8vh, 86px);
-}
-
-#firstSetupPage .wordmark {
-    color: var(--text-primary);
-    font-size: 15px;
-    font-weight: 750;
-    letter-spacing: 0.13em;
-}
-
-#firstSetupPage .setup-step {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    color: var(--text-secondary);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-}
-
-#firstSetupPage .step-indicator {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #4a8d70;
-    box-shadow: 0 0 0 4px rgba(74, 141, 112, 0.12);
-}
-
 #firstSetupPage .setup-layout {
     display: grid;
     grid-template-columns: minmax(0, 0.82fr) minmax(440px, 1fr);
@@ -2337,68 +2001,6 @@ textarea:focus {
     color: var(--text-secondary);
     font-size: clamp(18px, 2vw, 23px);
     line-height: 1.65;
-}
-
-#firstSetupPage .eyebrow,
-#firstSetupPage .card-kicker {
-    color: var(--text-muted);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-}
-
-#firstSetupPage .setup-intro h1 {
-    max-width: 460px;
-    margin: 22px 0 18px;
-    color: var(--text-primary);
-    font-size: clamp(44px, 5vw, 66px);
-    font-weight: 650;
-    letter-spacing: -0.065em;
-    line-height: 0.99;
-}
-
-#firstSetupPage .privacy-note {
-    display: flex;
-    align-items: flex-start;
-    gap: 13px;
-    max-width: 400px;
-    margin-top: 46px;
-    padding: 17px 18px;
-    border: 1px solid var(--glass-border);
-    border-radius: 15px;
-    background: var(--glass-panel);
-}
-
-#firstSetupPage .privacy-icon {
-    flex: 0 0 auto;
-    width: 19px;
-    height: 19px;
-    margin-top: 1px;
-    color: var(--text-secondary);
-}
-
-#firstSetupPage .privacy-note strong {
-    display: block;
-    margin-bottom: 3px;
-    color: var(--text-primary);
-    font-size: 13px;
-    font-weight: 650;
-}
-
-#firstSetupPage .privacy-note span {
-    display: block;
-    color: var(--text-muted);
-    font-size: 12px;
-    line-height: 1.55;
-}
-
-#firstSetupPage .setup-card {
-    padding: clamp(24px, 4vw, 38px);
-    border: 1px solid var(--glass-border);
-    border-radius: 22px;
-    background: var(--glass-panel);
-    box-shadow: var(--shadow-card);
 }
 
 #firstSetupPage .card-heading {
@@ -2438,17 +2040,6 @@ textarea:focus {
     font-weight: 600;
 }
 
-#firstSetupPage .required-mark {
-    color: #b74343;
-}
-
-#firstSetupPage .optional-label {
-    margin-left: auto;
-    color: var(--text-muted);
-    font-size: 11px;
-    font-weight: 450;
-}
-
 #firstSetupPage input {
     width: 100%;
     min-height: 48px;
@@ -2481,14 +2072,6 @@ textarea:focus {
     color: var(--text-muted);
     font-size: 11px;
     line-height: 1.5;
-}
-
-#firstSetupPage .age-validation-message {
-    color: var(--danger);
-}
-
-#firstSetupPage .age-validation-message[hidden] {
-    display: none;
 }
 
 #firstSetupPage .metrics-grid,
@@ -2813,25 +2396,7 @@ textarea:focus {
     height: 17px;
 }
 
-#firstSetupPage .setup-message {
-    min-height: 20px;
-    margin: 12px 0 0;
-    color: var(--text-muted);
-    font-size: 12px;
-    text-align: center;
-}
-
-#firstSetupPage .setup-footer {
-    margin: 18px 0 0;
-    color: var(--text-muted);
-    font-size: 11px;
-    text-align: center;
-}
-
 @media (max-width: 850px) {
-    #firstSetupPage .setup-header {
-        margin-bottom: 38px;
-    }
 
     #firstSetupPage .setup-layout {
         grid-template-columns: minmax(0, 1fr);
@@ -2845,10 +2410,6 @@ textarea:focus {
         margin-top: 0;
         font-size: 16px;
     }
-
-    #firstSetupPage .privacy-note {
-        display: none;
-    }
 }
 
 @media (max-width: 520px) {
@@ -2856,19 +2417,6 @@ textarea:focus {
         width: min(calc(100% - 28px), 620px);
         padding-top: 17px;
         padding-bottom: 36px;
-    }
-
-    #firstSetupPage .setup-header {
-        margin-bottom: 30px;
-    }
-
-    #firstSetupPage .setup-step {
-        font-size: 10px;
-    }
-
-    #firstSetupPage .setup-card {
-        padding: 22px 18px;
-        border-radius: 17px;
     }
 
     #firstSetupPage .card-heading h2 {
@@ -3029,10 +2577,7 @@ textarea:focus {
 /* TEXT-FIRST SURFACES */
 
 .card,
-.person-card,
 .profile-card,
-.competition-search,
-.competition-section,
 .competition-card {
     background: transparent;
     border: 0;
@@ -3145,15 +2690,7 @@ textarea:focus {
     }
 }
 
-.competition-search,
-.competition-section {
-    padding: 0;
-    margin-bottom: 42px;
-}
-
-.competition-people h2,
-.competition-search h2,
-.competition-section h2 {
+.competition-people h2 {
     margin-bottom: 18px;
     font-size: 1.25rem;
     font-weight: 600;
@@ -3169,8 +2706,7 @@ textarea:focus {
     gap: 14px;
 }
 
-.search-trigger,
-.search-close {
+.search-trigger {
     color: var(--text-secondary);
     background: transparent;
     border: 0;
@@ -3183,8 +2719,7 @@ textarea:focus {
     height: 44px;
 }
 
-.search-trigger:hover,
-.search-close:hover {
+.search-trigger:hover {
     color: var(--text-primary);
     background: transparent;
 }
@@ -3284,9 +2819,7 @@ textarea:focus {
     transform: none;
 }
 
-.profile-detail,
-.profile-upload,
-.public-workout {
+.profile-detail {
     background: transparent;
     border: 0;
     border-radius: 0;
@@ -3295,13 +2828,6 @@ textarea:focus {
     -webkit-backdrop-filter: none;
 }
 
-.profile-upload input[type="file"] {
-    padding: 0;
-    background: transparent;
-    border: 0;
-}
-
-.profile-upload input[type="file"]::file-selector-button,
 #firstSetupPage .photo-picker input[type="file"]::file-selector-button {
     padding: 6px 0;
     color: var(--text-secondary);
@@ -3348,10 +2874,6 @@ textarea:focus {
 .public-workout-list {
     gap: 0;
 }
-.public-workout {
-    padding: 14px 0;
-    border: none;
-}
 .login-method-toggle {
     gap: 20px;
     padding: 0;
@@ -3374,42 +2896,6 @@ textarea:focus {
     border-bottom-color: var(--text-primary);
     background: transparent;
     box-shadow: none;
-}
-
-.logoutBtn {
-    padding: 8px 0;
-    color: var(--danger);
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-}
-
-.logoutBtn:hover {
-    color: var(--danger);
-    background: transparent;
-    text-decoration: underline;
-    transform: none;
-}
-
-.account-danger-zone {
-    margin-top: 28px;
-    padding-top: 18px;
-    border-top: 1px solid var(--glass-border);
-}
-
-.account-danger-zone .logoutBtn {
-    display: block;
-    margin: 0 auto;
-}
-
-.account-danger-zone .logoutBtn:disabled {
-    opacity: 0.55;
-    cursor: wait;
-    text-decoration: none;
-}
-
-.account-delete-message {
-    margin-top: 8px;
 }
 
 #firstSetupPage .photo-control {
@@ -3530,13 +3016,6 @@ textarea:focus {
     color: var(--text-primary);
     font-size: 20px;
     font-weight: 500;
-}
-
-.otp-login-status {
-    margin: 12px 0 0;
-    font-size: 14px;
-    line-height: 1.4;
-    text-align: center;
 }
 
 .otp-resend-block {
@@ -3714,9 +3193,6 @@ body {
 .exercise-library-page .exercise-library {
     margin-top: 0;
 }
-.exercise-today-dashboard {
-    margin-bottom: 54px;
-}
 .library-heading {
     display: flex;
     justify-content: space-between;
@@ -3736,92 +3212,9 @@ body {
     flex-direction: column;
     padding: 20px 0;
 }
-.exercise-card-topline {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 13px;
-}
-.exercise-category,
-.exercise-level {
-    display: inline-flex;
-    align-items: center;
-    padding: 0;
-    font-size: 11px;
-    font-weight: 600;
-}
-.exercise-category {
-    color: var(--text-secondary);
-}
-.exercise-level {
-    color: var(--text-secondary);
-}
 .exercise-card h3 {
     font-size: 19px;
     margin-bottom: 8px;
-}
-.exercise-equipment {
-    color: var(--text-secondary);
-    font-size: 13px;
-    margin-bottom: 13px;
-}
-.exercise-equipment strong {
-    color: var(--text-primary);
-}
-.exercise-muscles {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 16px;
-}
-.exercise-tag {
-    font-size: 11px;
-    color: var(--text-secondary);
-    padding: 0;
-}
-.exercise-details {
-    border-top: 1px solid var(--glass-border);
-    margin-top: auto;
-    padding-top: 12px;
-}
-.exercise-details summary {
-    color: var(--text-primary);
-    font-size: 13px;
-    font-weight: 650;
-    cursor: pointer;
-    padding: 4px 0;
-}
-.exercise-detail-content {
-    padding-top: 12px;
-    color: var(--text-secondary);
-    font-size: 13px;
-}
-.exercise-detail-content h4 {
-    color: var(--text-primary);
-    font-size: 13px;
-    margin: 14px 0 7px;
-}
-.exercise-detail-content ol,
-.exercise-detail-content ul {
-    padding-left: 20px;
-}
-.exercise-detail-content li + li {
-    margin-top: 6px;
-}
-.exercise-alternative {
-    margin-top: 14px;
-    padding: 0 0 0 12px;
-    border-left: 1px solid var(--glass-border);
-}
-.exercise-alternative strong {
-    color: var(--text-primary);
-}
-.library-note {
-    color: var(--text-muted);
-    font-size: 12px;
-    margin: 20px 0 12px;
-    max-width: 900px;
 }
 
 @media (max-width: 900px) {
@@ -3845,8 +3238,6 @@ body {
     display: flex;
     flex-direction: column;
 }
-
-.exercise-library-page .exercise-today-dashboard { order: 1; }
 .exercise-library-page .exercise-library { order: 2; }
 
 .topbar-start {
@@ -3854,7 +3245,6 @@ body {
 }
 
 .mobile-menu-toggle,
-.mobile-login,
 .mobile-nav-backdrop,
 .mobile-nav-panel {
     display: none;
@@ -3892,15 +3282,6 @@ body {
     height: 100%;
     overflow: visible;
 }
-
-.exercise-card-media .art-orbit { fill: rgba(255, 255, 255, 0.72); }
-.exercise-card-media .art-ground { fill: none; stroke: rgba(0, 0, 0, 0.18); stroke-width: 2; stroke-linecap: round; }
-.exercise-card-media .art-person { stroke: var(--art-ink); stroke-width: 5; }
-.exercise-card-media .art-person circle { fill: var(--art-accent); stroke: none; }
-.exercise-card-media .art-dumbbell { fill: none; stroke: var(--art-accent); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
-.exercise-card-media .art-rope { fill: none; stroke: var(--art-accent); stroke-width: 3; stroke-dasharray: 5 5; }
-.exercise-card-media .art-spark { fill: var(--art-accent); opacity: 0.75; }
-.exercise-card-media .art-spark-small { opacity: 0.45; }
 
 .exercise-card-content {
     display: flex;
@@ -3948,20 +3329,7 @@ body {
 body.app-page .exercise-library-page .exercise-card h3 {
     text-align: center;
 }
-
-.exercise-card .exercise-card-topline { margin-bottom: 8px; }
-.exercise-card .exercise-category,
-.exercise-card .exercise-level { font-size: 10px; font-weight: 650; }
-.exercise-card .exercise-card-topline .exercise-category { color: var(--text-secondary); }
-.exercise-card .exercise-card-topline .exercise-level { padding: 3px 7px; border-radius: 999px; background: var(--glass-subtle); }
 .exercise-card h3 { margin: 0 0 7px; font-size: clamp(15px, 1.15vw, 17px); line-height: 1.25; }
-.exercise-card .exercise-equipment { margin-bottom: 11px; font-size: clamp(11px, 0.83vw, 12px); line-height: 1.4; }
-.exercise-card .exercise-muscles { gap: 5px; margin-bottom: 13px; }
-.exercise-card .exercise-tag { padding: 3px 7px; border-radius: 999px; color: var(--text-secondary); background: var(--glass-subtle); font-size: 10px; line-height: 1.3; }
-.exercise-card .exercise-details { padding-top: 10px; }
-.exercise-card .exercise-details summary { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
-.exercise-card .exercise-details summary::after { content: "+"; color: var(--text-secondary); font-size: 18px; font-weight: 400; line-height: 1; }
-.exercise-card .exercise-details[open] summary::after { content: "−"; }
 
 @media (max-width: 800px) {
     :root {
@@ -4008,21 +3376,6 @@ body.app-page .exercise-library-page .exercise-card h3 {
 
     .mobile-menu-toggle span { width: 17px; height: 2px; border-radius: 99px; background: currentColor; }
     .desktop-navigation { display: none !important; }
-    .mobile-login {
-        display: inline-flex;
-        min-height: clamp(38px, 10vw, 42px);
-        align-items: center;
-        justify-content: center;
-        padding: 0 clamp(12px, 4vw, 17px);
-        border: 1px solid var(--accent);
-        border-radius: 13px;
-        color: #ffffff;
-        background: var(--accent);
-        box-shadow: var(--shadow-soft);
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 650;
-    }
 
     .mobile-nav-backdrop {
         display: block;
@@ -4073,8 +3426,6 @@ body.app-page .exercise-library-page .exercise-card h3 {
         margin-top: 0;
         order: 1;
     }
-    .exercise-library-page .exercise-today-dashboard { order: 2; }
-    .exercise-today-dashboard { margin-bottom: 0; }
     .exercise-section-heading { margin-bottom: clamp(11px, 3vw, 15px); }
     .exercise-section-heading h2 { font-size: clamp(20px, 4.7vw, 24px); }
     .exercise-library-groups { gap: clamp(25px, 7vw, 36px); }
@@ -4086,26 +3437,11 @@ body.app-page .exercise-library-page .exercise-card h3 {
     .exercise-card-media > svg { width: 96%; }
     .exercise-card-content { min-height: clamp(180px, 51vw, 205px); padding: clamp(10px, 3vw, 14px); }
     .exercise-section .exercise-card-content { min-height: 0; padding: clamp(12px, 3vw, 15px); }
-    .exercise-card .exercise-card-topline { gap: 5px; margin-bottom: 6px; }
-    .exercise-card .exercise-category,
-    .exercise-card .exercise-level { font-size: 9px; }
-    .exercise-card .exercise-card-topline .exercise-level { padding: 3px 6px; }
     .exercise-card h3 { min-height: 39px; margin-bottom: 6px; font-size: clamp(14px, 3.8vw, 15px); }
-    .exercise-card .exercise-equipment { min-height: 34px; margin-bottom: 9px; font-size: clamp(10px, 2.9vw, 11px); }
-    .exercise-card .exercise-muscles { gap: 4px; margin-bottom: 10px; }
-    .exercise-card .exercise-tag { padding: 3px 6px; font-size: 9px; }
-    .exercise-card .exercise-details { padding-top: 8px; }
-    .exercise-card .exercise-details summary { font-size: 11px; }
-    .exercise-detail-content { font-size: 12px; }
 
-    .person-card,
-    .profile-card,
-    .competition-search,
-    .competition-section { border-radius: 18px; }
+    .profile-card { border-radius: 18px; }
 
-    .hero h1,
-    .page-heading h1 { font-size: clamp(2rem, 7vw, 2.5rem); }
-    .small-title { writing-mode: horizontal-tb; transform: none; }
+    .hero h1 { font-size: clamp(2rem, 7vw, 2.5rem); }
     body,
     body * { writing-mode: horizontal-tb; text-orientation: mixed; }
 }
@@ -4170,7 +3506,6 @@ nav button,
 }
 
 #navbar .topbar .logo,
-.auth-logo,
 .mobile-nav-panel .mobile-nav-brand {
     font-family: var(--font-display) !important;
     font-weight: 600 !important;
@@ -4275,16 +3610,6 @@ nav button,
     margin-bottom: clamp(20px, 3vw, 30px);
 }
 
-.exercise-detail-eyebrow,
-.exercise-mode-kicker {
-    margin: 0 0 6px;
-    color: var(--accent-hover);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-}
-
 .exercise-detail-heading h1 {
     margin: 0 0 7px;
     color: var(--text-primary);
@@ -4322,25 +3647,6 @@ nav button,
     place-items: center;
     padding: clamp(14px, 2vw, 22px);
     background: var(--glass-subtle);
-}
-
-.exercise-detail-media {
-    display: block;
-    width: 100%;
-    max-height: min(64vh, 520px);
-    aspect-ratio: 4 / 3;
-    border: 0;
-    border-radius: 14px;
-    background: #111;
-    object-fit: contain;
-}
-
-.exercise-media-placeholder {
-    display: grid;
-    min-height: 260px;
-    place-items: center;
-    color: var(--text-secondary);
-    font-size: 14px;
 }
 
 .exercise-workout-panel {
@@ -4385,21 +3691,6 @@ nav button,
 .exercise-mode-panel {
     min-height: 280px;
     padding-top: clamp(22px, 3vw, 30px);
-}
-
-.exercise-mode-intro h2,
-.exercise-ai-coming-soon h2 {
-    margin: 0 0 8px;
-    color: var(--text-primary);
-    font-size: clamp(20px, 2.2vw, 25px);
-    letter-spacing: -0.025em;
-}
-
-.exercise-mode-intro > p:last-child,
-.exercise-ai-coming-soon > p:last-child {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: 14px;
 }
 
 .exercise-workout-form {
@@ -4474,47 +3765,6 @@ nav button,
     opacity: 0.7;
 }
 
-.exercise-ai-coming-soon {
-    display: flex;
-    min-height: 260px;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-}
-
-.exercise-coming-soon-badge {
-    padding: 5px 10px;
-    border: 1px solid var(--glass-border);
-    border-radius: 999px;
-    color: var(--accent-hover);
-    background: var(--accent-soft);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.exercise-ai-icon {
-    display: grid;
-    width: 54px;
-    height: 54px;
-    place-items: center;
-    margin: 20px 0 15px;
-    border: 1px solid var(--glass-border);
-    border-radius: 17px;
-    color: var(--accent-hover);
-    background: var(--glass-subtle);
-}
-
-.exercise-ai-icon svg {
-    width: 32px;
-    height: 32px;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
-
 @media (max-width: 800px) {
     .exercise-detail-layout {
         grid-template-columns: 1fr;
@@ -4522,10 +3772,6 @@ nav button,
 
     .exercise-demo-panel {
         min-height: 260px;
-    }
-
-    .exercise-detail-media {
-        max-height: 44vh;
     }
 }
 
@@ -4595,7 +3841,6 @@ nav button,
 
 .topbar .mobile-menu-toggle:hover { background: var(--glass-subtle); }
 .topbar .mobile-menu-toggle:focus-visible,
-.topbar .mobile-login:focus-visible,
 .mobile-nav-panel a:focus-visible,
 .mobile-nav-panel button:focus-visible {
     outline: 3px solid var(--focus-ring);
@@ -4609,20 +3854,6 @@ nav button,
     letter-spacing: -0.035em;
     text-decoration: none;
     white-space: nowrap;
-}
-
-.topbar .mobile-login {
-    display: inline-flex;
-    min-height: 40px;
-    align-items: center;
-    justify-content: center;
-    padding: 0 17px;
-    border: 1px solid var(--accent);
-    border-radius: 12px;
-    color: #fff;
-    background: var(--accent);
-    box-shadow: var(--shadow-soft);
-    font-size: 13px;
 }
 
 .mobile-nav-panel {
@@ -4893,8 +4124,7 @@ body.mobile-nav-open {
     margin-left: auto;
 }
 
-.desktop-navigation a,
-.desktop-nav-logout {
+.desktop-navigation a {
     color: var(--text-primary, #e8edf5);
     font-size: 14px;
     font-weight: 500;
@@ -4927,16 +4157,8 @@ body.mobile-nav-open {
 }
 
 .desktop-navigation a:hover,
-.desktop-navigation a.active,
-.desktop-nav-logout:hover {
+.desktop-navigation a.active {
     color: var(--accent-hover);
-}
-
-.desktop-nav-logout {
-    background: none;
-    border: none;
-    font-family: inherit;
-    cursor: pointer;
 }
 
 @media (min-width: 769px) {
@@ -5004,31 +4226,6 @@ body.mobile-nav-open {
     outline-offset: 3px;
 }
 
-.topbar .mobile-login {
-    min-height: 44px;
-    padding: 0 4px;
-    border: 0;
-    border-radius: 0;
-    color: #343a40;
-    background: transparent;
-    box-shadow: none;
-    font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-}
-
-.topbar .mobile-login:hover {
-    color: #111827;
-    background: transparent;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-}
-
-.topbar .mobile-login:focus-visible {
-    outline: 2px solid #6b7280;
-    outline-offset: 2px;
-}
-
 .exercise-card {
     overflow: visible;
     border: 0;
@@ -5048,31 +4245,6 @@ body.mobile-nav-open {
     padding: 14px 0 18px;
 }
 
-.exercise-card .exercise-card-topline .exercise-level,
-.exercise-card .exercise-tag {
-    padding: 0;
-    border-radius: 0;
-    background: transparent;
-}
-
-.exercise-card .exercise-muscles {
-    gap: 4px 10px;
-}
-
-.exercise-card .exercise-details {
-    border-top: 0;
-}
-
-.exercise-card .exercise-details summary {
-    justify-content: flex-start;
-    gap: 8px;
-    color: var(--accent-hover);
-}
-
-.exercise-card .exercise-details summary::after {
-    color: currentColor;
-}
-
 .exercise-detail-page .exercise-demo-panel,
 .exercise-detail-page .exercise-workout-panel {
     overflow: visible;
@@ -5084,10 +4256,6 @@ body.mobile-nav-open {
 
 .exercise-detail-page .exercise-demo-panel {
     padding: 0;
-}
-
-.exercise-detail-page .exercise-detail-media {
-    border-radius: 8px;
 }
 
 .exercise-detail-page .exercise-workout-panel {
@@ -5174,10 +4342,6 @@ body.mobile-nav-open {
     color: var(--accent-hover);
 }
 
-:root .topbar .mobile-login {
-    color: var(--text-primary);
-}
-
 :root .topbar {
     background: var(--topbar-bg);
     border-color: var(--glass-border);
@@ -5186,12 +4350,9 @@ body.mobile-nav-open {
 :root .workout-item,
 :root .competition-result,
 :root .profile-detail,
-:root .profile-upload,
-:root .public-workout,
 :root .social-links a,
 :root .google-button,
 :root .exercise-card,
-:root .exercise-details,
 :root .exercise-form-field input {
     color: var(--text-primary);
     border-color: var(--glass-border);
@@ -5200,7 +4361,6 @@ body.mobile-nav-open {
 
 :root .person-top,
 :root .social-section,
-:root .profile-header,
 :root .profile-socials,
 :root .public-profile-header {
     border-color: var(--glass-border);
@@ -5330,12 +4490,6 @@ body.mobile-nav-open {
     background: #303030;
 }
 
-:root .exercise-details {
-    background: transparent;
-}
-
-:root .competition-search,
-:root .competition-section,
 :root .competition-search-area,
 :root .competition-people,
 :root .competition-results,
@@ -5485,20 +4639,14 @@ body.app-page .exercise-library-page .exercise-card-media {
     .workout-section,
     .social-section,
     .competition-people,
-    .competition-search-area,
-    .competition-search,
-    .competition-section
-) {
+    .competition-search-area) {
     border: 0;
     background: transparent;
     box-shadow: none;
 }
 
 :root body :is(
-    .card,
-    .person-card,
-    .profile-upload
-) {
+    .card) {
     border-color: var(--glass-border);
     background: #141414;
     box-shadow: none;
@@ -5507,7 +4655,6 @@ body.app-page .exercise-library-page .exercise-card-media {
 :root body :is(
     .person-top,
     .social-section,
-    .profile-header,
     .profile-socials,
     .public-profile-header
 ) {
@@ -5515,21 +4662,12 @@ body.app-page .exercise-library-page .exercise-card-media {
 }
 
 :root body :is(
-    .competition-search,
-    .competition-section,
     .competition-card,
     .profile-detail,
-    .public-workout,
     .exercise-mode-tabs
 ) {
     border-color: var(--glass-border);
     background: transparent;
-}
-
-:root #firstSetupPage .setup-card {
-    border-color: var(--glass-border);
-    background: #141414;
-    box-shadow: none;
 }
 
 :root .workout-item {
@@ -5544,20 +4682,6 @@ body.app-page .exercise-library-page .exercise-card-media {
     margin: 0 0 12px;
     font-size: 13px;
     text-align: center;
-}
-
-.signup-account-exists {
-    margin: 14px 0 0;
-    color: var(--text-secondary);
-    font-size: 13px;
-    line-height: 1.5;
-    text-align: center;
-}
-
-.signup-account-exists a {
-    color: var(--text-primary);
-    font-weight: 600;
-    text-underline-offset: 3px;
 }
 
 .auth-footer #signupLink,

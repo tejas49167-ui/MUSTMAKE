@@ -5,7 +5,6 @@
   "main": "server.js",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "migrate:enable-email-reminders": "node scripts/enable-email-reminders.js",
     "start": "node server.js"
   },
   "keywords": [],

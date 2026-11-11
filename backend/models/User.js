@@ -68,12 +68,6 @@ const userSchema = new mongoose.Schema(
             }
         },
 
-        emailReminderDefaultsMigrationVersion: {
-            type: Number,
-            default: null,
-            select: false
-        },
-
         googleId: {
             type: String
         },
