@@ -30,6 +30,17 @@ The application provides workout tracking, user authentication, and a backend AP
 - Google OAuth 2.0
 - Vercel
 
+## Worked more time to make 
+- Session and pending-signup cookies are HttpOnly; production cookies are Secure and use `SameSite=None`.
+- Unsafe requests require an allowed `Origin`.
+- JWT verification restricts the algorithm to HS256 and validates the user ID.
+- Google OAuth state is random, cookie-bound, short-lived, constant-time compared, and consumed once.
+- OTP and login limits use persistent counters; OTPs are hashed, expire, and are consumed atomically.
+- Workout and competition mutations are scoped to the authenticated owner.
+- User-provided workout, profile, and social text is escaped before HTML insertion in the reviewed UI paths.
+- Helmet/CSP headers are present; static frontend CSP is compatible with same-origin API rewrites.
+
+
 ### The project is being developed incrementally, with future plans for additional fitness, automation, and AI-related functionality.
 
 
