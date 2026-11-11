@@ -1,6 +1,26 @@
 import { createExerciseDetector } from "./exercise-detectors.mjs";
 import { MAX_PLANK_DURATION_SECONDS } from "./exercise-limits.mjs";
 import {
+    acquireCameraStream,
+    applyCameraZoom,
+    attachCameraStream,
+    cameraErrorMessage,
+    detachCameraStream,
+    stopCameraStream
+} from "./camera-lifecycle.js";
+import {
+    createPoseLandmarker,
+    createPoseLandmarkerWithFallback,
+    detectPoseFrame,
+    INFERENCE_INTERVAL_MS
+} from "./pose-inference.js";
+import { createPoseRenderer } from "./pose-rendering.js";
+import {
+    buildReviewedWorkoutPayload,
+    isValidWorkoutWeight,
+    saveReviewedWorkout
+} from "./workout-save-flow.js";
+import {
     CAMERA_PREFERENCE_CHANGE_EVENT,
     SMART_CAMERA_MODE_CHANGE_EVENT,
     getCameraMirrorPreference,
@@ -14,14 +34,6 @@ import {
     getFrontViewPreference
 } from "./camera-preference.js";
 
-const MEDIAPIPE_VERSION = "1.1.1";
-const MEDIAPIPE_MODULE =
-    `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/vision_bundle.mjs`;
-const MEDIAPIPE_WASM =
-    `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`;
-const POSE_MODEL =
-    "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
-
 const MAX_REPETITIONS = 10000;
 const MAX_REVIEWED_VALUE = 150;
 const SHARED_EXERCISE_FEEDBACK = new Set([
@@ -29,116 +41,11 @@ const SHARED_EXERCISE_FEEDBACK = new Set([
     "Get set.",
     "Nice rep."
 ]);
-const INFERENCE_INTERVAL_MS = 110;
-
-const CONNECTIONS = [
-    [11, 12], [11, 13], [13, 15], [12, 14], [14, 16],
-    [11, 23], [12, 24], [23, 24], [23, 25], [25, 27],
-    [27, 29], [29, 31], [24, 26], [26, 28], [28, 30], [30, 32]
-];
-
-let visionModulePromise;
-
-function loadVisionModule() {
-    if (!visionModulePromise) {
-        visionModulePromise = import(MEDIAPIPE_MODULE).catch(error => {
-            visionModulePromise = null;
-
-            throw new Error(
-                "Could not load the MediaPipe pose library. Check your internet connection and try again.",
-                { cause: error }
-            );
-        });
-    }
-
-    return visionModulePromise;
-}
-
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remaining = seconds % 60;
 
     return `${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}`;
-}
-
-function cameraErrorMessage(error) {
-    if (!window.isSecureContext) {
-        return "Use HTTPS.";
-    }
-
-    if (
-        error?.name === "NotAllowedError" ||
-        error?.name === "SecurityError"
-    ) {
-        return "Allow camera access.";
-    }
-
-    if (
-        error?.name === "NotFoundError" ||
-        error?.name === "DevicesNotFoundError"
-    ) {
-        return "No camera found.";
-    }
-
-    if (
-        error?.name === "NotReadableError" ||
-        error?.name === "TrackStartError"
-    ) {
-        return "Camera in use.";
-    }
-
-    if (error?.name === "OverconstrainedError") {
-        return "Try another camera.";
-    }
-
-    return "Camera unavailable.";
-}
-
-async function createPoseLandmarker(delegate) {
-    const { FilesetResolver, PoseLandmarker } =
-        await loadVisionModule();
-
-    const fileset = await FilesetResolver.forVisionTasks(
-        MEDIAPIPE_WASM
-    );
-
-    const buildOptions = delegate => ({
-        baseOptions: {
-            modelAssetPath: POSE_MODEL,
-            delegate
-        },
-        runningMode: "VIDEO",
-        numPoses: 1,
-        minPoseDetectionConfidence: 0.55,
-        minPosePresenceConfidence: 0.55,
-        minTrackingConfidence: 0.55
-    });
-
-    return PoseLandmarker.createFromOptions(
-        fileset,
-        buildOptions(delegate)
-    );
-}
-
-async function createPoseLandmarkerWithFallback() {
-    try {
-        return {
-            landmarker: await createPoseLandmarker("CPU"),
-            delegate: "CPU"
-        };
-    } catch {
-        try {
-            return {
-                landmarker: await createPoseLandmarker("GPU"),
-                delegate: "GPU"
-            };
-        } catch (error) {
-            throw new Error(
-                "Pose detection could not initialize on this device.",
-                { cause: error }
-            );
-        }
-    }
 }
 
 function roundedDuration(milliseconds) {
@@ -228,7 +135,6 @@ export function mountAiMonitor(
 
     const scrollContainer = findScrollContainer(previewSlot);
 
-    const context = canvas.getContext("2d");
     const detector = createExerciseDetector(exercise.slug, {
         mode: getStrictAiPreference() ? "strict" : "forgiving",
         frontView: getFrontViewPreference()
@@ -287,6 +193,20 @@ export function mountAiMonitor(
     let saveInFlight = false;
     let discardInProgress = false;
     let cameraEnded = false;
+    const renderer = createPoseRenderer({
+        canvas,
+        video,
+        preview,
+        previewSlot,
+        isTransitioning: () => previewTransitioning,
+        isDisposed: () => disposed
+    });
+    const {
+        clear: clearOverlay,
+        draw: drawPose,
+        resize: resizeCanvas,
+        updateAspectRatio: updatePreviewAspectRatio
+    } = renderer;
 
     let sessionStarted = Boolean(
         snapshot?.sessionStarted || snapshot?.finished
@@ -689,188 +609,6 @@ export function mountAiMonitor(
         }
     }
 
-    function clearOverlay() {
-        context.setTransform(1, 0, 0, 1, 0, 0);
-        context.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function resizeCanvas() {
-        if (previewTransitioning) return;
-
-        const bounds = canvas.getBoundingClientRect();
-
-        if (!bounds.width || !bounds.height) {
-            return;
-        }
-
-        const ratio = Math.max(
-            1,
-            window.devicePixelRatio || 1
-        );
-
-        const pixelWidth = Math.max(
-            1,
-            Math.round(bounds.width * ratio)
-        );
-
-        const pixelHeight = Math.max(
-            1,
-            Math.round(bounds.height * ratio)
-        );
-
-        const sizeChanged =
-            canvas.width !== pixelWidth ||
-            canvas.height !== pixelHeight;
-
-        if (canvas.width !== pixelWidth) {
-            canvas.width = pixelWidth;
-        }
-
-        if (canvas.height !== pixelHeight) {
-            canvas.height = pixelHeight;
-        }
-
-        context.setTransform(
-            pixelWidth / bounds.width,
-            0,
-            0,
-            pixelHeight / bounds.height,
-            0,
-            0
-        );
-
-        if (sizeChanged) clearOverlay();
-    }
-
-    function updatePreviewAspectRatio() {
-        if (!video.videoWidth || !video.videoHeight) {
-            return;
-        }
-
-        const aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
-        preview.style.aspectRatio = aspectRatio;
-        previewSlot.style.aspectRatio = aspectRatio;
-
-        requestAnimationFrame(() => {
-            if (!disposed) {
-                resizeCanvas();
-            }
-        });
-    }
-
-    function drawPose(landmarks) {
-        resizeCanvas();
-        clearOverlay();
-
-        if (
-            !landmarks?.length ||
-            !video.videoWidth ||
-            !video.videoHeight
-        ) {
-            return;
-        }
-
-        const bounds = canvas.getBoundingClientRect();
-
-        if (
-            !bounds.width ||
-            !bounds.height ||
-            !canvas.width ||
-            !canvas.height
-        ) {
-            return;
-        }
-
-        const fitScale = preview.classList.contains("is-fullscreen")
-            ? Math.max
-            : Math.min;
-        const scale = fitScale(
-            bounds.width / video.videoWidth,
-            bounds.height / video.videoHeight
-        );
-
-        const drawnWidth = video.videoWidth * scale;
-        const drawnHeight = video.videoHeight * scale;
-        const offsetX = (bounds.width - drawnWidth) / 2;
-        const offsetY = (bounds.height - drawnHeight) / 2;
-        const scaleX = canvas.width / bounds.width;
-        const scaleY = canvas.height / bounds.height;
-
-        context.save();
-
-        context.setTransform(
-            scaleX,
-            0,
-            0,
-            scaleY,
-            0,
-            0
-        );
-
-        context.lineWidth = 3;
-        context.lineCap = "round";
-        context.lineJoin = "round";
-        context.strokeStyle = "rgba(74, 222, 128, 0.95)";
-        context.fillStyle = "#f8fafc";
-
-        const visibilityOf = landmark =>
-            landmark?.visibility ?? landmark?.presence ?? 1;
-
-        const point = index => {
-            const landmark = landmarks[index];
-
-            if (
-                !landmark ||
-                visibilityOf(landmark) < 0.35
-            ) {
-                return null;
-            }
-
-            return {
-                x: landmark.x * drawnWidth + offsetX,
-                y: landmark.y * drawnHeight + offsetY
-            };
-        };
-
-        for (const [fromIndex, toIndex] of CONNECTIONS) {
-            const from = point(fromIndex);
-            const to = point(toIndex);
-
-            if (!from || !to) {
-                continue;
-            }
-
-            context.beginPath();
-            context.moveTo(from.x, from.y);
-            context.lineTo(to.x, to.y);
-            context.stroke();
-        }
-
-        landmarks.forEach((landmark, index) => {
-            if (visibilityOf(landmark) < 0.45) {
-                return;
-            }
-
-            const position = point(index);
-
-            if (!position) {
-                return;
-            }
-
-            context.beginPath();
-            context.arc(
-                position.x,
-                position.y,
-                3.5,
-                0,
-                Math.PI * 2
-            );
-            context.fill();
-        });
-
-        context.restore();
-    }
-
     function updateClock() {
         if (isPlank && timeOutput) {
             timeOutput.textContent = formatTime(
@@ -890,17 +628,11 @@ export function mountAiMonitor(
         cameraRequestId += 1;
 
         if (stream) {
-            stream.getTracks().forEach(track => {
-                track.onended = null;
-                track.stop();
-            });
-
+            stopCameraStream(stream);
             stream = null;
         }
 
-        video.pause();
-        video.srcObject = null;
-        video.hidden = true;
+        detachCameraStream(video);
         updateSmartCameraPreview();
         cameraStatus.textContent = "Camera off";
 
@@ -921,23 +653,6 @@ export function mountAiMonitor(
         setStatus("error", message);
     }
 
-    async function applyCameraZoom(videoTrack) {
-        const zoomRange = videoTrack.getCapabilities?.().zoom;
-
-        if (zoomRange && Number.isFinite(zoomRange.min)) {
-            try {
-                await videoTrack.applyConstraints({
-                    zoom: { exact: zoomRange.min }
-                });
-            } catch (error) {
-                console.warn(
-                    "Could not set the camera to its widest zoom.",
-                    error
-                );
-            }
-        }
-    }
-
     async function resumeCamera() {
         if (
             cameraRestartPromise ||
@@ -954,15 +669,7 @@ export function mountAiMonitor(
         cameraStatus.textContent = "Connecting…";
         cameraRestartPromise = (async () => {
             try {
-                resumedStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: "user",
-                        width: { ideal: 1280, max: 1280 },
-                        height: { ideal: 720, max: 720 },
-                        zoom: { ideal: 1 }
-                    },
-                    audio: false
-                });
+                resumedStream = await acquireCameraStream();
 
                 if (
                     requestId !== cameraRequestId ||
@@ -970,7 +677,7 @@ export function mountAiMonitor(
                     document.hidden ||
                     lifecycle !== "running"
                 ) {
-                    resumedStream.getTracks().forEach(track => track.stop());
+                    stopCameraStream(resumedStream);
                     return;
                 }
 
@@ -989,8 +696,7 @@ export function mountAiMonitor(
                     return;
                 }
 
-                video.srcObject = resumedStream;
-                video.hidden = false;
+                attachCameraStream(video, resumedStream);
                 updateSmartCameraPreview();
                 await video.play();
 
@@ -1019,7 +725,7 @@ export function mountAiMonitor(
                     lifecycle !== "running"
                 ) {
                     if (stream === resumedStream) releaseCamera();
-                    else resumedStream?.getTracks().forEach(track => track.stop());
+                    else stopCameraStream(resumedStream);
                     return;
                 }
 
@@ -1200,10 +906,7 @@ export function mountAiMonitor(
 
             let result;
             try {
-                result = landmarker.detectForVideo(
-                    video,
-                    timestamp
-                );
+                result = detectPoseFrame(landmarker, video, timestamp);
             } catch (error) {
                 if (landmarkerDelegate === "GPU") {
                     stopProcessing();
@@ -1301,20 +1004,12 @@ export function mountAiMonitor(
         );
 
         try {
-            stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: "user",
-                    width: { ideal: 1280, max: 1280 },
-                    height: { ideal: 720, max: 720 },
-                    zoom: { ideal: 1 }
-                },
-                audio: false
-            });
+            stream = await acquireCameraStream();
 
             cameraEnded = false;
 
             if (disposed) {
-                stream.getTracks().forEach(track => track.stop());
+                stopCameraStream(stream);
                 stream = null;
                 return;
             }
@@ -1323,8 +1018,7 @@ export function mountAiMonitor(
 
             await applyCameraZoom(videoTrack);
 
-            video.srcObject = stream;
-            video.hidden = false;
+            attachCameraStream(video, stream);
             updateSmartCameraPreview();
 
             await video.play();
@@ -1530,12 +1224,7 @@ export function mountAiMonitor(
 
         if (
             weightInput &&
-            (
-                !Number.isFinite(weight) ||
-                weight < minWeight ||
-                weight > maxWeight ||
-                !Number.isInteger((weight - minWeight) / weightStep)
-            )
+            !isValidWorkoutWeight(weight, minWeight, maxWeight, weightStep)
         ) {
             weightInput.setCustomValidity(
                 `Enter a weight from ${minWeight} to ${maxWeight} kg in ${weightStep} kg increments.`
@@ -1547,23 +1236,13 @@ export function mountAiMonitor(
 
         weightInput?.setCustomValidity("");
 
-        const payload = isPlank
-            ? {
-                exercise: exercise.name,
-                duration: reviewedValue
-            }
-            : isJumpCount
-                ? {
-                    exercise: exercise.name,
-                    amount: reviewedValue,
-                    unit: "jumps"
-                }
-                : {
-                    exercise: exercise.name,
-                    reps: reviewedValue,
-                    sets: 1,
-                    ...(weightInput ? { weight } : {})
-                };
+        const payload = buildReviewedWorkoutPayload({
+            exerciseName: exercise.name,
+            isPlank,
+            isJumpCount,
+            reviewedValue,
+            weight: weightInput ? weight : null
+        });
 
         const isSignedIn = Boolean(localStorage.getItem("user"));
 
@@ -1592,18 +1271,17 @@ export function mountAiMonitor(
         const saveToast = window.showToast("Saving your reviewed workout…", { type: "loading" });
 
         try {
-            const response = await fetch(
-                `${window.backend_url}/api/workouts`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(payload)
-                }
-            );
+            const saveResult = await saveReviewedWorkout({
+                payload,
+                exerciseName: exercise.name,
+                isPlank,
+                isJumpCount,
+                reviewedValue,
+                weight,
+                hasWeight: Boolean(weightInput)
+            });
 
-            if (response.status === 401) {
+            if (saveResult.status === 401) {
                 window.clearPrivateCaches?.();
 
                 localStorage.removeItem("user");
@@ -1633,46 +1311,6 @@ export function mountAiMonitor(
                 );
 
                 return;
-            }
-
-            let data;
-
-            try {
-                data = await response.json();
-            } catch {
-                throw new Error(
-                    "The server returned an unreadable response. Your session is still available to retry."
-                );
-            }
-
-            if (!response.ok) {
-                throw new Error(
-                    data?.message ||
-                    `Could not save this workout (HTTP ${response.status}).`
-                );
-            }
-
-            const responseConfirmsWorkout = isPlank
-                ? Number(data?.duration) === reviewedValue
-                : isJumpCount
-                    ? Number(data?.amount) === reviewedValue &&
-                        data?.unit === "jumps"
-                    : Number(data?.reps) === reviewedValue &&
-                        Number(data?.sets) === 1;
-
-            if (
-                !data ||
-                typeof data !== "object" ||
-                data.exercise !== exercise.name ||
-                !responseConfirmsWorkout ||
-                (
-                    weightInput &&
-                    Number(data?.weight) !== weight
-                )
-            ) {
-                throw new Error(
-                    "The server response did not confirm this workout. Your reviewed session is still available."
-                );
             }
 
             window.clearPrivateCaches?.();

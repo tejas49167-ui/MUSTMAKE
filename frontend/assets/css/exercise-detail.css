@@ -1,0 +1,202 @@
+
+.exercise-detail-container {
+    max-width: 1100px;
+    padding-top: clamp(18px, 3vw, 32px);
+    padding-bottom: clamp(36px, 6vw, 72px);
+}
+
+.exercise-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.exercise-back-link:hover {
+    color: var(--accent-hover);
+}
+
+.exercise-detail-heading {
+    margin-bottom: clamp(20px, 3vw, 30px);
+}
+
+.exercise-detail-heading h1 {
+    margin: 0 0 7px;
+    color: var(--text-primary);
+    font-size: clamp(32px, 4vw, 40px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.12;
+}
+
+.exercise-detail-heading > p:last-child {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.exercise-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr);
+    align-items: stretch;
+    gap: clamp(16px, 2.5vw, 26px);
+}
+
+.exercise-demo-panel,
+.exercise-workout-panel {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
+    background: var(--glass-panel);
+    box-shadow: var(--shadow-soft);
+}
+
+.exercise-demo-panel {
+    display: grid;
+    min-height: 330px;
+    place-items: center;
+    padding: clamp(14px, 2vw, 22px);
+    background: var(--glass-subtle);
+}
+
+.exercise-workout-panel {
+    padding: clamp(17px, 2.5vw, 26px);
+}
+
+.exercise-mode-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    padding: 5px;
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    background: var(--glass-subtle);
+}
+
+.exercise-mode-tabs button {
+    min-height: 42px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.exercise-mode-tabs button[aria-selected="true"] {
+    color: var(--text-primary);
+    background: var(--glass-panel);
+    box-shadow: 0 2px 7px rgba(20, 37, 63, 0.08);
+}
+
+.exercise-mode-tabs button:focus-visible,
+.exercise-done-button:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+.exercise-mode-panel {
+    min-height: 280px;
+    padding-top: clamp(22px, 3vw, 30px);
+}
+
+.exercise-workout-form {
+    margin-top: 24px;
+}
+
+.exercise-mode-content {
+    min-height: 280px;
+    padding-inline: clamp(17px, 2.5vw, 26px);
+}
+
+.exercise-mode-content .exercise-workout-form {
+    display: flex;
+    min-height: 260px;
+    flex-direction: column;
+}
+
+.exercise-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 14px;
+}
+
+.exercise-form-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.exercise-form-field input {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: 11px;
+    color: var(--text-primary);
+    background: var(--glass-panel);
+    font: inherit;
+    font-size: 15px;
+}
+
+.exercise-form-field input:focus {
+    border-color: var(--accent);
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 1px;
+}
+
+.exercise-form-message {
+    min-height: 22px;
+    margin: 14px 0 8px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.exercise-form-message a {
+    color: #60a5fa;
+    font-weight: 650;
+}
+
+.exercise-done-button {
+    display: block;
+    width: 100%;
+    min-width: 132px;
+    min-height: 48px;
+    margin-top: auto;
+}
+
+.exercise-done-button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+@media (max-width: 800px) {
+    .exercise-detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .exercise-demo-panel {
+        min-height: 260px;
+    }
+}
+
+@media (max-width: 560px) {
+    .exercise-detail-container {
+        padding-top: 15px;
+    }
+
+    .exercise-workout-panel {
+        border-radius: 17px;
+    }
+
+}
+

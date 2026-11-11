@@ -143,17 +143,17 @@
             currentPage === "/first-details" ||
             document.body.id === "firstSetupPage";
 
-        const menuButtonHTML = isFirstSetupPage ? "" : `
-                <button class="mobile-menu-toggle${isAuthenticated ? "" : " guest-menu-toggle"}"
-                    type="button"
-                    aria-label="Open navigation menu"
-                    aria-expanded="false"
-                    aria-controls="mobileNavigation">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            `;
+       const menuButtonHTML = isFirstSetupPage || !isAuthenticated ? "" : `
+        <button class="mobile-menu-toggle"
+            type="button"
+            aria-label="Open navigation menu"
+            aria-expanded="False"
+            aria-controls="mobileNavigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    `;
 
         const guestActionsHTML = isFirstSetupPage || isAuthenticated
             ? ""
@@ -192,11 +192,10 @@
         // Slide-out navigation: used on mobile only.
         const navigationLinksHTML = isAuthenticated
             ? `
-                ${navLink("/edit-profile", "Edit details", currentPage)}
                 ${navLink("/settings", "Settings", currentPage)}
+                ${navLink("/edit-profile", "Details", currentPage)}
                 ${navLink("/about", "About", currentPage)}
-                <a href="mailto:tejas49167@gmail.com?subject=Bug%20Report" target="_blank" rel="noopener noreferrer">Report Bug</a>
-                <a href="mailto:tejas49167@gmail.com?subject=Suggestion" target="_blank" rel="noopener noreferrer">Suggestions</a>
+                <a href="mailto:tejas49167@gmail.com?subject=I noticed some issues in mustmake" target="_blank" rel="noopener noreferrer">Report bug or Suggestions</a>
 
                 <button class="mobile-nav-logout"
                     type="button"
