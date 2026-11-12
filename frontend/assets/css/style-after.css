@@ -601,9 +601,12 @@ body.mobile-nav-open {
 
 :root .mobile-nav-brand,
 :root .mobile-nav-links > a,
-:root .mobile-nav-links > .mobile-nav-logout,
 :root .mobile-nav-close {
     color: var(--text-primary);
+}
+
+:root .mobile-nav-links > .mobile-nav-logout {
+    color: #dc2626;
 }
 
 :root .topbar .mobile-menu-toggle {
@@ -630,6 +633,10 @@ body.mobile-nav-open {
 :root .mobile-nav-links > .mobile-nav-logout:hover {
     color: var(--accent-hover);
     background: var(--accent-soft);
+}
+
+:root .mobile-nav-links > .mobile-nav-logout:hover {
+    color: #b91c1c;
 }
 
 :root .auth-content a.google-oauth-button {

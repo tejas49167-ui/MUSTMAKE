@@ -195,7 +195,7 @@
                 ${navLink("/settings", "Settings", currentPage)}
                 ${navLink("/edit-profile", "Details", currentPage)}
                 ${navLink("/about", "About", currentPage)}
-                <a href="mailto:tejas49167@gmail.com?subject=I noticed some issues in mustmake" target="_blank" rel="noopener noreferrer">Report bug or Suggestions</a>
+                <a href="mailto:tejas49167@gmail.com?subject=I noticed some issues in mustmake" target="_blank" rel="noopener noreferrer">Report bug</a>
 
                 <button class="mobile-nav-logout"
                     type="button"
