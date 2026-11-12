@@ -97,15 +97,20 @@ usernameSearch.addEventListener("input", () => {
     }, 300);
 });
 
-async function searchUsers(username) {
+async function searchUsers(username, { showLoadingToast = true } = {}) {
     const generation = ++searchGeneration;
-    if (
-        searchToast?.element.isConnected &&
-        !searchToast.element.classList.contains("is-leaving")
-    ) {
-        searchToast.update("Searching users…", { type: "loading" });
+    if (!showLoadingToast) {
+        searchToast?.dismiss();
+        searchToast = null;
     } else {
-        searchToast = window.showToast("Searching users…", { type: "loading" });
+        if (
+            searchToast?.element.isConnected &&
+            !searchToast.element.classList.contains("is-leaving")
+        ) {
+            searchToast.update("Searching users…", { type: "loading" });
+        } else {
+            searchToast = window.showToast("Searching users…", { type: "loading" });
+        }
     }
 
     try {
@@ -128,15 +133,21 @@ async function searchUsers(username) {
 
         if (generation !== searchGeneration || currentSearch !== username) return;
 
-        searchToast?.dismiss();
-        searchToast = null;
+        if (showLoadingToast) {
+            searchToast?.dismiss();
+            searchToast = null;
+        }
         displaySearchResults(users);
     } catch (error) {
         console.error("Competition search error:", error);
         if (generation !== searchGeneration || usernameSearch.value.trim() !== username) return;
         searchResults.replaceChildren();
-        searchToast?.update("Could not search users.", { type: "error" });
-        searchToast = null;
+        if (showLoadingToast) {
+            searchToast?.update("Could not search users.", { type: "error" });
+            searchToast = null;
+        } else {
+            window.showToast("Could not search users.", { type: "error" });
+        }
     }
 }
 
@@ -182,7 +193,6 @@ function displaySearchResults(users) {
 async function addCompetitor(competitorId, button) {
     button.disabled = true;
     button.textContent = "...";
-    const notification = window.showToast("Adding competitor…", { type: "loading" });
 
     try {
         const response = await fetch(`${window.backend_url}/api/competition/add`, {
@@ -192,7 +202,6 @@ async function addCompetitor(competitorId, button) {
         });
 
         if (response.status === 401) {
-            notification?.dismiss();
             logout();
             return;
         }
@@ -202,28 +211,26 @@ async function addCompetitor(competitorId, button) {
         if (!response.ok) {
             button.disabled = false;
             button.textContent = "Add";
-            notification?.update(data.message || "Could not add competitor.", { type: "error" });
+            window.showToast(data.message || "Could not add competitor.", { type: "error" });
             return;
         }
 
         addedCompetitorIds.add(String(competitorId));
         await loadCompetition({ renderCache: false });
         if (usernameSearch.value.trim()) {
-            searchUsers(usernameSearch.value.trim());
+            searchUsers(usernameSearch.value.trim(), { showLoadingToast: false });
         }
-        notification?.update("Competitor added.", { type: "success" });
     } catch (error) {
         console.error("Add competitor error:", error);
         button.disabled = false;
         button.textContent = "Add";
-        notification?.update("Could not connect to server.", { type: "error" });
+        window.showToast("Could not connect to server.", { type: "error" });
     }
 }
 
 async function removeCompetitor(competitorId, button) {
     button.disabled = true;
     button.textContent = "...";
-    const notification = window.showToast("Removing competitor…", { type: "loading" });
 
     try {
         const response = await fetch(`${window.backend_url}/api/competition/${encodeURIComponent(competitorId)}`, {
@@ -232,7 +239,6 @@ async function removeCompetitor(competitorId, button) {
         });
 
         if (response.status === 401) {
-            notification?.dismiss();
             logout();
             return;
         }
@@ -242,7 +248,7 @@ async function removeCompetitor(competitorId, button) {
         if (!response.ok) {
             button.disabled = false;
             button.textContent = "−";
-            notification?.update(data.message || "Could not remove competitor.", { type: "error" });
+            window.showToast(data.message || "Could not remove competitor.", { type: "error" });
             return;
         }
 
@@ -255,14 +261,13 @@ async function removeCompetitor(competitorId, button) {
 
         await loadCompetition({ renderCache: false });
         if (usernameSearch.value.trim()) {
-            searchUsers(usernameSearch.value.trim());
+            searchUsers(usernameSearch.value.trim(), { showLoadingToast: false });
         }
-        notification?.update("Competitor removed.", { type: "success" });
     } catch (error) {
         console.error("Remove competitor error:", error);
         button.disabled = false;
         button.textContent = "−";
-        notification?.update("Could not connect to server.", { type: "error" });
+        window.showToast("Could not connect to server.", { type: "error" });
     }
 }
 

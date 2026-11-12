@@ -143,8 +143,7 @@ async function sendExerciseReminderEmail(email, name, localDate, streak, idempot
    <p style="margin:0 0 16px;font-size:16px;line-height:1.6">${greeting}</p>
    <p style="margin:0 0 12px;font-size:16px;line-height:1.6">You haven't logged a workout for ${escapeHtml(localDate)} yet.</p>
    <p style="margin:0 0 24px;font-size:18px;line-height:1.6;font-weight:700">${escapeHtml(streakMessage)}</p>
-   <a href="${todayUrl}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700">Go to MUSTMAKE</a>
-   <p style="margin:16px 0 0;color:#6b7280;font-size:14px;line-height:1.5"><a href="${todayUrl}" style="color:#2563eb">mustmake.vercel.app</a></p>
+   <a href="${todayUrl}" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700">Do it now</a>
  </div>
 </body>
 </html>`
