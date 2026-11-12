@@ -19,6 +19,10 @@
     padding: 0 0 1rem;
 }
 
+.settings-row[hidden] {
+    display: none;
+}
+
 .settings-row h2 {
     margin: 0;
     color: var(--text-primary);
@@ -40,6 +44,44 @@
     color: var(--text-secondary);
     font-size: 0.8rem;
     line-height: 1.5;
+}
+
+.settings-select {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    width: 13rem;
+    min-width: 10.5rem;
+    min-height: 42px;
+    padding: 0.65rem 2.25rem 0.65rem 0.85rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 0.6rem;
+    color: var(--text-primary);
+    background: var(--glass-subtle);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.settings-select:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 3px;
+}
+
+.settings-select:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+@media (max-width: 540px) {
+    .settings-row-reminder {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .settings-row-reminder .settings-select {
+        width: 100%;
+    }
 }
 
 .settings-switch {

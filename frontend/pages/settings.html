@@ -20,16 +20,6 @@
 
     <main class="settings-container">
 
-        <section class="settings-row" aria-labelledby="dailyReminderTitle">
-            <div class="settings-row-copy">
-                <h2 id="dailyReminderTitle">Daily workout reminder</h2>
-                <p>At 6:00 PM India time, get an encouraging email if you have not logged a workout today.</p>
-            </div>
-            <label class="settings-switch">
-                <input id="dailyReminderToggle" type="checkbox" role="switch" aria-labelledby="dailyReminderTitle" disabled>
-                <span class="settings-switch-track" aria-hidden="true"></span>
-            </label>
-        </section>
 
         <section class="settings-row" aria-labelledby="cameraSettingTitle">
             <div class="settings-row-copy">
@@ -84,6 +74,7 @@
                 <h2 id="frontViewSettingTitle">Front View</h2>
                 <p>Not much reliable for pushups and plank,use only if you do by facing the camera</p>
             </div>
+            
 
             <label class="settings-switch">
                 <input id="frontViewToggle" type="checkbox" role="switch" aria-labelledby="frontViewSettingTitle">
@@ -91,6 +82,16 @@
             </label>
         </section>
 
+        <section class="settings-row settings-row-reminder" aria-labelledby="dailyReminderTitle" hidden>
+            <div class="settings-row-copy">
+                <h2 id="dailyReminderTitle">If not logged before 6PM </h2>
+            </div>
+            <select id="dailyReminderPreference" class="settings-select" aria-labelledby="dailyReminderTitle" disabled>
+                <option value="remind" selected>Remind me</option>
+                <option value="dont-remind">Don't remind me</option>
+            </select>
+
+        </section>
         <section id="dangerZone" class="settings-danger-zone" hidden aria-labelledby="dangerZoneTitle">
             <h2 id="dangerZoneTitle">Danger zone</h2>
             <button id="deleteAccountButton" class="settings-delete-button" type="button">

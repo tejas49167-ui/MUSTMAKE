@@ -18,7 +18,8 @@ const strictAiToggle = document.getElementById("strictAiToggle");
 const frontViewToggle = document.getElementById("frontViewToggle");
 const dangerZone = document.getElementById("dangerZone");
 const deleteAccountButton = document.getElementById("deleteAccountButton");
-const dailyReminderToggle = document.getElementById("dailyReminderToggle");
+const dailyReminderRow = document.querySelector(".settings-row-reminder");
+const dailyReminderPreference = document.getElementById("dailyReminderPreference");
 
 let emailPreferences = null;
 let emailPreferencesSaving = false;
@@ -33,7 +34,9 @@ function hasSignedInUser() {
     }
 }
 
-dangerZone.hidden = !hasSignedInUser();
+const signedInUser = hasSignedInUser();
+dangerZone.hidden = !signedInUser;
+dailyReminderRow.hidden = !signedInUser;
 
 toggle.checked = getCameraMirrorPreference();
 
@@ -98,13 +101,15 @@ frontViewToggle.addEventListener("change", () => {
 
 function updateEmailPreferencesUI() {
     const loading = !emailPreferences;
-    const reminderEnabled = emailPreferences?.enabled === true &&
-        emailPreferences?.dailyExerciseReminder === true;
     const locked = loading || emailPreferencesSaving;
 
-    dailyReminderToggle.checked = reminderEnabled;
+    if (emailPreferences) {
+        const reminderEnabled = emailPreferences.enabled === true &&
+            emailPreferences.dailyExerciseReminder === true;
+        dailyReminderPreference.value = reminderEnabled ? "remind" : "dont-remind";
+    }
 
-    dailyReminderToggle.disabled = locked;
+    dailyReminderPreference.disabled = locked;
 }
 
 async function requestJson(path, options = {}) {
@@ -126,7 +131,7 @@ async function loadEmailPreferences() {
     } catch (error) {
         emailPreferences = null;
         updateEmailPreferencesUI();
-        dailyReminderToggle.disabled = true;
+        dailyReminderPreference.disabled = true;
         window.showToast(error.status === 401
             ? "Sign in to manage email notifications."
             : error.message, { type: "error" });
@@ -160,11 +165,15 @@ async function saveEmailPreference(key, value) {
     }
 }
 
-dailyReminderToggle.addEventListener("change", () =>
-    saveEmailPreference("enabled", dailyReminderToggle.checked));
+dailyReminderPreference.addEventListener("change", () => {
+    const shouldRemind = dailyReminderPreference.value === "remind";
+    saveEmailPreference("enabled", shouldRemind);
+});
 
-updateEmailPreferencesUI();
-loadEmailPreferences();
+if (signedInUser) {
+    updateEmailPreferencesUI();
+    loadEmailPreferences();
+}
 
 deleteAccountButton.addEventListener("click", async () => {
     const confirmed = window.confirm(
