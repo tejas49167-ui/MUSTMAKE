@@ -1,7 +1,6 @@
 const LOGIN_EMAIL_KEY = "pendingLoginOtpEmail";
 const LOGIN_SENT_AT_KEY = "pendingLoginOtpSentAt";
 const LOGIN_CHALLENGE_KEY = "pendingLoginOtpChallenge";
-const OTP_COOLDOWN_MS = 60 * 1000;
 
 const loginForm = document.getElementById("loginForm");
 const otpLoginVerifyForm = document.getElementById("otpLoginVerifyForm");
@@ -39,29 +38,7 @@ function showInvalidCredentialsMessage() {
     setLoginToast("Invalid username/email or password.", "error");
 }
 
-window.addEventListener("storage", (event) => {
-    if (event.key === "googleSignupPending" && event.newValue) {
-        localStorage.removeItem("googleSignupPending");
-        sessionStorage.setItem("pendingSignup", "true");
-        window.location.replace("/first-details");
-        return;
-    }
-
-    if (event.key !== "googleLoginComplete" || !event.newValue) {
-        return;
-    }
-
-    localStorage.removeItem("googleLoginComplete");
-
-    if (localStorage.getItem("user")) {
-        try {
-            window.redirectAfterAuthentication(JSON.parse(localStorage.getItem("user")));
-        } catch (error) {
-            console.error("Could not read the signed-in user.", error);
-            window.location.replace("/today");
-        }
-    }
-});
+window.authMechanics.installStorageListener();
 
 const googleLoginLink = document.getElementById("googleLoginLink");
 const signupLink = document.getElementById("signupLink");
@@ -110,22 +87,8 @@ if (googleLoginLink) {
     });
 }
 
-async function postAuth(path, payload) {
-    const response = await fetch(`${window.backend_url}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-        const error = new Error(data.message || "Could not complete login.");
-        error.status = response.status;
-        error.data = data;
-        throw error;
-    }
-
-    return data;
+function postAuth(path, payload) {
+    return window.authMechanics.postAuth(path, payload, "Could not complete login.");
 }
 
 function updateLoginRestrictionUI() {
@@ -301,7 +264,14 @@ function finishLogin(data) {
     window.redirectAfterAuthentication(data.user);
 }
 
-let resendTimer = null;
+const resendCooldown = window.authMechanics.createOtpCooldown({
+    storageKey: LOGIN_SENT_AT_KEY,
+    button: document.getElementById("loginOtpResend"),
+    status: document.getElementById("loginOtpResendStatus"),
+    waitingLabel: seconds => `Resend in ${seconds}s`,
+    readyLabel: "Resend code",
+    statusText: "Didn’t receive the code?"
+});
 
 function showOtpVerify(email, sentAt = Date.now(), challengeToken = "") {
     loginForm.hidden = true;
@@ -318,39 +288,11 @@ function showOtpVerify(email, sentAt = Date.now(), challengeToken = "") {
 }
 
 function updateResendCooldown() {
-    const resendButton = document.getElementById("loginOtpResend");
-    const resendStatus = document.getElementById("loginOtpResendStatus");
-    if (resendTimer) {
-        clearInterval(resendTimer);
-    }
-
-    const sentAt = Number(sessionStorage.getItem(LOGIN_SENT_AT_KEY)) || 0;
-    const refresh = () => {
-        const remaining = Math.max(0, sentAt + OTP_COOLDOWN_MS - Date.now());
-        resendButton.disabled = remaining > 0;
-        resendButton.textContent = remaining > 0
-            ? `Resend in ${Math.ceil(remaining / 1000)}s`
-            : "Resend code";
-        resendStatus.hidden = false;
-        resendStatus.textContent = "Didn’t receive the code?";
-
-        if (remaining === 0 && resendTimer) {
-            clearInterval(resendTimer);
-            resendTimer = null;
-        }
-    };
-
-    refresh();
-    if (sentAt && Date.now() < sentAt + OTP_COOLDOWN_MS) {
-        resendTimer = setInterval(refresh, 1000);
-    }
+    resendCooldown.refresh();
 }
 
 function resetOtpLogin(message, email = "", isError = false) {
-    if (resendTimer) {
-        clearInterval(resendTimer);
-        resendTimer = null;
-    }
+    resendCooldown.stop();
 
     sessionStorage.removeItem(LOGIN_EMAIL_KEY);
     sessionStorage.removeItem(LOGIN_SENT_AT_KEY);

@@ -1,7 +1,6 @@
 const SIGNUP_EMAIL_KEY = "pendingSignupEmail";
 const SIGNUP_SENT_AT_KEY = "pendingSignupOtpSentAt";
 const SIGNUP_CHALLENGE_KEY = "pendingSignupOtpChallenge";
-const OTP_COOLDOWN_MS = 60 * 1000;
 
 const loginLink = document.getElementById("loginLink");
 const signupForm = document.getElementById("signupForm");
@@ -11,26 +10,7 @@ const resendStatus = document.getElementById("signupResendStatus");
 const googleSignupLink = document.getElementById("googleSignupLink");
 let signupToast = null;
 
-window.addEventListener("storage", event => {
-    if (event.key === "googleSignupPending" && event.newValue) {
-        localStorage.removeItem("googleSignupPending");
-        sessionStorage.setItem("pendingSignup", "true");
-        window.location.replace("/first-details");
-        return;
-    }
-
-    if (event.key !== "googleLoginComplete" || !event.newValue) return;
-
-    localStorage.removeItem("googleLoginComplete");
-    if (!localStorage.getItem("user")) return;
-
-    try {
-        window.redirectAfterAuthentication(JSON.parse(localStorage.getItem("user")));
-    } catch (error) {
-        console.error("Could not read the signed-in user.", error);
-        window.location.replace("/today");
-    }
-});
+window.authMechanics.installStorageListener();
 
 if (googleSignupLink) {
     googleSignupLink.href = `${window.backend_url}/api/auth/google`;
@@ -72,19 +52,8 @@ if (loginLink) {
     });
 }
 
-async function postAuth(path, payload) {
-    const response = await fetch(`${window.backend_url}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-        throw new Error(data.message || "Could not complete signup.");
-    }
-
-    return data;
+function postAuth(path, payload) {
+    return window.authMechanics.postAuth(path, payload, "Could not complete signup.");
 }
 
 function saveSession(data) {
@@ -119,33 +88,17 @@ function setSignupStep(email, sentAt = Date.now(), challengeToken = "") {
     updateResendCooldown();
 }
 
-let resendTimer = null;
+const resendCooldown = window.authMechanics.createOtpCooldown({
+    storageKey: SIGNUP_SENT_AT_KEY,
+    button: signupResend,
+    status: resendStatus,
+    waitingLabel: seconds => `Resend code in ${seconds}s`,
+    readyLabel: "Resend code",
+    statusText: "Didn't receive the code? You can resend it."
+});
 
 function updateResendCooldown() {
-    if (resendTimer) {
-        clearInterval(resendTimer);
-    }
-
-    const sentAt = Number(sessionStorage.getItem(SIGNUP_SENT_AT_KEY)) || 0;
-    const refresh = () => {
-        const remaining = Math.max(0, sentAt + OTP_COOLDOWN_MS - Date.now());
-        signupResend.disabled = remaining > 0;
-        signupResend.textContent = remaining > 0
-            ? `Resend code in ${Math.ceil(remaining / 1000)}s`
-            : "Resend code";
-        resendStatus.hidden = false;
-        resendStatus.textContent = "Didn't receive the code? You can resend it.";
-
-        if (remaining === 0 && resendTimer) {
-            clearInterval(resendTimer);
-            resendTimer = null;
-        }
-    };
-
-    refresh();
-    if (sentAt && Date.now() < sentAt + OTP_COOLDOWN_MS) {
-        resendTimer = setInterval(refresh, 1000);
-    }
+    resendCooldown.refresh();
 }
 
 function setSignupMessage(message, isError = false) {
@@ -174,10 +127,7 @@ function setSignupMessage(message, isError = false) {
 }
 
 function returnToSignup(message, isError = true) {
-    if (resendTimer) {
-        clearInterval(resendTimer);
-        resendTimer = null;
-    }
+    resendCooldown.stop();
 
     sessionStorage.removeItem(SIGNUP_EMAIL_KEY);
     sessionStorage.removeItem(SIGNUP_SENT_AT_KEY);
