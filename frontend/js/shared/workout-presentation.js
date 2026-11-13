@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const APP_TIME_ZONE = "Asia/Kolkata";
+    const APP_TIME_ZONE = window.MUSTMAKE.config.APP_TIME_ZONE;
 
     function escapeHTML(value) {
         return String(value ?? "").replace(/[&<>"']/g, character => ({

@@ -1,4 +1,4 @@
-const APP_TIME_ZONE = "Asia/Kolkata";
+const { APP_TIME_ZONE } = require("../../frontend/js/shared/timezone-config");
 
 function getDateString(date = new Date()) {
     const parts = new Intl.DateTimeFormat("en-GB", {

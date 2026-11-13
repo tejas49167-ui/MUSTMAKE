@@ -7,6 +7,10 @@ const presentationSource = await readFile(
     new URL("../js/shared/workout-presentation.js", import.meta.url),
     "utf8"
 );
+const timeZoneConfigSource = await readFile(
+    new URL("../js/shared/timezone-config.js", import.meta.url),
+    "utf8"
+);
 
 class FakeElement {
     constructor(tagName = "div") {
@@ -158,6 +162,7 @@ test("history renders thousands of records incrementally across cursor pages", a
         }
     });
 
+    vm.runInContext(timeZoneConfigSource, context);
     vm.runInContext(presentationSource, context);
     vm.runInContext(source, context);
     bootstrapping = false;
@@ -214,6 +219,7 @@ test("public history appends thousands of dated records without rescanning the D
         fetch: () => new Promise(() => {})
     });
 
+    vm.runInContext(timeZoneConfigSource, context);
     vm.runInContext(presentationSource, context);
     vm.runInContext(source, context);
     for (let page = 0; page < 40; page += 1) {

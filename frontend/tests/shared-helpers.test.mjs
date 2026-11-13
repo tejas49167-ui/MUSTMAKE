@@ -7,6 +7,10 @@ const presentationSource = await readFile(
     new URL("../js/shared/workout-presentation.js", import.meta.url),
     "utf8"
 );
+const timeZoneConfigSource = await readFile(
+    new URL("../js/shared/timezone-config.js", import.meta.url),
+    "utf8"
+);
 const catalogSource = await readFile(
     new URL("../js/shared/exercise-catalog.js", import.meta.url),
     "utf8"
@@ -14,6 +18,7 @@ const catalogSource = await readFile(
 
 test("workout presentation helpers share safe formatting and the app timezone", () => {
     const window = {};
+    vm.runInNewContext(timeZoneConfigSource, { window });
     vm.runInNewContext(presentationSource, { window, Intl, Date });
     const { presentation } = window.MUSTMAKE;
 

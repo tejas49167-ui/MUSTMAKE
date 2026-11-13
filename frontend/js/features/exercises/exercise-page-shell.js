@@ -29,6 +29,7 @@
         const scripts = [
             "/js/shared/toast.js",
             "/js/shared/navbar.js",
+            "/js/shared/timezone-config.js",
             "/js/shared/workout-presentation.js",
             "/js/shared/exercise-catalog.js",
             "/js/features/exercises/exercise-detail.js"

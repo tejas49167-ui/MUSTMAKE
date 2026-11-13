@@ -1,0 +1,7 @@
+{
+  "name": "mustmake-frontend",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/generate-exercise-pages.mjs"
+  }
+}

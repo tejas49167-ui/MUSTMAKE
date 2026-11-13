@@ -1,7 +1,7 @@
 const { DateTime } = require("luxon");
+const { APP_TIME_ZONE: REMINDER_TIME_ZONE } = require("../../frontend/js/shared/timezone-config");
 
 const REMINDER_TIME = "18:00";
-const REMINDER_TIME_ZONE = "Asia/Kolkata";
 
 function getLocalDate(date, timeZone) {
     return DateTime.fromJSDate(date, { zone: timeZone }).toISODate();

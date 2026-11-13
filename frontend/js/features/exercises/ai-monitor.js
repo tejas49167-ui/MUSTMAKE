@@ -155,6 +155,8 @@ export function mountAiMonitor(
     applyCameraMirrorPreference();
 
     let lifecycle = "idle";
+    let windowFocused = typeof document.hasFocus !== "function" || document.hasFocus();
+    let pausedInBackground = false;
     let stream = null;
     let landmarker = null;
     let landmarkerDelegate = null;
@@ -639,6 +641,22 @@ export function mountAiMonitor(
         clearOverlay();
     }
 
+    function isPageInactive() {
+        return document.hidden || !windowFocused;
+    }
+
+    function releaseStartStream(startStream) {
+        if (!startStream) return;
+
+        stopCameraStream(startStream);
+        if (stream === startStream) {
+            stream = null;
+        }
+        if (video.srcObject === startStream) {
+            detachCameraStream(video);
+        }
+    }
+
     function handleCameraTrackEnded() {
         if (!["initializing", "running"].includes(lifecycle)) {
             return;
@@ -657,7 +675,7 @@ export function mountAiMonitor(
         if (
             cameraRestartPromise ||
             disposed ||
-            document.hidden ||
+            isPageInactive() ||
             lifecycle !== "running" ||
             stream
         ) {
@@ -674,7 +692,7 @@ export function mountAiMonitor(
                 if (
                     requestId !== cameraRequestId ||
                     disposed ||
-                    document.hidden ||
+                    isPageInactive() ||
                     lifecycle !== "running"
                 ) {
                     stopCameraStream(resumedStream);
@@ -689,7 +707,7 @@ export function mountAiMonitor(
                 if (
                     requestId !== cameraRequestId ||
                     disposed ||
-                    document.hidden ||
+                    isPageInactive() ||
                     lifecycle !== "running"
                 ) {
                     if (stream === resumedStream) releaseCamera();
@@ -703,7 +721,7 @@ export function mountAiMonitor(
                 if (
                     requestId !== cameraRequestId ||
                     disposed ||
-                    document.hidden ||
+                    isPageInactive() ||
                     lifecycle !== "running"
                 ) {
                     if (stream === resumedStream) releaseCamera();
@@ -721,7 +739,7 @@ export function mountAiMonitor(
                 if (
                     requestId !== cameraRequestId ||
                     disposed ||
-                    document.hidden ||
+                    isPageInactive() ||
                     lifecycle !== "running"
                 ) {
                     if (stream === resumedStream) releaseCamera();
@@ -738,7 +756,7 @@ export function mountAiMonitor(
 
                 if (
                     !disposed &&
-                    !document.hidden &&
+                    !isPageInactive() &&
                     lifecycle === "running" &&
                     !stream &&
                     requestId !== cameraRequestId
@@ -936,42 +954,81 @@ export function mountAiMonitor(
         animationFrame = requestAnimationFrame(processFrames);
     }
 
-    function handleVisibilityChange() {
-        if (
-            document.hidden &&
-            lifecycle === "running"
-        ) {
-            stopProcessing();
-            clearOverlay();
-            releaseCamera();
+    function pauseForBackground() {
+        const alreadyPaused = pausedInBackground;
+        pausedInBackground = true;
 
-            if (isPlank) {
-                detector.pause();
-                elapsedMs = detector.elapsedMs;
-                updateClock();
-            } else {
-                detector.loseTracking();
-            }
-
-            setFeedback(
-                "Paused in background."
-            );
-        } else if (
-            !document.hidden &&
-            lifecycle === "running" &&
-            animationFrame == null
-        ) {
-            void resumeCamera();
+        if (lifecycle === "initializing") {
+            releaseMonitoring();
+            setStatus("idle", "Ready");
+            setFeedback("Paused in background.");
+            return;
         }
+
+        if (lifecycle !== "running" || alreadyPaused) return;
+
+        stopProcessing();
+        clearOverlay();
+        releaseCamera();
+
+        if (isPlank) {
+            detector.pause();
+            elapsedMs = detector.elapsedMs;
+            updateClock();
+        } else {
+            detector.loseTracking();
+        }
+
+        setFeedback("Paused in background.");
+    }
+
+    function resumeWhenActive() {
+        if (disposed || isPageInactive()) return;
+
+        if (lifecycle === "running" && pausedInBackground) {
+            pausedInBackground = false;
+            void resumeCamera();
+            return;
+        }
+
+        if (lifecycle === "idle" && !snapshot?.finished && !pendingWorkout) {
+            pausedInBackground = false;
+            void startMonitoring();
+        }
+    }
+
+    function handleVisibilityChange() {
+        if (document.hidden) {
+            pauseForBackground();
+        } else {
+            resumeWhenActive();
+        }
+    }
+
+    function handleWindowBlur() {
+        windowFocused = false;
+        pauseForBackground();
+    }
+
+    function handleWindowFocus() {
+        windowFocused = true;
+        resumeWhenActive();
     }
 
     async function startMonitoring() {
         if (
             disposed ||
+            isPageInactive() ||
             !["idle", "ready", "error"].includes(lifecycle)
         ) {
             return;
         }
+
+        pausedInBackground = false;
+        const requestId = ++cameraRequestId;
+        const isRequestCurrent = () =>
+            requestId === cameraRequestId && !disposed && !isPageInactive();
+        let startStream = null;
 
         if (!window.isSecureContext) {
             const message = cameraErrorMessage({
@@ -1004,24 +1061,35 @@ export function mountAiMonitor(
         );
 
         try {
-            stream = await acquireCameraStream();
+            startStream = await acquireCameraStream();
 
-            cameraEnded = false;
-
-            if (disposed) {
-                stopCameraStream(stream);
-                stream = null;
+            if (!isRequestCurrent()) {
+                stopCameraStream(startStream);
                 return;
             }
+
+            stream = startStream;
+
+            cameraEnded = false;
 
             const videoTrack = stream.getVideoTracks()[0];
 
             await applyCameraZoom(videoTrack);
 
+            if (!isRequestCurrent()) {
+                releaseStartStream(startStream);
+                return;
+            }
+
             attachCameraStream(video, stream);
             updateSmartCameraPreview();
 
             await video.play();
+
+            if (!isRequestCurrent()) {
+                releaseStartStream(startStream);
+                return;
+            }
 
             updatePreviewAspectRatio();
 
@@ -1033,13 +1101,19 @@ export function mountAiMonitor(
 
             const initializedLandmarker =
                 await createPoseLandmarkerWithFallback();
-            landmarker = initializedLandmarker.landmarker;
-            landmarkerDelegate = initializedLandmarker.delegate;
 
-            if (disposed) {
-                releaseMonitoring();
+            if (!isRequestCurrent()) {
+                try {
+                    initializedLandmarker.landmarker?.close();
+                } catch (error) {
+                    console.warn("Could not close pose detector cleanly.", error);
+                }
+                releaseStartStream(startStream);
                 return;
             }
+
+            landmarker = initializedLandmarker.landmarker;
+            landmarkerDelegate = initializedLandmarker.delegate;
 
             if (cameraEnded) {
                 throw new Error(
@@ -1065,8 +1139,8 @@ export function mountAiMonitor(
 
             animationFrame = requestAnimationFrame(processFrames);
         } catch (error) {
-            if (disposed) {
-                releaseMonitoring();
+            if (!isRequestCurrent()) {
+                releaseStartStream(startStream);
                 return;
             }
 
@@ -1428,6 +1502,13 @@ export function mountAiMonitor(
         handleVisibilityChange,
         { signal: listeners.signal }
     );
+
+    window.addEventListener("blur", handleWindowBlur, {
+        signal: listeners.signal
+    });
+    window.addEventListener("focus", handleWindowFocus, {
+        signal: listeners.signal
+    });
 
     window.addEventListener(
         "pagehide",
