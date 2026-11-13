@@ -50,33 +50,15 @@ function escapeHtml(value) {
     })[character]);
 }
 
-function buildOtpDigitBoxes(otpString) {
-    const digits = String(otpString).trim().split("");
-    return digits
-        .map((digit, index) => {
-            const rightPad = index === digits.length - 1 ? "0" : "6px";
-            return `
-        <td width="16.66%" style="padding:0 ${rightPad} 0 0;">
-          <div style="height:52px;line-height:52px;background-color:#141417;background-image:linear-gradient(#141417,#141417);border-radius:10px;text-align:center;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:22px;font-weight:700;color:#ffffff;">
-            ${escapeHtml(digit)}
-          </div>
-        </td>`;
-        })
-        .join("");
-}
-
 async function sendOTPEmail(email, otp, purpose) {
     const action =
         purpose === "signup"
             ? "create your MUSTMAKE account"
             : "sign in to your MUSTMAKE account";
 
-    const safeOtp = escapeHtml(otp);
+    const safeOtp = escapeHtml(String(otp).trim());
     const safeExpiry = escapeHtml(OTP_EXPIRY_MINUTES);
-    const digitBoxesHtml = buildOtpDigitBoxes(otp);
     const logo = getLogoConfig();
-    const targetPage = purpose === "signup" ? "/pages/signup.html" : "/pages/login.html";
-    const copyUrl = `${APP_BASE_URL}${targetPage}?copy_otp=${encodeURIComponent(String(otp).trim())}`;
 
     const html = `<!doctype html>
 <html lang="en" style="color-scheme:dark;">
@@ -89,14 +71,14 @@ async function sendOTPEmail(email, otp, purpose) {
 <body style="margin:0;padding:0;background-color:#000000;background-image:linear-gradient(#000000,#000000);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#ffffff;-webkit-font-smoothing:antialiased;">
   <div style="max-width:420px;margin:0 auto;padding:36px 24px;background-color:#000000;background-image:linear-gradient(#000000,#000000);">
     
-    <!-- Brand Header -->
+    <!-- Big Brand Header -->
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 32px;">
       <tr>
-        <td style="vertical-align:middle;padding-right:10px;">
-          <img src="${logo.src}" alt="MUSTMAKE" width="26" height="26" style="display:block;width:26px;height:26px;border-radius:6px;border:0;">
+        <td style="vertical-align:middle;padding-right:14px;">
+          <img src="${logo.src}" alt="MUSTMAKE" width="56" height="56" style="display:block;width:56px;height:56px;border-radius:12px;border:0;">
         </td>
-        <td style="vertical-align:middle;padding-top:2px;">
-          <span style="display:block;color:#ffffff;font-size:13px;font-weight:700;letter-spacing:3px;line-height:1;text-transform:uppercase;">MUSTMAKE</span>
+        <td style="vertical-align:middle;">
+          <span style="display:block;color:#ffffff;font-size:18px;font-weight:800;letter-spacing:3.5px;line-height:1;text-transform:uppercase;">MUSTMAKE</span>
         </td>
       </tr>
     </table>
@@ -107,23 +89,10 @@ async function sendOTPEmail(email, otp, purpose) {
       Use the verification code below to ${action}:
     </p>
 
-    <!-- Fluid 6-Column OTP Grid (Never overflows mobile screens) -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:340px;margin:0 0 16px;table-layout:fixed;">
-      <tr>
-        ${digitBoxesHtml}
-      </tr>
-    </table>
-
-    <!-- Aligned Full-Width Copy Button (Locked pure white in Gmail Dark Mode) -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:340px;margin:0 0 28px;">
-      <tr>
-        <td>
-          <a href="${copyUrl}" target="_blank" style="display:block;width:100%;box-sizing:border-box;padding:13px 20px;background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);color:#000000 !important;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:0.2px;text-align:center;text-decoration:none;">
-            &#10064;&nbsp; Copy Code
-          </a>
-        </td>
-      </tr>
-    </table>
+    <!-- Single Contiguous 6-Digit Code Block (One-Tap Select & Copy) -->
+    <div style="margin:0 0 28px;padding:24px 16px;background-color:#141417;background-image:linear-gradient(#141417,#141417);border-radius:12px;text-align:center;">
+      <span style="display:inline-block;padding-left:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:36px;font-weight:700;letter-spacing:12px;color:#ffffff;-webkit-user-select:all;user-select:all;cursor:pointer;">${safeOtp}</span>
+    </div>
 
     <!-- Expiry & Security Note -->
     <p style="margin:0 0 24px;font-size:13px;line-height:1.5;color:#71717a;">
@@ -256,14 +225,14 @@ async function sendExerciseReminderEmail(email, name, localDate, streak, idempot
 <body style="margin:0;padding:0;background-color:#000000;background-image:linear-gradient(#000000,#000000);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#ffffff;-webkit-font-smoothing:antialiased;">
   <div style="max-width:420px;margin:0 auto;padding:36px 24px;background-color:#000000;background-image:linear-gradient(#000000,#000000);">
     
-    <!-- Brand Header -->
+    <!-- Big Brand Header -->
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 32px;">
       <tr>
-        <td style="vertical-align:middle;padding-right:10px;">
-          <img src="${logo.src}" alt="MUSTMAKE" width="26" height="26" style="display:block;width:26px;height:26px;border-radius:6px;border:0;">
+        <td style="vertical-align:middle;padding-right:14px;">
+          <img src="${logo.src}" alt="MUSTMAKE" width="56" height="56" style="display:block;width:56px;height:56px;border-radius:12px;border:0;">
         </td>
-        <td style="vertical-align:middle;padding-top:2px;">
-          <span style="display:block;color:#ffffff;font-size:13px;font-weight:700;letter-spacing:3px;line-height:1;text-transform:uppercase;">MUSTMAKE</span>
+        <td style="vertical-align:middle;">
+          <span style="display:block;color:#ffffff;font-size:18px;font-weight:800;letter-spacing:3.5px;line-height:1;text-transform:uppercase;">MUSTMAKE</span>
         </td>
       </tr>
     </table>
