@@ -103,15 +103,6 @@ a {
     align-items: center;
     justify-content: space-between;
 
-    /* Same clean header style as firstdetails.html */
-    background: transparent;
-    border: none;
-    border-bottom: none;
-    box-shadow: none;
-
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-
     position: relative;
     top: auto;
 
@@ -354,20 +345,6 @@ a {
     border: 1px solid transparent;
 
     transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-}
-
-.main-button {
-    background: rgba(185, 28, 28, 0.18);
-
-    color: #fff;
-    border-color: rgba(248, 113, 113, 0.45);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.main-button:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
 }
 
 .secondary-button {
@@ -637,14 +614,6 @@ textarea {
     margin: 8px 0;
 }
 
-.competition-avatar.placeholder {
-    display: grid;
-    place-items: center;
-    flex: 0 0 46px;
-    background: rgba(255, 255, 255, 0.16);
-    color: #fff;
-    font-weight: 700;
-}
 /* profiles.css */
 /* PROFILE */
 
@@ -1338,12 +1307,6 @@ p,
     border-color: var(--glass-border);
 }
 
-.topbar {
-    border-color: var(--glass-border);
-}
-
-
-
 .hero h1 {
     font-size: clamp(2rem, 4vw, 2.5rem);
     font-weight: 600;
@@ -1510,11 +1473,6 @@ small,
 
 
 
-.competition-avatar.placeholder {
-    color: var(--text-on-accent);
-    background: var(--accent);
-}
-
 .competition-user-link:focus-visible,
 .topbar a:focus-visible,
 .main-button:focus-visible,
@@ -1542,13 +1500,6 @@ textarea:focus-visible {
 /* MINIMAL CANVAS & QUIET MOTION */
 
 
-
-.topbar {
-    background: var(--topbar-bg);
-    box-shadow: 0 1px 0 var(--glass-border);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-}
 
 .hero {
     width: auto;
@@ -1614,7 +1565,6 @@ textarea {
         transform 240ms var(--ease-premium);
 }
 
-.main-button:hover,
 .secondary-button:hover {
     transform: translateY(-1px);
 }
@@ -1925,17 +1875,6 @@ textarea:focus {
 .google-button {
     background: var(--glass-subtle);
     border-color: var(--glass-border);
-}
-
-.main-button {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--text-on-accent);
-}
-
-.main-button:hover {
-    background: var(--accent-hover);
-    border-color: var(--accent-hover);
 }
 
 .secondary-button,
@@ -3091,11 +3030,11 @@ body {
     width: min(calc(100% - 40px), 1160px);
     min-height: 42px;
     padding: 26px 0 0;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     position: relative;
     top: auto;
     z-index: 100;
@@ -3349,8 +3288,6 @@ body.app-page .exercise-library-page .exercise-card h3 {
         margin: 0 auto;
         flex-direction: row;
         gap: var(--mobile-space);
-        background: transparent !important;
-        box-shadow: none !important;
         position: relative;
         z-index: 100;
     }
@@ -3555,9 +3492,20 @@ nav button,
 
 
 .main-button {
-    color: var(--text-on-accent) !important;
-    background: var(--accent) !important;
-    border-color: var(--accent) !important;
+    color: #fff;
+    background: #202124;
+    border: 1px solid #202124;
+    border-radius: 999px;
+    box-shadow: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.main-button:hover {
+    color: #fff;
+    background: #3f4348;
+    border-color: #3f4348;
+    transform: translateY(-1px);
 }
 
 .exercise-card {

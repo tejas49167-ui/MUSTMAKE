@@ -1,8 +1,3 @@
-.main-button:hover {
-    background: var(--accent-hover) !important;
-    border-color: var(--accent-hover) !important;
-}
-
 #firstSetupPage {
     background: var(--page-bg) !important;
 }
@@ -398,13 +393,11 @@ body.mobile-nav-open {
 }
 
 /* Keep exercise browsing and controls light instead of card-heavy */
-.main-button,
 .secondary-button {
     border-radius: 999px;
     box-shadow: none;
 }
 
-.main-button,
 #firstSetupPage .save-button {
     color: #fff !important;
     background: #202124 !important;
@@ -412,7 +405,6 @@ body.mobile-nav-open {
     box-shadow: none;
 }
 
-.main-button:hover,
 #firstSetupPage .save-button:hover {
     color: #fff !important;
     background: #3f4348 !important;
@@ -530,7 +522,7 @@ body.mobile-nav-open {
     color: var(--text-muted);
 }
 
-:root body :is(button, .main-button, .secondary-button) {
+:root body :is(button:not(.main-button), .secondary-button) {
     color: var(--text-primary);
 }
 
@@ -552,11 +544,6 @@ body.mobile-nav-open {
 :root .desktop-navigation a.active,
 :root .desktop-nav-more:hover {
     color: var(--accent-hover);
-}
-
-:root .topbar {
-    background: var(--topbar-bg);
-    border-color: var(--glass-border);
 }
 
 :root .workout-item,
@@ -705,10 +692,6 @@ body.mobile-nav-open {
     color: var(--text-secondary);
 }
 
-:root .competition-avatar.placeholder {
-    background: #303030;
-}
-
 :root .competition-search-area,
 :root .competition-people,
 :root .competition-results,
@@ -796,8 +779,12 @@ body.app-page .exercise-library-page .exercise-card-media {
 }
 
 :root .competition-avatar.placeholder {
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
     background: #242424;
     color: var(--text-primary);
+    font-weight: 700;
 }
 
 :root .competition-results .add-competitor-button,
