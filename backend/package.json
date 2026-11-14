@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "node --test tests/*.test.js",
+    "backfill:user-search": "node scripts/backfill-user-search-grams.js",
     "start": "node server.js"
   },
   "keywords": [],

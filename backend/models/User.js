@@ -5,6 +5,7 @@ const {
     REMINDER_TIME_ZONE,
     getNextReminderAt
 } = require("../utils/email-reminder-time");
+const { getUserSearchGrams } = require("../utils/user-search");
 
 const userSchema = new mongoose.Schema(
     {
@@ -20,6 +21,12 @@ const userSchema = new mongoose.Schema(
             sparse: true,
             lowercase: true,
             trim: true
+        },
+
+        searchGrams: {
+            type: [String],
+            default: [],
+            select: false
         },
 
         email: {
@@ -145,6 +152,12 @@ userSchema.index(
         }
     }
 );
+
+userSchema.index({ searchGrams: 1 }, { name: "user_search_grams" });
+
+userSchema.pre("validate", function updateSearchGrams() {
+    this.searchGrams = getUserSearchGrams(this.name, this.username);
+});
 
 module.exports =
     mongoose.model("User", userSchema);

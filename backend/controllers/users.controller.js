@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Competition = require("../models/Competition");
 const connectDB = require("../config/database");
 const { escapeRegex } = require("../utils/validation");
+const { getUserSearchGrams } = require("../utils/user-search");
 const { getWorkoutHistoryPage } = require("../services/workout-history.service");
 const { logFailure } = require("../utils/safe-log");
 
@@ -17,7 +18,9 @@ const searchUsers = async (req, res) => {
         const existingCompetitorIds = await Competition.distinct("competitor", {
             owner: req.userId
         });
+        // The indexed grams narrow candidates; regex retains substring matching.
         const users = await User.find({
+            searchGrams: { $all: getUserSearchGrams(query) },
             $or: [
                 { name: { $regex: escapeRegex(query), $options: "i" } },
                 { username: { $regex: escapeRegex(query), $options: "i" } }

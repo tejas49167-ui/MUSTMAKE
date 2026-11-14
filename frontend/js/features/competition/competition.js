@@ -71,6 +71,7 @@ const addedCompetitorIds = new Set(
 let searchTimer = null;
 let searchGeneration = 0;
 let searchToast = null;
+let activeSearchController = null;
 
 searchControl.classList.add("is-open");
 searchToggle.addEventListener("click", () => usernameSearch.focus());
@@ -78,6 +79,8 @@ searchToggle.addEventListener("click", () => usernameSearch.focus());
 usernameSearch.addEventListener("input", () => {
     const username = usernameSearch.value.trim();
     clearTimeout(searchTimer);
+    activeSearchController?.abort();
+    activeSearchController = null;
 
     if (!username) {
         searchGeneration += 1;
@@ -99,6 +102,9 @@ usernameSearch.addEventListener("input", () => {
 
 async function searchUsers(username, { showLoadingToast = true } = {}) {
     const generation = ++searchGeneration;
+    activeSearchController?.abort();
+    const controller = new AbortController();
+    activeSearchController = controller;
     if (!showLoadingToast) {
         searchToast?.dismiss();
         searchToast = null;
@@ -116,7 +122,7 @@ async function searchUsers(username, { showLoadingToast = true } = {}) {
     try {
         const response = await fetch(
             `${window.backend_url}/api/users/search?q=${encodeURIComponent(username)}`,
-            { headers: authHeaders() }
+            { headers: authHeaders(), signal: controller.signal }
         );
 
         if (response.status === 401) {
@@ -139,6 +145,7 @@ async function searchUsers(username, { showLoadingToast = true } = {}) {
         }
         displaySearchResults(users);
     } catch (error) {
+        if (error.name === "AbortError") return;
         console.error("Competition search error:", error);
         if (generation !== searchGeneration || usernameSearch.value.trim() !== username) return;
         searchResults.replaceChildren();
@@ -147,6 +154,10 @@ async function searchUsers(username, { showLoadingToast = true } = {}) {
             searchToast = null;
         } else {
             window.showToast("Could not search users.", { type: "error" });
+        }
+    } finally {
+        if (activeSearchController === controller) {
+            activeSearchController = null;
         }
     }
 }
