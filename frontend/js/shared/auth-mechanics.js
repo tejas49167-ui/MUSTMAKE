@@ -22,16 +22,42 @@
     function openGoogleAuth(url) {
         if (googleAuthInFlight) return;
 
+        const showProgress = () => {
+            const container = document.querySelector(".auth-container");
+            const content = container?.querySelector(".auth-content");
+            if (!container || !content) return () => {};
+
+            const wasHidden = content.hidden;
+            const progress = document.createElement("div");
+            progress.className = "google-auth-progress";
+            progress.setAttribute("role", "status");
+            progress.setAttribute("aria-live", "polite");
+
+            const spinner = document.createElement("span");
+            spinner.className = "google-auth-progress-spinner";
+            spinner.setAttribute("aria-hidden", "true");
+
+            const message = document.createElement("p");
+            message.textContent = "Continue in the Google sign-in window.";
+            progress.append(spinner, message);
+            content.hidden = true;
+            container.appendChild(progress);
+
+            return () => {
+                progress.remove();
+                content.hidden = wasHidden;
+            };
+        };
+
         const oauthWindow = window.open(url, "_blank");
         if (!oauthWindow) {
+            showProgress();
             window.location.replace(url);
             return;
         }
 
         googleAuthInFlight = true;
-        const loadingToast = window.showToast("Connecting to Google...", {
-            type: "loading"
-        });
+        const restoreAuthPage = showProgress();
         oauthWindow.opener = null;
 
         const closeWatcher = window.setInterval(() => {
@@ -39,7 +65,7 @@
 
             window.clearInterval(closeWatcher);
             googleAuthInFlight = false;
-            loadingToast?.dismiss();
+            restoreAuthPage();
         }, 500);
     }
 
