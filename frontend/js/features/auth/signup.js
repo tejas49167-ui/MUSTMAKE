@@ -26,12 +26,7 @@ if (googleSignupLink) {
         }
 
         event.preventDefault();
-        const oauthWindow = window.open(googleSignupLink.href, "_blank");
-        if (oauthWindow) {
-            oauthWindow.opener = null;
-        } else {
-            window.location.replace(googleSignupLink.href);
-        }
+        window.authMechanics.openGoogleAuth(googleSignupLink.href);
     });
 }
 

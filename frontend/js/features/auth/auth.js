@@ -77,13 +77,7 @@ if (googleLoginLink) {
         }
 
         event.preventDefault();
-        const oauthWindow = window.open(googleLoginLink.href, "_blank");
-
-        if (oauthWindow) {
-            oauthWindow.opener = null;
-        } else {
-            window.location.replace(googleLoginLink.href);
-        }
+        window.authMechanics.openGoogleAuth(googleLoginLink.href);
     });
 }
 

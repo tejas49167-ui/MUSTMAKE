@@ -1,4 +1,6 @@
 (function () {
+    let googleAuthInFlight = false;
+
     async function postAuth(path, payload, fallbackMessage = "Could not complete authentication.") {
         const response = await fetch(`${window.backend_url}${path}`, {
             method: "POST",
@@ -15,6 +17,30 @@
         }
 
         return data;
+    }
+
+    function openGoogleAuth(url) {
+        if (googleAuthInFlight) return;
+
+        const oauthWindow = window.open(url, "_blank");
+        if (!oauthWindow) {
+            window.location.replace(url);
+            return;
+        }
+
+        googleAuthInFlight = true;
+        const loadingToast = window.showToast("Connecting to Google...", {
+            type: "loading"
+        });
+        oauthWindow.opener = null;
+
+        const closeWatcher = window.setInterval(() => {
+            if (!oauthWindow.closed) return;
+
+            window.clearInterval(closeWatcher);
+            googleAuthInFlight = false;
+            loadingToast?.dismiss();
+        }, 500);
     }
 
     function createOtpCooldown({
@@ -94,6 +120,7 @@
 
     window.authMechanics = {
         postAuth,
+        openGoogleAuth,
         createOtpCooldown,
         installStorageListener
     };

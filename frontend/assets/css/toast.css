@@ -38,6 +38,21 @@
     animation: mustmake-toast-enter 260ms var(--ease-premium, cubic-bezier(0.16, 1, 0.3, 1)) forwards;
 }
 
+.mustmake-toast[data-type="loading"] {
+    grid-template-columns: 16px minmax(0, 1fr) 28px;
+    align-items: center;
+}
+
+.mustmake-toast[data-type="loading"]::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: mustmake-toast-spin 800ms linear infinite;
+}
+
 .toast-close svg {
     width: 17px;
     height: 17px;
@@ -130,6 +145,12 @@
     }
 }
 
+@keyframes mustmake-toast-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 @media (max-width: 520px) {
     .toast-viewport {
         top: max(12px, env(safe-area-inset-top));
@@ -143,6 +164,10 @@
     .mustmake-toast,
     .mustmake-toast.is-leaving {
         animation-duration: 1ms;
+    }
+
+    .mustmake-toast[data-type="loading"]::before {
+        animation: none;
     }
 
 }
