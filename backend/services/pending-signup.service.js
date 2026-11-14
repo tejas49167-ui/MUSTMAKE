@@ -19,7 +19,7 @@ async function savePendingSignup(data, res) {
                 expiresAt: new Date(Date.now() + 30 * 60 * 1000)
             }
         },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+        { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
     );
     setPendingSignupCookie(res, pendingToken);
 }

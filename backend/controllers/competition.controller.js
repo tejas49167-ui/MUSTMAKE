@@ -96,10 +96,11 @@ const getCompetitors = async (req, res) => {
     try {
         await connectDB();
         const competitions = await Competition.find({ owner: req.userId })
-            .populate("competitor", "name username profilePicture")
+            .populate("competitor", "name username profilePicture isPrivate")
             .sort({ createdAt: -1 });
         const ids = competitions
-            .map(item => item.competitor?._id)
+            .filter(item => item.competitor && !item.competitor.isPrivate)
+            .map(item => item.competitor._id)
             .filter(Boolean);
         if (ids.length === 0) return res.json([]);
 
@@ -128,7 +129,7 @@ const getCompetitors = async (req, res) => {
         }
 
         const result = competitions
-            .filter(item => item.competitor)
+            .filter(item => item.competitor && !item.competitor.isPrivate)
             .map(item => ({
                 id: item.competitor._id,
                 name: item.competitor.name,

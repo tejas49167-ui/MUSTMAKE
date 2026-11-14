@@ -300,6 +300,25 @@ const completeSignup = async (req, res) => {
 const updateProfile = (req, res) => saveProfile(req, res);
 const completeFirstDetails = (req, res) => saveProfile(req, res, true);
 
+const updatePrivacy = async (req, res) => {
+    if (!isPlainObject(req.body) || typeof req.body.isPrivate !== "boolean") {
+        return res.status(400).json({ message: "Privacy setting must be true or false." });
+    }
+    try {
+        await connectDB();
+        const user = await User.findByIdAndUpdate(
+            req.userId,
+            { $set: { isPrivate: req.body.isPrivate } },
+            { returnDocument: "after", runValidators: true }
+        ).select("isPrivate");
+        if (!user) return res.status(404).json({ message: "User not found." });
+        return res.json({ success: true, isPrivate: user.isPrivate });
+    } catch (error) {
+        logFailure("Update privacy setting failed.", error);
+        return res.status(500).json({ message: "Could not update privacy setting." });
+    }
+};
+
 const deleteAccount = async (req, res) => {
     let session;
     try {
@@ -355,5 +374,6 @@ module.exports = {
     updateProfile,
     completeFirstDetails,
     completeSignup,
+    updatePrivacy,
     deleteAccount
 };

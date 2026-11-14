@@ -91,6 +91,11 @@ const userSchema = new mongoose.Schema(
             default: null
         },
 
+        isPrivate: {
+            type: Boolean,
+            default: false
+        },
+
         age: {
             type: Number,
             min: 0,

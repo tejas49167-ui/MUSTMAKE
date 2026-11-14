@@ -117,7 +117,7 @@ async function claimNotification(logModel, identity, now) {
             },
             $inc: { attemptCount: 1 }
         },
-        { new: true }
+        { returnDocument: "after" }
     );
 
     return log ? { leaseToken, attemptCount: log.attemptCount } : null;
