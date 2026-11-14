@@ -53,29 +53,6 @@
     animation: mustmake-toast-spin 800ms linear infinite;
 }
 
-.google-auth-progress {
-    display: grid;
-    justify-items: center;
-    gap: 14px;
-    width: 100%;
-    color: var(--text-secondary, #6b7280);
-    text-align: center;
-}
-
-.google-auth-progress-spinner {
-    width: 24px;
-    height: 24px;
-    border: 2px solid currentColor;
-    border-right-color: transparent;
-    border-radius: 50%;
-    animation: mustmake-toast-spin 800ms linear infinite;
-}
-
-.google-auth-progress p {
-    margin: 0;
-    font-size: 14px;
-}
-
 .toast-close svg {
     width: 17px;
     height: 17px;
@@ -190,10 +167,6 @@
     }
 
     .mustmake-toast[data-type="loading"]::before {
-        animation: none;
-    }
-
-    .google-auth-progress-spinner {
         animation: none;
     }
 
