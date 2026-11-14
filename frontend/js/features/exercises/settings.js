@@ -20,9 +20,17 @@ const dangerZone = document.getElementById("dangerZone");
 const deleteAccountButton = document.getElementById("deleteAccountButton");
 const dailyReminderRow = document.querySelector(".settings-row-reminder");
 const dailyReminderPreference = document.getElementById("dailyReminderPreference");
+const privacySettingRow = document.getElementById("privacySettingRow");
+const privacyToggle = document.getElementById("privacyToggle");
+const privacyConfirmOverlay = document.getElementById("privacyConfirmOverlay");
+const privacyConfirmMessage = document.getElementById("privacyConfirmMessage");
+const privacyCancelButton = document.getElementById("privacyCancelButton");
+const privacyConfirmButton = document.getElementById("privacyConfirmButton");
 
 let emailPreferences = null;
 let emailPreferencesSaving = false;
+let isPrivate = false;
+let pendingPrivacyValue = null;
 
 function hasSignedInUser() {
     try {
@@ -37,6 +45,7 @@ function hasSignedInUser() {
 const signedInUser = hasSignedInUser();
 dangerZone.hidden = !signedInUser;
 dailyReminderRow.hidden = !signedInUser;
+privacySettingRow.hidden = !signedInUser;
 
 toggle.checked = getCameraMirrorPreference();
 
@@ -138,6 +147,71 @@ async function loadEmailPreferences() {
     }
 }
 
+async function loadPrivacySetting() {
+    try {
+        const data = await requestJson("/api/profile");
+        isPrivate = data.user?.isPrivate === true;
+        privacyToggle.checked = isPrivate;
+        privacyToggle.disabled = false;
+    } catch (error) {
+        window.showToast(error.status === 401
+            ? "Sign in to manage account privacy."
+            : error.message, { type: "error" });
+    }
+}
+
+function closePrivacyConfirmation() {
+    pendingPrivacyValue = null;
+    privacyConfirmOverlay.hidden = true;
+    privacyToggle.checked = isPrivate;
+    privacyToggle.focus();
+}
+
+privacyToggle.addEventListener("change", () => {
+    pendingPrivacyValue = privacyToggle.checked;
+    privacyToggle.checked = isPrivate;
+    privacyConfirmMessage.textContent = pendingPrivacyValue
+        ? "Other members will no longer be able to find your profile, view your workouts, or see your competition activity. Make your account private?"
+        : "Other authenticated members will be able to find your profile and view your workouts and competition activity. Make your account public?";
+    privacyConfirmOverlay.hidden = false;
+    privacyCancelButton.focus();
+});
+
+privacyCancelButton.addEventListener("click", closePrivacyConfirmation);
+privacyConfirmOverlay.addEventListener("click", event => {
+    if (event.target === privacyConfirmOverlay) closePrivacyConfirmation();
+});
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !privacyConfirmOverlay.hidden) {
+        closePrivacyConfirmation();
+    }
+});
+
+privacyConfirmButton.addEventListener("click", async () => {
+    if (pendingPrivacyValue === null) return;
+    const nextValue = pendingPrivacyValue;
+    privacyConfirmButton.disabled = true;
+    privacyCancelButton.disabled = true;
+    try {
+        await requestJson("/api/settings/privacy", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ isPrivate: nextValue })
+        });
+        isPrivate = nextValue;
+        pendingPrivacyValue = null;
+        privacyToggle.checked = isPrivate;
+        privacyConfirmOverlay.hidden = true;
+        privacyToggle.focus();
+    } catch (error) {
+        closePrivacyConfirmation();
+        window.showToast(error.message || "Could not update account privacy.", { type: "error" });
+    } finally {
+        privacyConfirmButton.disabled = false;
+        privacyCancelButton.disabled = false;
+    }
+});
+
 async function saveEmailPreference(key, value) {
     if (!emailPreferences || emailPreferencesSaving) return;
 
@@ -173,6 +247,7 @@ dailyReminderPreference.addEventListener("change", () => {
 if (signedInUser) {
     updateEmailPreferencesUI();
     loadEmailPreferences();
+    loadPrivacySetting();
 }
 
 deleteAccountButton.addEventListener("click", async () => {

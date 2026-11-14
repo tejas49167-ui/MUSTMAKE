@@ -203,7 +203,7 @@ async function sendExerciseReminderEmail(email, name, localDate, streak, idempot
         throw new Error("RESEND_API_KEY and EMAIL_FROM are required for Resend.");
     }
 
-    const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi there,";
+    const greeting = name ? `Hello ${escapeHtml(name)},` : "Hi there,";
     const todayUrl = APP_BASE_URL;
     const streakMessage = streak > 0
         ? `You're on a ${streak}-day streak. Keep it alive by logging today's workout.`
@@ -235,11 +235,10 @@ async function sendExerciseReminderEmail(email, name, localDate, streak, idempot
           <span style="display:block;color:#ffffff;font-size:18px;font-weight:800;letter-spacing:3.5px;line-height:1;text-transform:uppercase;">MUSTMAKE</span>
         </td>
       </tr>
-    </table>
-
+    </table>    
+    <h1 style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#a1a1aa;">${greeting}</h1>
     <h1 style="margin:0 0 14px;font-size:24px;font-weight:700;letter-spacing:-0.4px;line-height:1.25;color:#ffffff;">Don't give up on today.</h1>
     
-    <p style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#a1a1aa;">${greeting}</p>
     
     <p style="margin:0 0 22px;font-size:15px;line-height:1.55;color:#a1a1aa;">
       You haven't logged a workout for <strong style="color:#ffffff;font-weight:600;">${escapeHtml(localDate)}</strong> yet.
@@ -251,9 +250,7 @@ async function sendExerciseReminderEmail(email, name, localDate, streak, idempot
 
     <a href="${todayUrl}" style="display:inline-block;padding:13px 26px;border-radius:10px;background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);color:#000000 !important;font-size:14px;font-weight:700;letter-spacing:0.2px;text-decoration:none;">Log Workout &rarr;</a>
 
-    <p style="margin:36px 0 0;font-size:12px;line-height:1.5;color:#52525b;">
-      Daily consistency reminder &bull; <a href="${todayUrl}" style="color:#a1a1aa;text-decoration:underline;">mustmake.vercel.app</a>
-    </p>
+   
   </div>
 </body>
 </html>`

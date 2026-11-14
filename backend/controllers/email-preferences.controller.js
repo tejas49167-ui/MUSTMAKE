@@ -80,7 +80,7 @@ async function updatePreferences(req, res) {
         const savedUser = await User.findByIdAndUpdate(
             req.userId,
             { $set: fieldsToSave },
-            { new: true, runValidators: true }
+            { returnDocument: "after", runValidators: true }
         ).select("emailVerifiedAt emailPreferences");
         if (!savedUser) return res.status(404).json({ message: "User not found." });
 

@@ -25,7 +25,8 @@ const searchUsers = async (req, res) => {
                 { name: { $regex: escapeRegex(query), $options: "i" } },
                 { username: { $regex: escapeRegex(query), $options: "i" } }
             ],
-            _id: { $nin: [req.userId, ...existingCompetitorIds] }
+            _id: { $nin: [req.userId, ...existingCompetitorIds] },
+            isPrivate: { $ne: true }
         })
             .select("name username profilePicture")
             .limit(20);
@@ -45,8 +46,12 @@ const getPublicProfile = async (req, res) => {
     try {
         await connectDB();
         const user = await User.findById(req.params.id)
-            .select("name username profilePicture age +ageReferenceYear height weight socials");
+            .select("name username profilePicture age +ageReferenceYear height weight socials isPrivate");
         if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        if (user.isPrivate && String(user._id) !== String(req.userId)) {
             return res.status(404).json({ message: "User not found." });
         }
 

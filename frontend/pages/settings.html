@@ -21,6 +21,7 @@
     <main class="settings-container">
 
 
+
         <section class="settings-row" aria-labelledby="cameraSettingTitle">
             <div class="settings-row-copy">
                 <h2 id="cameraSettingTitle">Mirror camera</h2>
@@ -90,7 +91,16 @@
                 <option value="remind" selected>Remind me</option>
                 <option value="dont-remind">Don't remind me</option>
             </select>
-
+        </section>
+         <section id="privacySettingRow" class="settings-row settings-row-smart-camera" aria-labelledby="privacySettingTitle" hidden>
+            <div class="settings-row-copy">
+                <h2 id="privacySettingTitle">Private account</h2>
+                <p>When enabled, other members cannot see your profile or workouts.</p>
+            </div>
+            <label class="settings-switch">
+                <input id="privacyToggle" type="checkbox" role="switch" aria-labelledby="privacySettingTitle" disabled>
+                <span class="settings-switch-track" aria-hidden="true"></span>
+            </label>
         </section>
         <section id="dangerZone" class="settings-danger-zone" hidden aria-labelledby="dangerZoneTitle">
             <h2 id="dangerZoneTitle">Danger zone</h2>
@@ -99,6 +109,17 @@
             </button>
         </section>
     </main>
+
+    <div id="privacyConfirmOverlay" class="settings-confirm-overlay" hidden>
+        <section class="settings-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="privacyConfirmTitle" aria-describedby="privacyConfirmMessage">
+            <h2 id="privacyConfirmTitle">Change account privacy?</h2>
+            <p id="privacyConfirmMessage"></p>
+            <div class="settings-confirm-actions">
+                <button id="privacyCancelButton" class="secondary-button" type="button">Cancel</button>
+                <button id="privacyConfirmButton" class="main-button" type="button">Confirm</button>
+            </div>
+        </section>
+    </div>
 
     <script src="/js/shared/toast.js"></script>
     <script src="/js/shared/navbar.js"></script>
