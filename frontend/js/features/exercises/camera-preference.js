@@ -6,8 +6,6 @@ const FRONT_VIEW_KEY_PREFIX = "mustmake_front_view:";
 const CAMERA_PREFERENCE_CHANGE_EVENT = "mustmake:camera-preference-change";
 const SMART_CAMERA_MODE_CHANGE_EVENT = "mustmake:smart-camera-mode-change";
 const EXERCISE_SOUND_CHANGE_EVENT = "mustmake:exercise-sound-change";
-const STRICT_AI_CHANGE_EVENT = "mustmake:strict-ai-change";
-const FRONT_VIEW_CHANGE_EVENT = "mustmake:front-view-change";
 
 function getPreferenceUserKey() {
     let user = null;
@@ -145,10 +143,6 @@ export function setStrictAiPreference(enabled) {
         return false;
     }
 
-    window.dispatchEvent(new CustomEvent(STRICT_AI_CHANGE_EVENT, {
-        detail: { enabled: value }
-    }));
-
     return true;
 }
 
@@ -170,17 +164,11 @@ export function setFrontViewPreference(enabled) {
         return false;
     }
 
-    window.dispatchEvent(new CustomEvent(FRONT_VIEW_CHANGE_EVENT, {
-        detail: { enabled: value }
-    }));
-
     return true;
 }
 
 export {
     CAMERA_PREFERENCE_CHANGE_EVENT,
     SMART_CAMERA_MODE_CHANGE_EVENT,
-    EXERCISE_SOUND_CHANGE_EVENT,
-    STRICT_AI_CHANGE_EVENT,
-    FRONT_VIEW_CHANGE_EVENT
+    EXERCISE_SOUND_CHANGE_EVENT
 };
