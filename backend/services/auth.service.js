@@ -26,6 +26,17 @@ function hashOTP(otp) {
         .digest("hex");
 }
 
+function serializeSessionUser(user) {
+    return {
+        id: user._id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        profilePicture: user.profilePicture,
+        age: user.age
+    };
+}
+
 function createAuthSession(user) {
     if (!process.env.JWT_SECRET) {
         throw new Error("JWT_SECRET is missing.");
@@ -42,14 +53,7 @@ function createAuthSession(user) {
 
     return {
         token,
-        user: {
-            id: user._id,
-            name: user.name,
-            username: user.username,
-            email: user.email,
-            profilePicture: user.profilePicture,
-            age: user.age
-        }
+        user: serializeSessionUser(user)
     };
 }
 
@@ -61,5 +65,6 @@ module.exports = {
     generateOTP,
     generateOTPChallenge,
     hashOTP,
+    serializeSessionUser,
     createAuthSession
 };

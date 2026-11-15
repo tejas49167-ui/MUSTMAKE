@@ -1,7 +1,10 @@
 const bcrypt = require("bcryptjs");
 const User = require("../../models/User");
 const connectDB = require("../../config/database");
-const { createAuthSession } = require("../../services/auth.service");
+const {
+    createAuthSession,
+    serializeSessionUser
+} = require("../../services/auth.service");
 const loginRateLimitService = require("../../services/login-rate-limit.service");
 const { parsePasswordLogin } = require("../../schemas/auth.schemas");
 const { clearSessionCookie } = require("../../utils/auth-cookie");
@@ -121,16 +124,7 @@ const currentSession = async (req, res) => {
             return res.status(401).json({ message: "Session is no longer valid." });
         }
 
-        return res.json({
-            user: {
-                id: user._id,
-                name: user.name,
-                username: user.username,
-                email: user.email,
-                profilePicture: user.profilePicture,
-                age: user.age
-            }
-        });
+        return res.json({ user: serializeSessionUser(user) });
     } catch (error) {
         logFailure("Current session check failed.", error);
         return res.status(500).json({ message: "Could not verify session." });
