@@ -24,6 +24,68 @@ const {
 const { parseOtpIdentity, parseSignupCredentials } = require("../../schemas/auth.schemas");
 const { logFailure } = require("../../utils/safe-log");
 
+/* ==========================================================================
+   1. PURE CRYPTO & REQUEST HELPERS
+   ========================================================================== */
+
+function getClientIp(req) {
+    return req.ip || req.socket?.remoteAddress || "unknown";
+}
+
+function verifyHashesTimingSafe(cleanOTP, challengeToken, otpRecord) {
+    const submittedOtpHash = Buffer.from(hashOTP(cleanOTP), "hex");
+    const storedOtpHash = Buffer.from(otpRecord.otpHash, "hex");
+    const submittedChallengeHash = Buffer.from(hashOTP(challengeToken), "hex");
+    const storedChallengeHash = Buffer.from(otpRecord.challengeHash || "", "hex");
+
+    const otpMatches =
+        submittedOtpHash.length === storedOtpHash.length &&
+        crypto.timingSafeEqual(submittedOtpHash, storedOtpHash);
+
+    const challengeMatches =
+        submittedChallengeHash.length === storedChallengeHash.length &&
+        storedChallengeHash.length > 0 &&
+        crypto.timingSafeEqual(submittedChallengeHash, storedChallengeHash);
+
+    return { otpMatches, challengeMatches };
+}
+
+async function resolveSignupData(body, previousOTP, now) {
+    const hasSignupFields =
+        typeof body.username === "string" || typeof body.password === "string";
+
+    if (hasSignupFields) {
+        const credentials = parseSignupCredentials(body);
+        if (!credentials.valid) {
+            return { error: { status: credentials.status, message: credentials.message } };
+        }
+        return {
+            signupData: {
+                username: credentials.username,
+                passwordHash: await bcrypt.hash(credentials.password, 12)
+            }
+        };
+    }
+
+    if (previousOTP?.expiresAt > now && previousOTP.signupData?.passwordHash) {
+        const signupData = previousOTP.signupData.toObject
+            ? previousOTP.signupData.toObject()
+            : previousOTP.signupData;
+        return { signupData };
+    }
+
+    return {
+        error: {
+            status: 400,
+            message: "Signup details expired. Please enter your details again."
+        }
+    };
+}
+
+/* ==========================================================================
+   2. OTP GUARD & RATE-LIMIT STATE MACHINE
+   ========================================================================== */
+
 function isOtpLocked(guard, now = new Date()) {
     return Boolean(
         guard &&
@@ -33,7 +95,18 @@ function isOtpLocked(guard, now = new Date()) {
     );
 }
 
-async function claimOtpSend(email, purpose, now) {
+function isWithinCooldown(guard, previousOTP, now = new Date()) {
+    const cooldownStartedAt = guard?.lastSentAt || previousOTP?.createdAt;
+    if (
+        cooldownStartedAt &&
+        cooldownStartedAt.getTime() > now.getTime() - OTP_RESEND_COOLDOWN_MS
+    ) {
+        return cooldownStartedAt.getTime();
+    }
+    return null;
+}
+
+async function claimOtpSend(email, purpose, now = new Date()) {
     try {
         return await OTPGuard.findOneAndUpdate(
             {
@@ -62,15 +135,12 @@ async function claimOtpSend(email, purpose, now) {
             { returnDocument: "after", upsert: true }
         );
     } catch (error) {
-        if (error.code === 11000) {
-            return null;
-        }
-
+        if (error.code === 11000) return null;
         throw error;
     }
 }
 
-async function incrementOtpFailures(email, purpose, now) {
+async function incrementOtpFailures(email, purpose, now = new Date()) {
     const activeWindow = {
         email,
         purpose,
@@ -85,9 +155,7 @@ async function incrementOtpFailures(email, purpose, now) {
         { returnDocument: "after" }
     );
 
-    if (incremented) {
-        return incremented;
-    }
+    if (incremented) return incremented;
 
     try {
         return await OTPGuard.findOneAndUpdate(
@@ -109,9 +177,7 @@ async function incrementOtpFailures(email, purpose, now) {
             { returnDocument: "after", upsert: true }
         );
     } catch (error) {
-        if (error.code !== 11000) {
-            throw error;
-        }
+        if (error.code !== 11000) throw error;
 
         const retried = await OTPGuard.findOneAndUpdate(
             activeWindow,
@@ -119,149 +185,174 @@ async function incrementOtpFailures(email, purpose, now) {
             { returnDocument: "after" }
         );
 
-        if (!retried) {
-            throw error;
-        }
-
+        if (!retried) throw error;
         return retried;
     }
 }
+
+async function resetOtpGuard(email, purpose) {
+    return OTPGuard.updateOne(
+        { email, purpose },
+        {
+            $set: { failedAttempts: 0 },
+            $unset: { attemptWindowStartedAt: 1 }
+        }
+    );
+}
+
+/* ==========================================================================
+   3. DATABASE & EMAIL ORCHESTRATION
+   ========================================================================== */
+
+async function createAndDispatchOtp({ email, purpose, signupData, now }) {
+    const challengeToken = generateOTPChallenge();
+    const otp = generateOTP();
+    const otpHash = hashOTP(otp);
+    const expiresAt = new Date(now.getTime() + OTP_EXPIRY_MINUTES * 60 * 1000);
+
+    await OTP.deleteMany({ email, purpose });
+
+    const otpRecord = await OTP.create({
+        email,
+        otpHash,
+        challengeHash: hashOTP(challengeToken),
+        purpose,
+        expiresAt,
+        ...(signupData ? { signupData } : {})
+    });
+
+    try {
+        await sendOTPEmail(email, otp, purpose);
+    } catch (error) {
+        await Promise.all([
+            OTP.deleteOne({ _id: otpRecord._id, otpHash }),
+            OTPGuard.updateOne(
+                { email, purpose, lastSentAt: now },
+                { $unset: { lastSentAt: 1 } }
+            )
+        ]);
+        throw error;
+    }
+
+    return challengeToken;
+}
+
+async function recordFailedVerification(otpRecord, email, purpose, now = new Date()) {
+    const updatedRecord = await OTP.findOneAndUpdate(
+        {
+            _id: otpRecord._id,
+            attempts: { $lt: OTP_MAX_ATTEMPTS },
+            expiresAt: { $gt: now }
+        },
+        { $inc: { attempts: 1 } },
+        { returnDocument: "after" }
+    );
+
+    if (!updatedRecord) return;
+
+    const updatedGuard = await incrementOtpFailures(email, purpose, now);
+    if (
+        updatedRecord.attempts >= OTP_MAX_ATTEMPTS ||
+        updatedGuard.failedAttempts >= OTP_MAX_ATTEMPTS
+    ) {
+        await OTP.deleteMany({ email, purpose });
+    }
+}
+
+async function finalizeLoginSession(email, res) {
+    const user = await User.findOne({ email }).select("+ageReferenceYear +sessionVersion");
+    if (!user) return null;
+
+    if (!user.emailVerifiedAt) {
+        user.emailVerifiedAt = new Date();
+        if (typeof user.save === "function") await user.save();
+    }
+
+    const session = createAuthSession(user);
+    res.set("Cache-Control", "no-store");
+    clearPendingSignupCookie(res);
+    setSessionCookie(res, session.token);
+
+    return session.user;
+}
+
+/* ==========================================================================
+   4. EXPRESS ROUTE CONTROLLERS
+   ========================================================================== */
 
 const sendOtp = async (req, res) => {
     res.set("Cache-Control", "no-store");
     try {
         await connectDB();
         await Promise.all([OTP.init(), OTPGuard.init()]);
-        const identity = parseOtpIdentity(
-            req.body,
-            "Email and OTP purpose are required."
-        );
+
+        const identity = parseOtpIdentity(req.body, "Email and OTP purpose are required.");
         if (!identity.valid) {
             return res.status(identity.status).json({ message: identity.message });
         }
         const { body, email: cleanEmail, purpose } = identity;
 
         if (purpose === "signup" && await User.findOne({ email: cleanEmail })) {
-            return res.status(409).json({
-                message: "User already exists. Please log in."
-            });
+            return res.status(409).json({ message: "User already exists. Please log in." });
         }
-
-        const existingUser = purpose === "login"
-            ? await User.findOne({ email: cleanEmail })
-            : null;
-        if (purpose === "login" && !existingUser) {
-            return res.status(404).json({
-                message: "User does not exist. Please sign up."
-            });
+        if (purpose === "login" && !(await User.findOne({ email: cleanEmail }))) {
+            return res.status(404).json({ message: "User does not exist. Please sign up." });
         }
 
         const now = new Date();
-        const ip = req.ip || req.socket?.remoteAddress || "unknown";
+        const ip = getClientIp(req);
         const previousOTP = await OTP.findOne({ email: cleanEmail, purpose });
         const guard = await OTPGuard.findOne({ email: cleanEmail, purpose });
+
         if (isOtpLocked(guard, now)) {
             return res.status(429).json({
                 message: "Too many incorrect code attempts. Please try again later."
             });
         }
 
-        const cooldownStartedAt = guard?.lastSentAt || previousOTP?.createdAt;
-        if (
-            cooldownStartedAt &&
-            cooldownStartedAt.getTime() > now.getTime() - OTP_RESEND_COOLDOWN_MS
-        ) {
+        const recentSentAt = isWithinCooldown(guard, previousOTP, now);
+        if (recentSentAt) {
             return res.status(202).json({
                 success: true,
                 codeAlreadySent: true,
-                sentAt: cooldownStartedAt.getTime(),
+                sentAt: recentSentAt,
                 message: "A code was sent recently. Use the most recent code."
             });
         }
 
         let signupData = null;
-        const hasSignupFields =
-            typeof body.username === "string" || typeof body.password === "string";
-
         if (purpose === "signup") {
-            if (hasSignupFields) {
-                const credentials = parseSignupCredentials(body);
-                if (!credentials.valid) {
-                    return res.status(credentials.status).json({
-                        message: credentials.message
-                    });
-                }
+            const resolved = await resolveSignupData(body, previousOTP, now);
+            if (resolved.error) {
+                return res.status(resolved.error.status).json({ message: resolved.error.message });
+            }
+            signupData = resolved.signupData;
 
-                signupData = {
-                    username: credentials.username,
-                    passwordHash: await bcrypt.hash(credentials.password, 12)
-                };
-            } else if (
-                previousOTP?.expiresAt > now &&
-                previousOTP.signupData?.passwordHash
-            ) {
-                signupData = previousOTP.signupData.toObject
-                    ? previousOTP.signupData.toObject()
-                    : previousOTP.signupData;
-            } else {
-                return res.status(400).json({
-                    message: "Signup details expired. Please enter your details again."
+            if (await User.findOne({ username: signupData.username })) {
+                return res.status(409).json({
+                    message: "That username is already taken. Please choose another one."
                 });
             }
         }
 
-        let usernameExists = false;
-        if (purpose === "signup") {
-            usernameExists = Boolean(await User.findOne({ username: signupData.username }));
-        }
-
-        if (usernameExists) {
-            return res.status(409).json({
-                message: "That username is already taken. Please choose another one."
-            });
-        }
-
-        const challengeToken = generateOTPChallenge();
-        const allowed = await otpAbuseService.allowOtpSend(cleanEmail, ip, now);
-        if (!allowed) {
+        if (!(await otpAbuseService.allowOtpSend(cleanEmail, ip, now))) {
             return res.status(429).json({
                 message: "Too many code requests. Please try again later."
             });
         }
 
-        const sendClaim = await claimOtpSend(cleanEmail, purpose, now);
-        if (!sendClaim) {
+        if (!(await claimOtpSend(cleanEmail, purpose, now))) {
             return res.status(429).json({
                 message: "Too many code requests. Please wait before trying again."
             });
         }
 
-        const otp = generateOTP();
-        const otpHash = hashOTP(otp);
-        const expiresAt = new Date(now.getTime() + OTP_EXPIRY_MINUTES * 60 * 1000);
-        await OTP.deleteMany({ email: cleanEmail, purpose });
-
-        const otpRecord = await OTP.create({
+        const challengeToken = await createAndDispatchOtp({
             email: cleanEmail,
-            otpHash,
-            challengeHash: hashOTP(challengeToken),
             purpose,
-            expiresAt,
-            ...(signupData ? { signupData } : {})
+            signupData,
+            now
         });
-
-        try {
-            await sendOTPEmail(cleanEmail, otp, purpose);
-        } catch (error) {
-            await Promise.all([
-                OTP.deleteOne({ _id: otpRecord._id, otpHash }),
-                OTPGuard.updateOne(
-                    { email: cleanEmail, purpose, lastSentAt: now },
-                    { $unset: { lastSentAt: 1 } }
-                )
-            ]);
-            throw error;
-        }
 
         return res.status(202).json({
             success: true,
@@ -277,47 +368,38 @@ const sendOtp = async (req, res) => {
 
 const verifyOtp = async (req, res) => {
     res.set("Cache-Control", "no-store");
+    const invalidResponse = () => res.status(401).json({ message: "Invalid or expired code." });
+
     try {
         await connectDB();
         await Promise.all([OTP.init(), OTPGuard.init()]);
-        const identity = parseOtpIdentity(
-            req.body,
-            "Email, OTP and purpose are required."
-        );
+
+        const identity = parseOtpIdentity(req.body, "Email, OTP and purpose are required.");
         if (!identity.valid) {
             return res.status(identity.status).json({ message: identity.message });
         }
         const { body, email: cleanEmail, purpose } = identity;
-        const { otp } = body;
 
         const now = new Date();
-        const ip = req.ip || req.socket?.remoteAddress || "unknown";
-        const allowed = await otpAbuseService.allowOtpVerification(cleanEmail, ip, now);
-        if (!allowed) {
+        const ip = getClientIp(req);
+        if (!(await otpAbuseService.allowOtpVerification(cleanEmail, ip, now))) {
             return res.status(429).json({
                 message: "Too many code attempts. Request a new code later."
             });
         }
 
-        const cleanOTP = typeof otp === "string" ? otp.trim() : "";
-        const challengeToken = typeof body.challengeToken === "string"
-            ? body.challengeToken
-            : "";
-        if (!/^\d{6}$/.test(cleanOTP)) {
-            return res.status(401).json({ message: "Invalid or expired code." });
-        }
+        const cleanOTP = typeof body.otp === "string" ? body.otp.trim() : "";
+        const challengeToken = typeof body.challengeToken === "string" ? body.challengeToken : "";
+        if (!/^\d{6}$/.test(cleanOTP)) return invalidResponse();
 
         const guard = await OTPGuard.findOne({ email: cleanEmail, purpose });
-        if (isOtpLocked(guard, now)) {
-            return res.status(401).json({ message: "Invalid or expired code." });
-        }
+        if (isOtpLocked(guard, now)) return invalidResponse();
 
         const otpRecord = await OTP.findOne({ email: cleanEmail, purpose });
+
         if (!otpRecord || otpRecord.expiresAt <= now) {
-            if (otpRecord) {
-                await OTP.deleteOne({ _id: otpRecord._id, expiresAt: { $lte: now } });
-            }
-            return res.status(401).json({ message: "Invalid or expired code." });
+            if (otpRecord) await OTP.deleteOne({ _id: otpRecord._id, expiresAt: { $lte: now } });
+            return invalidResponse();
         }
 
         if (
@@ -325,22 +407,17 @@ const verifyOtp = async (req, res) => {
             (purpose === "signup" && !otpRecord.signupData?.passwordHash)
         ) {
             await OTP.deleteOne({ _id: otpRecord._id });
-            return res.status(401).json({ message: "Invalid or expired code." });
+            return invalidResponse();
         }
 
-        const submittedOtpHash = Buffer.from(hashOTP(cleanOTP), "hex");
-        const storedOtpHash = Buffer.from(otpRecord.otpHash, "hex");
-        const submittedChallengeHash = Buffer.from(hashOTP(challengeToken), "hex");
-        const storedChallengeHash = Buffer.from(otpRecord.challengeHash || "", "hex");
-        const otpMatches = submittedOtpHash.length === storedOtpHash.length &&
-            crypto.timingSafeEqual(submittedOtpHash, storedOtpHash);
-        const challengeMatches = submittedChallengeHash.length === storedChallengeHash.length &&
-            storedChallengeHash.length > 0 &&
-            crypto.timingSafeEqual(submittedChallengeHash, storedChallengeHash);
+        const { otpMatches, challengeMatches } = verifyHashesTimingSafe(
+            cleanOTP,
+            challengeToken,
+            otpRecord
+        );
 
         if (otpMatches && challengeMatches && purpose === "signup") {
-            const existingUser = await User.findOne({ email: cleanEmail });
-            if (existingUser) {
+            if (await User.findOne({ email: cleanEmail })) {
                 await OTP.deleteOne({ _id: otpRecord._id });
                 return res.status(409).json({
                     message: "An account with this email already exists. Please log in."
@@ -349,34 +426,8 @@ const verifyOtp = async (req, res) => {
         }
 
         if (!otpMatches || !challengeMatches) {
-            const updatedRecord = await OTP.findOneAndUpdate(
-                {
-                    _id: otpRecord._id,
-                    attempts: { $lt: OTP_MAX_ATTEMPTS },
-                    expiresAt: { $gt: new Date() }
-                },
-                { $inc: { attempts: 1 } },
-                { returnDocument: "after" }
-            );
-
-            if (!updatedRecord) {
-                return res.status(401).json({ message: "Invalid or expired code." });
-            }
-
-            const updatedGuard = await incrementOtpFailures(
-                cleanEmail,
-                purpose,
-                new Date()
-            );
-            if (
-                updatedRecord.attempts >= OTP_MAX_ATTEMPTS ||
-                updatedGuard.failedAttempts >= OTP_MAX_ATTEMPTS
-            ) {
-                await OTP.deleteMany({ email: cleanEmail, purpose });
-                return res.status(401).json({ message: "Invalid or expired code." });
-            }
-
-            return res.status(401).json({ message: "Invalid or expired code." });
+            await recordFailedVerification(otpRecord, cleanEmail, purpose, new Date());
+            return invalidResponse();
         }
 
         const consumedOTP = await OTP.findOneAndDelete({
@@ -386,17 +437,9 @@ const verifyOtp = async (req, res) => {
             expiresAt: { $gt: new Date() },
             attempts: { $lt: OTP_MAX_ATTEMPTS }
         });
-        if (!consumedOTP) {
-            return res.status(401).json({ message: "Invalid or expired code." });
-        }
+        if (!consumedOTP) return invalidResponse();
 
-        await OTPGuard.updateOne(
-            { email: cleanEmail, purpose },
-            {
-                $set: { failedAttempts: 0 },
-                $unset: { attemptWindowStartedAt: 1 }
-            }
-        );
+        await resetOtpGuard(cleanEmail, purpose);
 
         if (purpose === "signup") {
             try {
@@ -421,29 +464,30 @@ const verifyOtp = async (req, res) => {
             }
         }
 
-        const user = await User.findOne({ email: cleanEmail })
-            .select("+ageReferenceYear +sessionVersion");
-        if (!user) {
-            return res.status(401).json({ message: "Invalid or expired code." });
-        }
+        const sessionUser = await finalizeLoginSession(cleanEmail, res);
+        if (!sessionUser) return invalidResponse();
 
-        if (!user.emailVerifiedAt) {
-            user.emailVerifiedAt = new Date();
-            if (typeof user.save === "function") await user.save();
-        }
-
-        const session = createAuthSession(user);
-        res.set("Cache-Control", "no-store");
-        clearPendingSignupCookie(res);
-        setSessionCookie(res, session.token);
-        return res.json({
-            success: true,
-            user: session.user
-        });
+        return res.json({ success: true, user: sessionUser });
     } catch (error) {
         logFailure("Verify OTP failed.", error);
         return res.status(500).json({ message: "Could not verify the code." });
     }
 };
 
-module.exports = { sendOtp, verifyOtp };
+module.exports = {
+    sendOtp,
+    verifyOtp,
+    // Exported for unit testing individual responsibilities without Express mocks
+    _helpers: {
+        verifyHashesTimingSafe,
+        resolveSignupData,
+        isOtpLocked,
+        isWithinCooldown,
+        claimOtpSend,
+        incrementOtpFailures,
+        resetOtpGuard,
+        createAndDispatchOtp,
+        recordFailedVerification,
+        finalizeLoginSession
+    }
+};
