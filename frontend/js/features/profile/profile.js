@@ -4,7 +4,7 @@ function logout() {
 }
 
 const safeSocialUrl = window.MUSTMAKE.safeSocialUrl;
-const sessionCache = window.MUSTMAKE.sessionCache;
+const profileSessionCache = window.MUSTMAKE.sessionCache;
 
 function optimizeCloudinaryImage(url) {
     if (!url) return url;
@@ -30,13 +30,13 @@ function getProfileCacheKey() {
 function readProfileCache() {
     const key = getProfileCacheKey();
     if (!key) return null;
-    const data = sessionCache.read(key, "profile");
+    const data = profileSessionCache.read(key, "profile");
     return data?.user && typeof data.user === "object" ? data : null;
 }
 
 function writeProfileCache(data) {
     const key = getProfileCacheKey();
-    sessionCache.write(key, data, "profile");
+    profileSessionCache.write(key, data, "profile");
 }
 
 let profileData = null;
