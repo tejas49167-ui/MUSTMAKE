@@ -43,7 +43,7 @@ async function loadToday() {
     if (!personalDashboard || !userContainer) return;
 
     const user = getCurrentUser();
-    if (!user || !hasSignedInUser()) {
+    if (!user) {
         window.location.replace("/");
         return;
     }
@@ -64,7 +64,7 @@ async function loadToday() {
         });
     }
     if (nameElement) {
-        const greeting =  "Hello" ;
+        const greeting = "Hello";
         nameElement.textContent = `${greeting}, ${user.name || "athlete"}`;
     }
 

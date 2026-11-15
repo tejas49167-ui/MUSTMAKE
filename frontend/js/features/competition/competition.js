@@ -2,11 +2,7 @@ const { escapeHTML, formatWorkoutDetails } = window.MUSTMAKE.presentation;
 const sessionCache = window.MUSTMAKE.sessionCache;
 
 function hasSignedInUser() {
-    try {
-        return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
-    } catch {
-        return false;
-    }
+    return Boolean(window.MUSTMAKE.readCachedUser());
 }
 
 function authHeaders() {
@@ -26,14 +22,9 @@ const searchToggle = document.getElementById("searchToggle");
 const competitionCacheKey = getCompetitionCacheKey();
 
 function getCompetitionCacheKey() {
-    try {
-        const user = JSON.parse(localStorage.getItem("user") || "null");
-        const userId = user?._id || user?.id || user?.username;
-        return userId ? `mustmake_competition_${encodeURIComponent(userId)}` : null;
-    } catch (error) {
-        console.warn("Could not determine the current user for competition cache.", error);
-        return null;
-    }
+    const user = window.MUSTMAKE.readCachedUser();
+    const userId = user?._id || user?.id || user?.username;
+    return userId ? `mustmake_competition_${encodeURIComponent(userId)}` : null;
 }
 
 function readCompetitionCache() {

@@ -5,13 +5,8 @@
     let catalogRequest;
 
     function readCachedCatalog() {
-        try {
-            const catalog = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null");
-            return Array.isArray(catalog) ? catalog : null;
-        } catch (error) {
-            console.warn("Could not read the cached exercise catalog.", error);
-            return null;
-        }
+        const catalog = window.MUSTMAKE.sessionCache.read(CACHE_KEY, "exercise catalog");
+        return Array.isArray(catalog) ? catalog : null;
     }
 
     async function loadExerciseCatalog() {
@@ -33,11 +28,7 @@
                 throw new Error("Exercise catalog returned invalid data.");
             }
 
-            try {
-                sessionStorage.setItem(CACHE_KEY, JSON.stringify(catalog));
-            } catch (error) {
-                console.warn("Could not cache the exercise catalog.", error);
-            }
+            window.MUSTMAKE.sessionCache.write(CACHE_KEY, catalog, "exercise catalog");
             return catalog;
         })().finally(() => {
             catalogRequest = null;

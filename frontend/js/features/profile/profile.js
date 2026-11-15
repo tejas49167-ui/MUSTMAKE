@@ -15,16 +15,11 @@ function optimizeCloudinaryImage(url) {
 }
 
 function getProfileCacheKey() {
-    try {
-        const user = JSON.parse(localStorage.getItem("user") || "null");
-        const userId = user?._id ?? user?.id;
-        return userId == null
-            ? null
-            : `mustmake_profile_${encodeURIComponent(String(userId))}`;
-    } catch (error) {
-        console.warn("Could not determine the current user for profile cache.", error);
-        return null;
-    }
+    const user = window.MUSTMAKE.readCachedUser();
+    const userId = user?._id ?? user?.id;
+    return userId == null
+        ? null
+        : `mustmake_profile_${encodeURIComponent(String(userId))}`;
 }
 
 function readProfileCache() {
@@ -193,7 +188,7 @@ async function updateProfile(payload) {
     }
     writeProfileCache(updatedData);
     try {
-        const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+        const storedUser = window.MUSTMAKE.readCachedUser();
         const storedUserId = storedUser?._id ?? storedUser?.id;
         const updatedUserId = data.user?._id ?? data.user?.id;
         if (

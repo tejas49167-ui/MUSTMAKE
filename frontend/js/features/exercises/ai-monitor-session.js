@@ -1,6 +1,6 @@
 import { formatTime, roundedDuration } from "./ai-monitor-feedback.js";
 
-const MAX_REPETITIONS = 10000;
+export const MAX_REPETITIONS = 10000;
 
 function reviewedValueFor(exercise, workout) {
     if (exercise.slug === "plank") return Number(workout.duration);

@@ -15,14 +15,17 @@ const {
 } = require("./shared");
 const { logFailure } = require("../../utils/safe-log");
 
+async function getRateLimitKeys(req, res) {
+    await connectDB();
+    await loginRateLimitService.ensureIndexes();
+    return loginRateLimitService.getRateLimitKeys(req, res);
+}
+
 const loginRateLimitStatus = async (req, res) => {
     res.set("Cache-Control", "no-store");
 
     try {
-        await connectDB();
-        await loginRateLimitService.ensureIndexes();
-
-        const keys = loginRateLimitService.getRateLimitKeys(req, res);
+        const keys = await getRateLimitKeys(req, res);
         const restriction = await loginRateLimitService.getRestriction(keys);
 
         return res.json(restriction);
@@ -36,10 +39,7 @@ const loginRateLimitStatus = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        await connectDB();
-        await loginRateLimitService.ensureIndexes();
-
-        const keys = loginRateLimitService.getRateLimitKeys(req, res);
+        const keys = await getRateLimitKeys(req, res);
         const currentRestriction = await loginRateLimitService.getRestriction(keys);
         if (currentRestriction.restricted) {
             return sendLoginRestriction(res, currentRestriction.retryAfterMs);

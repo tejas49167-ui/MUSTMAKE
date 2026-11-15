@@ -10,6 +10,12 @@ const { logFailure } = require("../utils/safe-log");
 
 const exercisesByName = new Map(exercises.map(exercise => [exercise.name, exercise]));
 
+function parseOptionalDuration(duration) {
+    return duration == null || duration === ""
+        ? { valid: true, value: null }
+        : parseWorkoutNumber(duration, { integer: true, min: 1 });
+}
+
 const addWorkout = async (req, res) => {
     try {
         if (!isPlainObject(req.body)) {
@@ -98,9 +104,7 @@ const addWorkout = async (req, res) => {
                 min: distanceField?.min,
                 max: distanceField?.max
             });
-            const parsedDuration = duration == null || duration === ""
-                ? { valid: true, value: null }
-                : parseWorkoutNumber(duration, { integer: true, min: 1 });
+            const parsedDuration = parseOptionalDuration(duration);
 
             if (!parsedDistance.valid || !parsedDuration.valid) {
                 return res.status(400).json({
@@ -112,9 +116,7 @@ const addWorkout = async (req, res) => {
             workoutValues.unit = "km";
         } else if (manualType === "jumps-duration") {
             const parsedJumps = parseWorkoutNumber(amount, { integer: true, min: 1 });
-            const parsedDuration = duration == null || duration === ""
-                ? { valid: true, value: null }
-                : parseWorkoutNumber(duration, { integer: true, min: 1 });
+            const parsedDuration = parseOptionalDuration(duration);
 
             if (!parsedJumps.valid || !parsedDuration.valid) {
                 return res.status(400).json({
