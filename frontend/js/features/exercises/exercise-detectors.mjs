@@ -113,48 +113,53 @@ function detectionThresholds(thresholds, mode, startKey = null) {
     }
 
     const direction = result.mode === "strict" ? 1 : -1;
-    if (Number.isFinite(thresholds.armsUpMin) &&
-        Number.isFinite(thresholds.armsDownMax)) {
-        const adjustment = Math.abs(
-            thresholds.armsUpMin - thresholds.armsDownMax
-        ) * config.rangeFraction * direction;
-        result.armsUpMin += adjustment;
-        result.armsDownMax -= adjustment;
+
+    adjustThresholdPair(result, thresholds, "armsUpMin", "armsDownMax", config, direction);
+    adjustThresholdPair(result, thresholds, "feetOpenMin", "feetClosedMax", config, direction);
+    adjustPlankThresholds(result, thresholds, config, direction);
+    adjustStartAndBottom(result, thresholds, startKey, config, direction);
+
+    return result;
+}
+
+function adjustThresholdPair(result, thresholds, upperKey, lowerKey, config, direction) {
+    if (!Number.isFinite(thresholds[upperKey]) || !Number.isFinite(thresholds[lowerKey])) {
+        return;
     }
-    if (Number.isFinite(thresholds.feetOpenMin) &&
-        Number.isFinite(thresholds.feetClosedMax)) {
-        const adjustment = Math.abs(
-            thresholds.feetOpenMin - thresholds.feetClosedMax
-        ) * config.rangeFraction * direction;
-        result.feetOpenMin += adjustment;
-        result.feetClosedMax -= adjustment;
-    }
+
+    const adjustment = Math.abs(thresholds[upperKey] - thresholds[lowerKey]) *
+        config.rangeFraction * direction;
+    result[upperKey] += adjustment;
+    result[lowerKey] -= adjustment;
+}
+
+function adjustPlankThresholds(result, thresholds, config, direction) {
     if (Number.isFinite(thresholds.minFootClearance)) {
         result.minFootClearance *= config.movementScale;
         result.landingTolerance /= config.movementScale;
     }
-    if (Number.isFinite(thresholds.maxBodyLineAngle)) {
-        result.maxBodyLineAngle *= result.mode === "strict"
-            ? 1 - config.rangeFraction
-            : 1 + config.rangeFraction;
-        result.minFrontalBodyLineAngle +=
-            (90 - thresholds.minFrontalBodyLineAngle) *
-            config.rangeFraction * direction;
-        result.maxHipDeviation *= config.movementScale;
-        result.minSupportArmAngle *= config.movementScale;
+
+    if (!Number.isFinite(thresholds.maxBodyLineAngle)) return;
+
+    const modeDirection = result.mode === "strict" ? -1 : 1;
+    result.maxBodyLineAngle *= 1 + config.rangeFraction * modeDirection;
+    result.minFrontalBodyLineAngle +=
+        (90 - thresholds.minFrontalBodyLineAngle) * config.rangeFraction * direction;
+    result.maxHipDeviation *= config.movementScale;
+    result.minSupportArmAngle *= config.movementScale;
+}
+
+function adjustStartAndBottom(result, thresholds, startKey, config, direction) {
+    if (!startKey || !Number.isFinite(thresholds[startKey]) ||
+        !Number.isFinite(thresholds.bottom)) {
+        return;
     }
 
-    if (startKey && Number.isFinite(thresholds[startKey]) &&
-        Number.isFinite(thresholds.bottom)) {
-        const range = Math.abs(thresholds[startKey] - thresholds.bottom);
-        const direction = Math.sign(thresholds[startKey] - thresholds.bottom);
-        const adjustment = range * config.rangeFraction *
-            (result.mode === "strict" ? 1 : -1);
-        result[startKey] = thresholds[startKey] + direction * adjustment;
-        result.bottom = thresholds.bottom - direction * adjustment;
-    }
-
-    return result;
+    const startDirection = Math.sign(thresholds[startKey] - thresholds.bottom);
+    const adjustment = Math.abs(thresholds[startKey] - thresholds.bottom) *
+        config.rangeFraction * direction;
+    result[startKey] = thresholds[startKey] + startDirection * adjustment;
+    result.bottom = thresholds.bottom - startDirection * adjustment;
 }
 
 function visibleRequirement(landmarks, indexes, threshold) {

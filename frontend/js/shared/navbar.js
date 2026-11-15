@@ -124,6 +124,36 @@
         `;
     }
 
+    function renderGuestSignupLink(currentPage) {
+        if (currentPage === "/") {
+            return '<a class="guest-signup-button" href="/signup">Get started</a>';
+        }
+
+        return navLink("/signup", "Sign up", currentPage);
+    }
+
+    function renderNavigationLinks(isAuthenticated, currentPage) {
+        if (!isAuthenticated) {
+            return `
+                ${navLink("/exercises", "Exercises", currentPage)}
+                ${navLink("/settings", "Settings", currentPage)}
+                ${navLink("/about", "About us", currentPage)}
+                ${navLink("/login", "Login", currentPage)}
+                ${navLink("/signup", "Sign up", currentPage)}
+            `;
+        }
+
+        return `
+            ${navLink("/settings", "Settings", currentPage)}
+            ${navLink("/edit-profile", "Details", currentPage)}
+            ${navLink("/about", "About", currentPage)}
+            <a href="mailto:tejas49167@gmail.com?subject=I noticed some issues in mustmake" target="_blank" rel="noopener noreferrer">Report bug</a>
+            <button class="mobile-nav-logout" type="button" data-auth-logout>
+                Logout
+            </button>
+        `;
+    }
+
     function getAuthenticationState() {
         try {
             return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
@@ -143,26 +173,26 @@
             currentPage === "/first-details" ||
             document.body.id === "firstSetupPage";
 
-       const menuButtonHTML = isFirstSetupPage || !isAuthenticated ? "" : `
-        <button class="mobile-menu-toggle"
-            type="button"
-            aria-label="Open navigation menu"
-            aria-expanded="False"
-            aria-controls="mobileNavigation">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-    `;
+        const menuButtonHTML = isFirstSetupPage || !isAuthenticated
+            ? ""
+            : `
+                <button class="mobile-menu-toggle"
+                    type="button"
+                    aria-label="Open navigation menu"
+                    aria-expanded="false"
+                    aria-controls="mobileNavigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            `;
 
         const guestActionsHTML = isFirstSetupPage || isAuthenticated
             ? ""
             : `
                 <nav class="guest-actions" aria-label="Account">
                     ${navLink("/login", "Login", currentPage)}
-                    ${currentPage === "/"
-                        ? '<a class="guest-signup-button" href="/signup">Get started</a>'
-                        : navLink("/signup", "Sign up", currentPage)}
+                    ${renderGuestSignupLink(currentPage)}
                 </nav>
             `;
 
@@ -190,26 +220,10 @@
             : "";
 
         // Slide-out navigation: used on mobile only.
-        const navigationLinksHTML = isAuthenticated
-            ? `
-                ${navLink("/settings", "Settings", currentPage)}
-                ${navLink("/edit-profile", "Details", currentPage)}
-                ${navLink("/about", "About", currentPage)}
-                <a href="mailto:tejas49167@gmail.com?subject=I noticed some issues in mustmake" target="_blank" rel="noopener noreferrer">Report bug</a>
-
-                <button class="mobile-nav-logout"
-                    type="button"
-                    data-auth-logout>
-                    Logout
-                </button>
-            `
-            : `
-                ${navLink("/exercises", "Exercises", currentPage)}
-                ${navLink("/settings", "Settings", currentPage)}
-                ${navLink("/about", "About us", currentPage)}
-                ${navLink("/login", "Login", currentPage)}
-                ${navLink("/signup", "Sign up", currentPage)}
-            `;
+        const navigationLinksHTML = renderNavigationLinks(
+            isAuthenticated,
+            currentPage
+        );
 
         const navigationHTML = isFirstSetupPage ? "" : `
                 <div class="mobile-nav-backdrop" data-mobile-nav-close hidden></div>

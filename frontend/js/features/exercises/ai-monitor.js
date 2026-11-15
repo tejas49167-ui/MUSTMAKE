@@ -21,6 +21,12 @@ import {
 } from "./smart-camera-preview.js";
 import { createWorkoutReview } from "./workout-review.js";
 import {
+    createMonitorFeedback,
+    formatTime,
+    roundedDuration
+} from "./ai-monitor-feedback.js";
+import { restoreMonitorSession } from "./ai-monitor-session.js";
+import {
     CAMERA_PREFERENCE_CHANGE_EVENT,
     SMART_CAMERA_MODE_CHANGE_EVENT,
     getCameraMirrorPreference,
@@ -35,22 +41,6 @@ import {
 } from "./camera-preference.js";
 
 const MAX_REPETITIONS = 10000;
-const SHARED_EXERCISE_FEEDBACK = new Set([
-    "Can't see u.",
-    "Get set.",
-    "Nice rep."
-]);
-function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remaining = seconds % 60;
-
-    return `${String(minutes).padStart(2, "0")}:${String(remaining).padStart(2, "0")}`;
-}
-
-function roundedDuration(milliseconds) {
-    return Math.max(0, Math.floor(milliseconds / 1000));
-}
-
 export { getSmartCameraPromptState };
 
 export function mountAiMonitor(
@@ -98,6 +88,11 @@ export function mountAiMonitor(
         mode: getStrictAiPreference() ? "strict" : "forgiving",
         frontView: getFrontViewPreference()
     });
+    const {
+        setFeedback,
+        setExerciseFeedback,
+        updateClock
+    } = createMonitorFeedback({ feedback, timeOutput, detector, isPlank });
     const listeners = new AbortController();
     const repSound = typeof Audio !== "undefined"
         ? new Audio("/assets/nice_rep.mp3")
@@ -126,7 +121,6 @@ export function mountAiMonitor(
     let lastTimestamp = 0;
     let cameraRequestId = 0;
     let cameraRestartPromise = null;
-    let lastFeedbackAnimationAt = -Infinity;
     let soundEnabled = getExerciseSoundPreference();
 
     let elapsedMs = Math.max(
@@ -260,60 +254,12 @@ export function mountAiMonitor(
         onWorkoutSaved
     });
 
-    function setFeedback(message) {
-        const nextMessage = String(message ?? "");
-        if (feedback.textContent === nextMessage) return;
-
-        feedback.textContent = nextMessage;
-        feedback.dataset.tone = nextMessage === "Get set."
-            ? "setup"
-            : /^(Nice rep|Nice jump|Strong form|Great|Perfect)\b/i.test(nextMessage)
-                ? "positive"
-                : "negative";
-        const now = performance.now();
-        if (now - lastFeedbackAnimationAt < 350) return;
-
-        lastFeedbackAnimationAt = now;
-        feedback.classList.remove("is-animating");
-        void feedback.offsetWidth;
-        feedback.classList.add("is-animating");
-    }
-
     function playRepSound() {
         if (!soundEnabled || !repSound) return;
         repSound.currentTime = 0;
         repSound.play().catch(error => {
             console.warn("Could not play the rep sound.", error);
         });
-    }
-
-    function setExerciseFeedback(message) {
-        if (message === "Nice jump.") {
-            setFeedback("Nice rep.");
-            return;
-        }
-
-        if (message?.startsWith("Can't see ")) {
-            setFeedback(message);
-            return;
-        }
-
-        if (SHARED_EXERCISE_FEEDBACK.has(message)) {
-            setFeedback(message);
-            return;
-        }
-
-        if (feedback.textContent.startsWith("Can't see ")) {
-            setFeedback("Get set.");
-        }
-    }
-
-    function updateClock() {
-        if (isPlank && timeOutput) {
-            timeOutput.textContent = formatTime(
-                roundedDuration(detector.elapsedMs)
-            );
-        }
     }
 
     function stopProcessing() {
@@ -976,102 +922,17 @@ export function mountAiMonitor(
 
     resizeCanvas();
 
-    if (snapshot?.finished) {
-        elapsedMs = Math.max(
-            0,
-            Number(snapshot.elapsedMs) || 0
-        );
-
-        rawCount = Math.max(
-            0,
-            Math.min(
-                MAX_REPETITIONS,
-                Number(snapshot.rawCount) || 0
-            )
-        );
-
-        if (countOutput) {
-            countOutput.textContent = String(rawCount);
-        }
-
-        if (timeOutput) {
-            timeOutput.textContent = formatTime(
-                roundedDuration(elapsedMs)
-            );
-        }
-
-        review.setReviewedValue(
-            snapshot.reviewedCount ?? (
-                isPlank
-                    ? roundedDuration(elapsedMs)
-                    : rawCount
-            )
-        );
-
-        if (snapshot.saved) {
-            setStatus("saved", "Workout saved.");
-        } else {
-            setFeedback(
-                isPlank
-                    ? "Review your time."
-                    : "Review your count."
-            );
-
-            setStatus(
-                "finished",
-                "Session finished."
-            );
-        }
-    } else if (pendingWorkout) {
-        const reviewedValue = isPlank
-            ? Number(pendingWorkout.duration)
-            : isJumpCount
-                ? Number(pendingWorkout.amount)
-                : Number(pendingWorkout.reps);
-
-        if (isPlank) {
-            elapsedMs = reviewedValue * 1000;
-            detector.reset(elapsedMs);
-
-            if (timeOutput) {
-                timeOutput.textContent =
-                    formatTime(reviewedValue);
-            }
-        } else {
-            rawCount = reviewedValue;
-            detector.reset(rawCount);
-
-            if (countOutput) {
-                countOutput.textContent = String(rawCount);
-            }
-        }
-
-        review.setReviewedValue(reviewedValue);
-
-        if (
-            weightInput &&
-            Number.isFinite(Number(pendingWorkout.weight))
-        ) {
-            weightInput.value = String(pendingWorkout.weight);
-        }
-
-        sessionStarted = true;
-        onSessionStateChange?.(true);
-
-        window.showToast("You're signed in. Review your workout and save it again.", {
-            type: "info"
-        });
-
-        setStatus("finished", "Workout ready to save.");
-    } else if (snapshot) {
-        setStatus("ready", "Monitoring paused");
-
-        setFeedback(
-            "Count saved."
-        );
-    } else {
-        setStatus("idle", "Ready");
-    }
+    ({ rawCount, elapsedMs, sessionStarted } = restoreMonitorSession({
+        exercise,
+        snapshot,
+        pendingWorkout,
+        detector,
+        review,
+        elements: { countOutput, timeOutput, weightInput },
+        onStatus: setStatus,
+        setFeedback,
+        onSessionStateChange
+    }));
 
     if (!snapshot?.finished && !pendingWorkout) {
         void startMonitoring();
