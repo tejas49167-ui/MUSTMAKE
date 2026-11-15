@@ -27,6 +27,27 @@ export function buildReviewedWorkoutPayload({
     };
 }
 
+function responseConfirmsReviewedWorkout(data, {
+    exerciseName,
+    isPlank,
+    isJumpCount,
+    reviewedValue,
+    weight,
+    hasWeight
+}) {
+    if (!data || typeof data !== "object" || data.exercise !== exerciseName) {
+        return false;
+    }
+
+    const confirmedValue = isPlank
+        ? Number(data.duration) === reviewedValue
+        : isJumpCount
+            ? Number(data.amount) === reviewedValue && data.unit === "jumps"
+            : Number(data.reps) === reviewedValue && Number(data.sets) === 1;
+
+    return confirmedValue && (!hasWeight || Number(data.weight) === weight);
+}
+
 export async function saveReviewedWorkout({
     payload,
     exerciseName,
@@ -59,19 +80,14 @@ export async function saveReviewedWorkout({
         );
     }
 
-    const responseConfirmsWorkout = isPlank
-        ? Number(data?.duration) === reviewedValue
-        : isJumpCount
-            ? Number(data?.amount) === reviewedValue && data?.unit === "jumps"
-            : Number(data?.reps) === reviewedValue && Number(data?.sets) === 1;
-
-    if (
-        !data ||
-        typeof data !== "object" ||
-        data.exercise !== exerciseName ||
-        !responseConfirmsWorkout ||
-        (hasWeight && Number(data?.weight) !== weight)
-    ) {
+    if (!responseConfirmsReviewedWorkout(data, {
+        exerciseName,
+        isPlank,
+        isJumpCount,
+        reviewedValue,
+        weight,
+        hasWeight
+    })) {
         throw new Error(
             "The server response did not confirm this workout. Your reviewed session is still available."
         );

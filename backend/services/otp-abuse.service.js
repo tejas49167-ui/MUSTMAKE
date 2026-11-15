@@ -90,40 +90,46 @@ async function allowRequest(scope, value, limit, windowMs, now) {
     return result.count <= limit;
 }
 
-async function allowOtpSend(email, ip, now = new Date()) {
+async function allowByEmailAndIp(email, ip, purpose, emailLimit, ipLimit, windowMs, now) {
     const emailAllowed = await allowRequest(
-        "otp-send-email",
+        `${purpose}-email`,
         email,
-        OTP_SEND_EMAIL_LIMIT,
-        OTP_SEND_WINDOW_MS,
+        emailLimit,
+        windowMs,
         now
     );
     const ipAllowed = await allowRequest(
-        "otp-send-ip",
+        `${purpose}-ip`,
         ip,
-        OTP_SEND_IP_LIMIT,
-        OTP_SEND_WINDOW_MS,
+        ipLimit,
+        windowMs,
         now
     );
     return emailAllowed && ipAllowed;
 }
 
-async function allowOtpVerification(email, ip, now = new Date()) {
-    const emailAllowed = await allowRequest(
-        "otp-verify-email",
+async function allowOtpSend(email, ip, now = new Date()) {
+    return allowByEmailAndIp(
         email,
-        OTP_VERIFY_EMAIL_LIMIT,
-        OTP_VERIFY_WINDOW_MS,
+        ip,
+        "otp-send",
+        OTP_SEND_EMAIL_LIMIT,
+        OTP_SEND_IP_LIMIT,
+        OTP_SEND_WINDOW_MS,
         now
     );
-    const ipAllowed = await allowRequest(
-        "otp-verify-ip",
+}
+
+async function allowOtpVerification(email, ip, now = new Date()) {
+    return allowByEmailAndIp(
+        email,
         ip,
+        "otp-verify",
+        OTP_VERIFY_EMAIL_LIMIT,
         OTP_VERIFY_IP_LIMIT,
         OTP_VERIFY_WINDOW_MS,
         now
     );
-    return emailAllowed && ipAllowed;
 }
 
 module.exports = {

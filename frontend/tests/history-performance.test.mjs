@@ -11,6 +11,10 @@ const timeZoneConfigSource = await readFile(
     new URL("../js/shared/timezone-config.js", import.meta.url),
     "utf8"
 );
+const sessionSource = await readFile(
+    new URL("../js/shared/session.js", import.meta.url),
+    "utf8"
+);
 
 class FakeElement {
     constructor(tagName = "div") {
@@ -219,6 +223,7 @@ test("public history appends thousands of dated records without rescanning the D
         fetch: () => new Promise(() => {})
     });
 
+    vm.runInContext(sessionSource, context);
     vm.runInContext(timeZoneConfigSource, context);
     vm.runInContext(presentationSource, context);
     vm.runInContext(source, context);

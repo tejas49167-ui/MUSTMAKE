@@ -507,6 +507,10 @@
         return payload;
     }
 
+    function getManualFormValues(form) {
+        return Object.fromEntries(new FormData(form).entries());
+    }
+
     function bindManualForm(exercise) {
         const form = root.querySelector("#manualWorkoutForm");
         if (!form) return;
@@ -525,7 +529,7 @@
         }
 
         signInLink?.addEventListener("click", event => {
-            const values = Object.fromEntries(new FormData(form).entries());
+            const values = getManualFormValues(form);
             if (!storePendingWorkout("manual", values)) {
                 event.preventDefault();
                 if (signInPromptMessage) {
@@ -542,7 +546,7 @@
             const isSignedIn = Boolean(localStorage.getItem("user"));
 
             if (!isSignedIn) {
-                const values = Object.fromEntries(new FormData(form).entries());
+                const values = getManualFormValues(form);
                 if (!storePendingWorkout("manual", values)) {
                     if (signInPromptMessage) {
                         signInPromptMessage.textContent =
@@ -577,10 +581,7 @@
                     window.clearPrivateCaches();
                     localStorage.removeItem("user");
 
-                    if (!storePendingWorkout(
-                        "manual",
-                        Object.fromEntries(new FormData(form).entries())
-                    )) {
+                    if (!storePendingWorkout("manual", getManualFormValues(form))) {
                         saveToast?.update("Your sign-in expired, and your workout could not be preserved. Please retry before signing in.", { type: "error" });
                         return;
                     }

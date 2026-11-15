@@ -5,13 +5,7 @@ const {
     formatWorkoutDetails
 } = window.MUSTMAKE.presentation;
 const safeSocialUrl = window.MUSTMAKE.safeSocialUrl;
-const profileToken = (() => {
-    try {
-        return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
-    } catch {
-        return false;
-    }
-})();
+const hasSignedInUser = Boolean(window.MUSTMAKE.readCachedUser());
 const profileId = new URLSearchParams(window.location.search).get("id");
 const publicPhotoDialog = document.getElementById("publicPhotoDialog");
 const publicPhotoPreview = document.getElementById("publicPhotoPreview");
@@ -225,7 +219,7 @@ document.addEventListener("keydown", event => {
 });
 
 async function loadPublicProfile() {
-    if (!profileToken) {
+    if (!hasSignedInUser) {
         window.location.href = "/login";
         return;
     }

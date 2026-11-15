@@ -43,24 +43,22 @@ export async function createPoseLandmarker(delegate) {
 }
 
 export async function createPoseLandmarkerWithFallback() {
-    try {
-        return {
-            landmarker: await createPoseLandmarker("CPU"),
-            delegate: "CPU"
-        };
-    } catch {
+    let initializationError;
+    for (const delegate of ["CPU", "GPU"]) {
         try {
             return {
-                landmarker: await createPoseLandmarker("GPU"),
-                delegate: "GPU"
+                landmarker: await createPoseLandmarker(delegate),
+                delegate
             };
         } catch (error) {
-            throw new Error(
-                "Pose detection could not initialize on this device.",
-                { cause: error }
-            );
+            initializationError = error;
         }
     }
+
+    throw new Error(
+        "Pose detection could not initialize on this device.",
+        { cause: initializationError }
+    );
 }
 
 export function detectPoseFrame(landmarker, video, timestamp) {
