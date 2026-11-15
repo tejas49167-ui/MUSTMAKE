@@ -64,15 +64,22 @@ test("Resend is selected by default when configured and sends the OTP", async t 
     assert.equal(requests[0][1].headers.Authorization, "Bearer test-resend-key");
     const sentMessage = JSON.parse(requests[0][1].body);
     assert.deepEqual(
-        { ...sentMessage, html: undefined },
+        {
+            from: sentMessage.from,
+            to: sentMessage.to,
+            subject: sentMessage.subject
+        },
         {
             from: "MUSTMAKE <otp@example.com>",
             to: "person@example.com",
-            subject: "Your MUSTMAKE verification code",
-            html: undefined
+            subject: "Your MUSTMAKE verification code"
         }
     );
     assert.match(sentMessage.html, /123456/);
+    assert.match(sentMessage.html, /cid:mustmake-logo/);
+    assert.equal(sentMessage.attachments[0].filename, "favicon.png");
+    assert.equal(sentMessage.attachments[0].content_id, "mustmake-logo");
+    assert.ok(sentMessage.attachments[0].content);
 });
 
 test("explicit Gmail selection preserves Nodemailer delivery", async t => {
@@ -244,5 +251,5 @@ test("exercise reminder uses Resend and returns its message ID", async t => {
     assert.match(message.html, /2026-03-08/);
     assert.match(message.html, /4-day streak/);
     assert.match(message.html, /Don't give up/);
-    assert.match(message.html, /https:\/\/mustmake\.vercel\.site/);
+    assert.match(message.html, /https:\/\/mustmake\.site/);
 });

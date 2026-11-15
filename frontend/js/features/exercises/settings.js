@@ -192,6 +192,7 @@ privacyConfirmButton.addEventListener("click", async () => {
     const nextValue = pendingPrivacyValue;
     privacyConfirmButton.disabled = true;
     privacyCancelButton.disabled = true;
+    const saveToast = window.showToast("Saving account privacy…", { type: "loading" });
     try {
         await requestJson("/api/settings/privacy", {
             method: "PUT",
@@ -203,9 +204,10 @@ privacyConfirmButton.addEventListener("click", async () => {
         privacyToggle.checked = isPrivate;
         privacyConfirmOverlay.hidden = true;
         privacyToggle.focus();
+        saveToast?.update("Account privacy updated.", { type: "success" });
     } catch (error) {
         closePrivacyConfirmation();
-        window.showToast(error.message || "Could not update account privacy.", { type: "error" });
+        saveToast?.update(error.message || "Could not update account privacy.", { type: "error" });
     } finally {
         privacyConfirmButton.disabled = false;
         privacyCancelButton.disabled = false;
