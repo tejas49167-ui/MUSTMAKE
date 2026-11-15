@@ -3,7 +3,6 @@ const Workout = require("../models/Workout");
 const connectDB = require("../config/database");
 const { getDateString } = require("../utils/date");
 const { isPlainObject, parseWorkoutNumber } = require("../utils/validation");
-const { createWorkoutRecord } = require("../services/workout.service");
 const { getWorkoutHistoryPage } = require("../services/workout-history.service");
 const { getWorkoutStreak } = require("../services/workout-streak.service");
 const exercises = require("../config/exercises.json");
@@ -132,7 +131,7 @@ const addWorkout = async (req, res) => {
         }
 
         await connectDB();
-        const workout = await createWorkoutRecord({
+        const workout = await Workout.create({
             user: req.userId,
             exercise,
             ...workoutValues,

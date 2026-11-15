@@ -144,13 +144,14 @@
                 <h3>Third-Party Services</h3>
                 <p>MUSTMAKE relies on third-party services to operate:</p>
                 <ul class="service-list">
-                    <li><strong>MongoDB:</strong> Used to store account information, profile information and workout records.</li>
-                    <li><strong>Vercel:</strong> Used for application hosting and delivery.</li>
-                    <li><strong>Cloudinary:</strong> Used to host profile images uploaded to MUSTMAKE.</li>
-                    <li><strong>Resend or Gmail:</strong> Used to deliver email verification codes, depending on the configured email provider.</li>
-                    <li><strong>Google:</strong> Used for Google Sign-In and for delivery of certain external resources, such as fonts and AI model files.</li>
+                    <li><strong>MongoDB:</strong> Stores account and profile information, workout records, competition connections, and records used for authentication, security and email reminders.</li>
+                    <li><strong>Vercel:</strong> Hosts and delivers the website and API. As with web hosting, it may process technical request information such as IP address, browser details and requested URLs.</li>
+                    <li><strong>Cloudinary:</strong> Stores profile images uploaded to MUSTMAKE. When you delete your account, MUSTMAKE requests deletion of your hosted profile image.</li>
+                    <li><strong>Resend or Gmail:</strong> Delivers email verification codes and account messages; Resend may also deliver daily workout reminders, depending on the configured email provider.</li>
+                    <li><strong>Google:</strong> Google Sign-In provides account details such as your verified email address, name, profile image and Google account identifier. Google Fonts and Google Cloud Storage deliver fonts and AI pose-detection model files to your browser.</li>
+                    <li><strong>jsDelivr:</strong> Delivers the MediaPipe library used by optional AI exercise monitoring.</li>
                 </ul>
-                <p>These providers process information as necessary to provide their respective services and may have their own privacy policies and data-handling practices. Some providers may process information outside India, depending on their infrastructure and configuration. MUSTMAKE does not control the independent privacy practices of these providers.</p>
+                <p>When your browser connects to these providers, they may receive ordinary network and device information, such as your IP address, browser type and the requested resource. Each provider processes information under its own terms and privacy practices. Depending on their infrastructure and configuration, information may be processed outside India. MUSTMAKE does not control the independent privacy practices of these providers.</p>
             </section>
 
             <section>
@@ -158,10 +159,11 @@
                 <p>MUSTMAKE uses essential browser storage to provide application functionality. This may include:</p>
                 <ul>
                     <li>An authentication cookie to maintain your login session</li>
+                    <li>An HttpOnly <code>mm_login_device</code> cookie containing a random device identifier, used with your IP address to help limit repeated login attempts. It expires after one year.</li>
                     <li>Browser storage for your profile display information</li>
                     <li>Camera display preferences, exercise sound preferences, and temporary exercise and workout information</li>
                 </ul>
-                <p>Authentication cookies are configured as HttpOnly cookies and have a limited lifetime.</p>
+                <p>Authentication cookies are configured as HttpOnly cookies and have a limited lifetime. The login device identifier is used for security and is not your account password or a browser advertising identifier.</p>
                 <p>You can manage or clear browser storage through your browser settings. Clearing essential storage may require you to sign in again or reset preferences.</p>
             </section>
 
@@ -175,8 +177,9 @@
                 <h3>Data Retention and Account Deletion</h3>
                 <p>We retain account information for as long as your account remains active and the information is required to provide the service or meet applicable obligations.</p>
                 <p>You can delete your account through <strong>Settings → Delete account</strong>.</p>
-                <p>When an account deletion request is successfully processed, MUSTMAKE deletes the associated account, workout records, competition connections and relevant verification records from its active database. Deletion of profile images hosted by third-party providers is also requested.</p>
-                <p>Some information may remain temporarily in service-provider backups, technical logs or other records where retention is necessary or permitted by applicable law.</p>
+                <p>When account deletion is successfully processed, the account, workout records, competition connections, and associated verification and reminder records are deleted from MUSTMAKE's active database. Deletion of profile images hosted by Cloudinary is also requested.</p>
+                <p>One-time verification codes expire after five minutes. Login rate-limit records are set to expire after 30 days, and the random login device cookie expires after one year. Account and workout information is otherwise retained while the account is active.</p>
+                <p>Deletion from the active database does not immediately remove copies in service-provider backups or technical logs. Those copies may remain until the provider's normal deletion cycle completes or the information is no longer needed for security, operational or legal purposes. MUSTMAKE does not currently specify a fixed timeframe for removing those backup and log copies.</p>
             </section>
 
             <section>
@@ -207,6 +210,7 @@
             <section>
                 <h3>Account Registration</h3>
                 <p>To use account-based features, you must create an account. You agree to:</p>
+                <p>MUSTMAKE has no minimum age requirement; people of any age may use the service.</p>
                 <ul>
                     <li>Provide accurate registration information and use an email address that you own or are authorized to use.</li>
                     <li>Maintain the confidentiality of your login credentials and avoid sharing your account with unauthorized individuals.</li>
@@ -303,7 +307,7 @@
 
             <section>
                 <h3>Contact Information</h3>
-                <p>For questions regarding these terms, contact:</p>
+                <p>For questions regarding these terms and privacy policy, contact:</p>
                 <address class="legal-contact">
                     <strong>Platform:</strong> MUSTMAKE<br>
                     <strong>Website:</strong> <a href="https://mustmake.site">mustmake.site</a><br>
