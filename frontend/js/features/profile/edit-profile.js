@@ -1,6 +1,5 @@
 function logout() {
-    window.clearPrivateCaches();
-    localStorage.removeItem("user");
+    window.MUSTMAKE.clearSession();
     window.location.href = "/login";
 }
 

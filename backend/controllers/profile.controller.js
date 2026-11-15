@@ -22,50 +22,37 @@ const { getDateString } = require("../utils/date");
 const { logFailure } = require("../utils/safe-log");
 
 const getProfile = async (req, res) => {
-        try {
-            await connectDB();
+    try {
+        await connectDB();
 
-            const user =
-                await User.findById(
-                    req.userId
-                ).select("-passwordHash +ageReferenceYear");
+        const user = await User.findById(req.userId)
+            .select("-passwordHash +ageReferenceYear");
 
-            if (!user) {
-                return res.status(404).json({
-                    message: "User not found."
-                });
-            }
-
-            res.json({
-                success: true,
-                user
-            });
-
-        } catch (error) {
-
-            logFailure("Get profile failed.", error);
-
-            res.status(500).json({
-                message:
-                    "Could not load profile."
-            });
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
         }
-    };
 
-async function applyProfileData(user, body, requireName) {
+        res.json({ success: true, user });
+    } catch (error) {
+        logFailure("Get profile failed.", error);
+        res.status(500).json({ message: "Could not load profile." });
+    }
+};
+
+function normalizeProfileFields(body, requireName) {
     if (!isPlainObject(body)) {
-        return { status: 400, message: "Profile data must be an object." };
+        return { error: { status: 400, message: "Profile data must be an object." } };
     }
 
     const { name, age, height, weight, profilePicture, socials } = body;
     if (requireName && name === undefined) {
-        return { status: 400, message: "Name is required." };
+        return { error: { status: 400, message: "Name is required." } };
     }
 
     let normalizedName;
     if (name !== undefined) {
         if (typeof name !== "string" || !name.trim() || name.trim().length > 100) {
-            return { status: 400, message: "Please enter a name between 1 and 100 characters." };
+            return { error: { status: 400, message: "Please enter a name between 1 and 100 characters." } };
         }
         normalizedName = name.trim();
     }
@@ -78,11 +65,11 @@ async function applyProfileData(user, body, requireName) {
             (typeof age !== "number" && typeof age !== "string") ||
             (typeof age === "string" && age.trim() === "")
         ) {
-            return { status: 400, message: "Age must be a whole number between 0 and 120." };
+            return { error: { status: 400, message: "Age must be a whole number between 0 and 120." } };
         } else {
             const numericAge = Number(age);
             if (!Number.isInteger(numericAge) || numericAge < 0 || numericAge > 120) {
-                return { status: 400, message: "Age must be a whole number between 0 and 120." };
+                return { error: { status: 400, message: "Age must be a whole number between 0 and 120." } };
             }
             normalizedAge = numericAge;
         }
@@ -103,28 +90,28 @@ async function applyProfileData(user, body, requireName) {
     const normalizedHeight = height === undefined ? null : profileMetric(height, 50, 300);
     const normalizedWeight = weight === undefined ? null : profileMetric(weight, 20, 500);
     if (normalizedHeight && !normalizedHeight.valid) {
-        return { status: 400, message: "Height must be between 50 and 300 cm." };
+        return { error: { status: 400, message: "Height must be between 50 and 300 cm." } };
     }
     if (normalizedWeight && !normalizedWeight.valid) {
-        return { status: 400, message: "Weight must be between 20 and 500 kg." };
+        return { error: { status: 400, message: "Weight must be between 20 and 500 kg." } };
     }
 
     let normalizedSocials;
     if (socials !== undefined) {
         if (!Array.isArray(socials) && !isPlainObject(socials)) {
-            return { status: 400, message: "Social links must be a list of URLs." };
+            return { error: { status: 400, message: "Social links must be a list of URLs." } };
         }
 
         const links = (Array.isArray(socials) ? socials : Object.values(socials))
             .filter(value => value !== undefined && value !== null && value !== "");
         if (links.length > 10) {
-            return { status: 400, message: "You can add up to 10 social links." };
+            return { error: { status: 400, message: "You can add up to 10 social links." } };
         }
 
         normalizedSocials = [];
         for (const value of links) {
             if (typeof value !== "string" || value.trim().length > 500) {
-                return { status: 400, message: "Social links must be valid HTTP or HTTPS URLs." };
+                return { error: { status: 400, message: "Social links must be valid HTTP or HTTPS URLs." } };
             }
             try {
                 const url = new URL(value.trim());
@@ -133,51 +120,77 @@ async function applyProfileData(user, body, requireName) {
                 }
                 normalizedSocials.push(url.href);
             } catch {
-                return { status: 400, message: "Social links must be valid HTTP or HTTPS URLs." };
+                return { error: { status: 400, message: "Social links must be valid HTTP or HTTPS URLs." } };
             }
         }
     }
 
-    let profilePictureUrl;
-    if (profilePicture !== undefined) {
-        if (!profilePicture) {
-            profilePictureUrl = null;
-        } else if (typeof profilePicture === "string" && profilePicture.startsWith("data:image/")) {
-            const match = profilePicture.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
-            if (!match) {
-                return { status: 400, message: "Profile photo must be a JPG, PNG or WebP image." };
-            }
-
-            const imageBytes = Buffer.from(match[2], "base64");
-            if (imageBytes.length > 2 * 1024 * 1024) {
-                return { status: 413, message: "Profile photo must be smaller than 2 MB." };
-            }
-
-            const upload = await cloudinary.uploader.upload(profilePicture, {
-                folder: "just-do-it/profile-pictures",
-                public_id: `user_${user._id}`,
-                overwrite: true,
-                resource_type: "image"
-            });
-            profilePictureUrl = upload.secure_url;
-        } else if (typeof profilePicture === "string" && /^https?:\/\//i.test(profilePicture)) {
-            profilePictureUrl = profilePicture;
-        } else {
-            return { status: 400, message: "Invalid profile photo." };
+    return {
+        values: {
+            name: normalizedName,
+            age: normalizedAge,
+            height: normalizedHeight,
+            weight: normalizedWeight,
+            profilePicture,
+            socials: normalizedSocials,
+            hasSocials: socials !== undefined
         }
+    };
+}
+
+async function resolveProfilePicture(profilePicture, user) {
+    if (profilePicture === undefined) return { value: undefined };
+    if (!profilePicture) return { value: null };
+
+    if (typeof profilePicture === "string" && profilePicture.startsWith("data:image/")) {
+        const match = profilePicture.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
+        if (!match) {
+            return { error: { status: 400, message: "Profile photo must be a JPG, PNG or WebP image." } };
+        }
+
+        const imageBytes = Buffer.from(match[2], "base64");
+        if (imageBytes.length > 2 * 1024 * 1024) {
+            return { error: { status: 413, message: "Profile photo must be smaller than 2 MB." } };
+        }
+
+        const upload = await cloudinary.uploader.upload(profilePicture, {
+            folder: "just-do-it/profile-pictures",
+            public_id: `user_${user._id}`,
+            overwrite: true,
+            resource_type: "image"
+        });
+        return { value: upload.secure_url };
     }
 
-    if (normalizedName !== undefined) user.name = normalizedName;
-    if (normalizedAge !== undefined) {
-        user.age = normalizedAge;
-        user.ageReferenceYear = normalizedAge === null
+    if (typeof profilePicture === "string" && /^https?:\/\//i.test(profilePicture)) {
+        return { value: profilePicture };
+    }
+    return { error: { status: 400, message: "Invalid profile photo." } };
+}
+
+function applyNormalizedProfile(user, values, profilePictureUrl) {
+    const { name, age, height, weight, profilePicture, socials, hasSocials } = values;
+    if (name !== undefined) user.name = name;
+    if (age !== undefined) {
+        user.age = age;
+        user.ageReferenceYear = age === null
             ? null
             : Number(getDateString().slice(0, 4));
     }
-    if (normalizedHeight) user.height = normalizedHeight.value;
-    if (normalizedWeight) user.weight = normalizedWeight.value;
+    if (height) user.height = height.value;
+    if (weight) user.weight = weight.value;
     if (profilePicture !== undefined) user.profilePicture = profilePictureUrl;
-    if (socials !== undefined) user.socials = normalizedSocials;
+    if (hasSocials) user.socials = socials;
+}
+
+async function applyProfileData(user, body, requireName) {
+    const normalized = normalizeProfileFields(body, requireName);
+    if (normalized.error) return normalized.error;
+
+    const picture = await resolveProfilePicture(normalized.values.profilePicture, user);
+    if (picture.error) return picture.error;
+
+    applyNormalizedProfile(user, normalized.values, picture.value);
     return null;
 }
 
