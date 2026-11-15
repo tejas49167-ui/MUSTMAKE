@@ -3,8 +3,9 @@ const path = require("path");
 const nodemailer = require("nodemailer");
 const { OTP_EXPIRY_MINUTES } = require("./auth.service");
 const { logFailure } = require("../utils/safe-log");
+const { frontend_url } = require("../config/urls");
 
-const APP_BASE_URL = process.env.APP_URL || "https://mustmake.vercel.app";
+const APP_BASE_URL = process.env.APP_URL || frontend_url;
 const FALLBACK_LOGO_URL = `${APP_BASE_URL}/assets/images/favicon.png`;
 const LOCAL_LOGO_PATH = path.resolve(
     __dirname,
@@ -117,7 +118,7 @@ async function sendOTPEmail(email, otp, purpose) {
         const payload = {
             from,
             to: email,
-            subject: `${safeOtp} is your MUSTMAKE verification code`,
+            subject: "Your MUSTMAKE verification code",
             html
         };
 
@@ -170,7 +171,7 @@ async function sendOTPEmail(email, otp, purpose) {
     const mailOptions = {
         from: process.env.GMAIL_USER,
         to: email,
-        subject: `${safeOtp} is your MUSTMAKE verification code`,
+        subject: "Your MUSTMAKE verification code",
         html
     };
 
