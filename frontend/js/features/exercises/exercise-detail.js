@@ -83,7 +83,7 @@
         `;
     }
 
-    function renderField(field, exercise) {
+    function renderField(field) {
         const id = `workout-${field.name}`;
         return `
             <div class="exercise-form-field">
@@ -108,7 +108,7 @@
             <div class="exercise-mode-content">
                 <form id="manualWorkoutForm" class="exercise-workout-form">
                     <div class="exercise-form-grid">
-                        ${exercise.fields.map(field => renderField(field, exercise)).join("")}
+                        ${exercise.fields.map(renderField).join("")}
                     </div>
                     <p id="manualSignInPrompt" class="exercise-form-message" role="status" ${signInPromptHidden}>
                         <span>Sign in to save this workout.</span>
@@ -122,17 +122,10 @@
 
     function renderAiMode(exercise) {
         const isPlank = exercise.slug === "plank";
-        const isJumpCount = exercise.slug === "skipping-rope";
         const weightField = exercise.fields.find(field => field.name === "weight");
-        const maxReviewedValue = isPlank
-            ? exercise.fields.find(field => field.name === "duration")?.max ?? 360
-            : 150;
+        const maxReviewedValue = getMaxReviewedValue(exercise);
 
-        const correctionLabel = isPlank
-            ? "Plank time (seconds)"
-            : isJumpCount
-                ? "Jumps"
-                : "Repetitions";
+        const correctionField = getCorrectionField(exercise);
 
         return `
             <div class="exercise-monitor">
@@ -184,13 +177,13 @@
                         </div>
                     </div>
 
-                    ${weightField ? `<div class="monitor-exercise-fields">${renderField(weightField, exercise)}</div>` : ""}
+                    ${weightField ? `<div class="monitor-exercise-fields">${renderField(weightField)}</div>` : ""}
 
                     <div class="exercise-form-field monitor-exercise-fields">
-                        <label for="monitorCorrection">${correctionLabel}</label>
+                        <label for="monitorCorrection">${correctionField.label}</label>
                         <input
                             id="monitorCorrection"
-                            name="${isPlank ? "reviewedDuration" : isJumpCount ? "reviewedJumps" : "reviewedReps"}"
+                            name="${correctionField.name}"
                             type="number"
                             min="1"
                             max="${maxReviewedValue}"
@@ -216,6 +209,27 @@
         `;
     }
 
+    function getCorrectionField(exercise) {
+        if (exercise.slug === "plank") {
+            return {
+                label: "Plank time (seconds)",
+                name: "reviewedDuration"
+            };
+        }
+
+        if (exercise.slug === "skipping-rope") {
+            return { label: "Jumps", name: "reviewedJumps" };
+        }
+
+        return { label: "Repetitions", name: "reviewedReps" };
+    }
+
+    function getMaxReviewedValue(exercise) {
+        if (exercise.slug !== "plank") return 150;
+
+        return exercise.fields.find(field => field.name === "duration")?.max ?? 360;
+    }
+
     function render(exercise) {
         const detectorSupported = [
             "squats",
@@ -238,19 +252,9 @@
             mode => mode !== "ai" || detectorSupported
         );
 
-        const hasAiMode = availableModes.includes("ai");
-        const hasManualMode = availableModes.includes("manual");
+        const selectedMode = selectInitialMode(availableModes, pendingWorkout);
 
-        const selectedMode = pendingWorkout &&
-            availableModes.includes(pendingWorkout.mode)
-            ? pendingWorkout.mode
-            : hasAiMode
-                ? "ai"
-                : hasManualMode
-                    ? "manual"
-                    : null;
-
-        const modeLabel = mode => mode === "ai" ? "AI Mode" : "Manual Entry";
+        const modeLabels = { ai: "AI Mode", manual: "Manual Entry" };
 
         const modeButtons = availableModes.length > 1
             ? `
@@ -264,7 +268,7 @@
                             aria-selected="${mode === selectedMode}"
                             aria-controls="exerciseModeContent"
                             data-exercise-mode="${mode}"
-                        >${modeLabel(mode)}</button>
+                        >${modeLabels[mode]}</button>
                     `).join("")}
                 </div>
             `
@@ -359,17 +363,9 @@
             return true;
         }
 
-        const initialModeContent = selectedMode === "ai"
-            ? renderAiMode(exercise)
-            : selectedMode === "manual"
-                ? renderManualMode(exercise)
-                : '<p class="no-workout">No workout modes are configured for this exercise.</p>';
+        const initialModeContent = renderModeContent(exercise, selectedMode);
 
-        const panelAttributes = availableModes.length > 1
-            ? `role="tabpanel" aria-labelledby="${selectedMode}ModeTab" tabindex="0"`
-            : selectedMode
-                ? `aria-labelledby="${selectedMode === "ai" ? "aiModeTitle" : "exerciseModeTitle"}"`
-                : "";
+        const panelAttributes = getPanelAttributes(availableModes, selectedMode);
 
         const unsupportedAiMessage =
             supportedModes.includes("ai") && !detectorSupported
@@ -456,6 +452,34 @@
         } else if (selectedMode === "ai") {
             loadAiMonitor();
         }
+    }
+
+    function selectInitialMode(availableModes, pendingWorkout) {
+        if (pendingWorkout && availableModes.includes(pendingWorkout.mode)) {
+            return pendingWorkout.mode;
+        }
+
+        if (availableModes.includes("ai")) return "ai";
+        if (availableModes.includes("manual")) return "manual";
+        return null;
+    }
+
+    function renderModeContent(exercise, mode) {
+        if (mode === "ai") return renderAiMode(exercise);
+        if (mode === "manual") return renderManualMode(exercise);
+
+        return '<p class="no-workout">No workout modes are configured for this exercise.</p>';
+    }
+
+    function getPanelAttributes(availableModes, selectedMode) {
+        if (!selectedMode) return "";
+
+        if (availableModes.length > 1) {
+            return `role="tabpanel" aria-labelledby="${selectedMode}ModeTab" tabindex="0"`;
+        }
+
+        const titleId = selectedMode === "ai" ? "aiModeTitle" : "exerciseModeTitle";
+        return `aria-labelledby="${titleId}"`;
     }
 
     function buildWorkoutPayload(exercise, form) {

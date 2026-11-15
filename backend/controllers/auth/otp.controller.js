@@ -109,25 +109,7 @@ function isWithinCooldown(guard, previousOTP, now = new Date()) {
 async function claimOtpSend(email, purpose, now = new Date()) {
     try {
         return await OTPGuard.findOneAndUpdate(
-            {
-                email,
-                purpose,
-                $and: [
-                    {
-                        $or: [
-                            { lastSentAt: { $exists: false } },
-                            { lastSentAt: { $lte: new Date(now.getTime() - OTP_RESEND_COOLDOWN_MS) } }
-                        ]
-                    },
-                    {
-                        $or: [
-                            { attemptWindowStartedAt: { $exists: false } },
-                            { attemptWindowStartedAt: { $lte: new Date(now.getTime() - OTP_ATTEMPT_WINDOW_MS) } },
-                            { failedAttempts: { $lt: OTP_MAX_ATTEMPTS } }
-                        ]
-                    }
-                ]
-            },
+            buildSendClaimFilter(email, purpose, now),
             {
                 $set: { lastSentAt: now },
                 $setOnInsert: { email, purpose }
@@ -141,13 +123,7 @@ async function claimOtpSend(email, purpose, now = new Date()) {
 }
 
 async function incrementOtpFailures(email, purpose, now = new Date()) {
-    const activeWindow = {
-        email,
-        purpose,
-        attemptWindowStartedAt: {
-            $gt: new Date(now.getTime() - OTP_ATTEMPT_WINDOW_MS)
-        }
-    };
+    const activeWindow = buildActiveAttemptWindowFilter(email, purpose, now);
 
     const incremented = await OTPGuard.findOneAndUpdate(
         activeWindow,
@@ -159,14 +135,7 @@ async function incrementOtpFailures(email, purpose, now = new Date()) {
 
     try {
         return await OTPGuard.findOneAndUpdate(
-            {
-                email,
-                purpose,
-                $or: [
-                    { attemptWindowStartedAt: { $exists: false } },
-                    { attemptWindowStartedAt: { $lte: new Date(now.getTime() - OTP_ATTEMPT_WINDOW_MS) } }
-                ]
-            },
+            buildExpiredAttemptWindowFilter(email, purpose, now),
             {
                 $set: {
                     failedAttempts: 1,
@@ -188,6 +157,52 @@ async function incrementOtpFailures(email, purpose, now = new Date()) {
         if (!retried) throw error;
         return retried;
     }
+}
+
+function buildSendClaimFilter(email, purpose, now) {
+    const resendCutoff = new Date(now.getTime() - OTP_RESEND_COOLDOWN_MS);
+    const attemptCutoff = new Date(now.getTime() - OTP_ATTEMPT_WINDOW_MS);
+
+    return {
+        email,
+        purpose,
+        $and: [
+            {
+                $or: [
+                    { lastSentAt: { $exists: false } },
+                    { lastSentAt: { $lte: resendCutoff } }
+                ]
+            },
+            {
+                $or: [
+                    { attemptWindowStartedAt: { $exists: false } },
+                    { attemptWindowStartedAt: { $lte: attemptCutoff } },
+                    { failedAttempts: { $lt: OTP_MAX_ATTEMPTS } }
+                ]
+            }
+        ]
+    };
+}
+
+function buildActiveAttemptWindowFilter(email, purpose, now) {
+    return {
+        email,
+        purpose,
+        attemptWindowStartedAt: {
+            $gt: new Date(now.getTime() - OTP_ATTEMPT_WINDOW_MS)
+        }
+    };
+}
+
+function buildExpiredAttemptWindowFilter(email, purpose, now) {
+    return {
+        email,
+        purpose,
+        $or: [
+            { attemptWindowStartedAt: { $exists: false } },
+            { attemptWindowStartedAt: { $lte: new Date(now.getTime() - OTP_ATTEMPT_WINDOW_MS) } }
+        ]
+    };
 }
 
 async function resetOtpGuard(email, purpose) {
