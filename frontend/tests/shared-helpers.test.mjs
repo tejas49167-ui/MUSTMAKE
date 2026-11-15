@@ -11,6 +11,10 @@ const timeZoneConfigSource = await readFile(
     new URL("../js/shared/timezone-config.js", import.meta.url),
     "utf8"
 );
+const sessionCacheSource = await readFile(
+    new URL("../js/shared/session-cache.js", import.meta.url),
+    "utf8"
+);
 const catalogSource = await readFile(
     new URL("../js/shared/exercise-catalog.js", import.meta.url),
     "utf8"
@@ -46,6 +50,46 @@ test("workout presentation helpers share safe formatting and the app timezone", 
             year: "numeric"
         }),
         "4 Nov 2026"
+    );
+});
+
+test("session cache serializes values and handles storage failures", () => {
+    const stored = new Map();
+    const warnings = [];
+    const window = {};
+    const context = {
+        window,
+        sessionStorage: {
+            getItem: key => stored.get(key) || null,
+            setItem: (key, value) => stored.set(key, value)
+        },
+        console: { warn: (...args) => warnings.push(args) }
+    };
+    vm.runInNewContext(sessionCacheSource, context);
+
+    window.MUSTMAKE.sessionCache.write("cache-key", { value: 1 }, "profile");
+    assert.deepEqual(
+        JSON.parse(stored.get("cache-key")),
+        { value: 1 }
+    );
+    assert.equal(
+        window.MUSTMAKE.sessionCache.read("cache-key", "profile").value,
+        1
+    );
+    assert.equal(window.MUSTMAKE.sessionCache.read(null), null);
+    window.MUSTMAKE.sessionCache.write(null, { value: 2 });
+
+    context.sessionStorage.getItem = () => {
+        throw new Error("storage unavailable");
+    };
+    context.sessionStorage.setItem = () => {
+        throw new Error("storage unavailable");
+    };
+    assert.equal(window.MUSTMAKE.sessionCache.read("cache-key", "profile"), null);
+    window.MUSTMAKE.sessionCache.write("cache-key", { value: 2 }, "profile");
+    assert.deepEqual(
+        warnings.map(([message]) => message),
+        ["Could not read cached profile.", "Could not cache profile."]
     );
 });
 

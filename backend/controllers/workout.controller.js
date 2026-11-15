@@ -35,20 +35,22 @@ const addWorkout = async (req, res) => {
         };
 
         if (manualType === "sets-reps" || manualType === "weighted-sets-reps") {
+            const repsField = config.fields?.find(field => field.name === "reps");
+            const setsField = config.fields?.find(field => field.name === "sets");
             const parsedReps = parseWorkoutNumber(reps, {
-                integer: true,
-                min: 1,
-                max: 150
+                integer: repsField?.step === 1,
+                min: repsField?.min,
+                max: repsField?.max
             });
             const parsedSets = parseWorkoutNumber(sets, {
-                integer: true,
-                min: 1,
-                max: 10
+                integer: setsField?.step === 1,
+                min: setsField?.min,
+                max: setsField?.max
             });
             if (!parsedReps.valid || !parsedSets.valid ||
                 !Number.isSafeInteger(parsedReps.value * parsedSets.value)) {
                 return res.status(400).json({
-                    message: "Reps must be 1–150 and sets must be 1–10."
+                    message: `Reps must be between ${repsField?.min} and ${repsField?.max}, and sets between ${setsField?.min} and ${setsField?.max}.`
                 });
             }
 
@@ -92,14 +94,18 @@ const addWorkout = async (req, res) => {
             }
             workoutValues.duration = parsedDuration.value;
         } else if (manualType === "distance-duration") {
-            const parsedDistance = parseWorkoutNumber(amount, { min: 0, max: 50 });
+            const distanceField = config.fields?.find(field => field.name === "amount");
+            const parsedDistance = parseWorkoutNumber(amount, {
+                min: distanceField?.min,
+                max: distanceField?.max
+            });
             const parsedDuration = duration == null || duration === ""
                 ? { valid: true, value: null }
                 : parseWorkoutNumber(duration, { integer: true, min: 1 });
 
             if (!parsedDistance.valid || !parsedDuration.valid) {
                 return res.status(400).json({
-                    message: "Distance must be 50 km or less, with a valid duration."
+                    message: `Distance must be between ${distanceField?.min} and ${distanceField?.max} km, with a valid duration.`
                 });
             }
             workoutValues.amount = parsedDistance.value;

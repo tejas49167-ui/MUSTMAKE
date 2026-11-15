@@ -85,15 +85,6 @@
 
     function renderField(field, exercise) {
         const id = `workout-${field.name}`;
-        const max = field.max ?? (field.name === "reps"
-            ? 150
-            : field.name === "sets"
-                ? 10
-                : exercise.manualType === "duration" && field.name === "duration"
-                    ? exercise.slug === "plank" ? 360 : 900
-                    : exercise.manualType === "distance-duration" && field.name === "amount"
-                        ? 50
-                        : null);
         return `
             <div class="exercise-form-field">
                 <label for="${escapeHTML(id)}">${escapeHTML(field.label)}</label>
@@ -102,7 +93,7 @@
                     name="${escapeHTML(field.name)}"
                     type="number"
                     min="${escapeHTML(field.min)}"
-                    ${max == null ? "" : `max="${max}"`}
+                    ${field.max == null ? "" : `max="${field.max}"`}
                     step="${escapeHTML(field.step)}"
                     inputmode="decimal"
                     required

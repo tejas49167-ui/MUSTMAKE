@@ -1,30 +1,12 @@
 const { escapeHTML, formatWorkoutDetails, formatDate, getTodayDateString } =
     window.MUSTMAKE.presentation;
+const sessionCache = window.MUSTMAKE.sessionCache;
 
 function hasSignedInUser() {
     try {
         return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
     } catch {
         return false;
-    }
-}
-
-function readSessionCache(key) {
-    if (!key) return null;
-    try {
-        return JSON.parse(sessionStorage.getItem(key) || "null");
-    } catch (error) {
-        console.warn(`Could not read cached ${key}.`, error);
-        return null;
-    }
-}
-
-function writeSessionCache(key, value) {
-    if (!key) return;
-    try {
-        sessionStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-        console.warn(`Could not cache ${key}.`, error);
     }
 }
 
@@ -86,13 +68,13 @@ async function loadToday() {
         nameElement.textContent = `${greeting}, ${user.name || "athlete"}`;
     }
 
-    const cachedWorkouts = readSessionCache(
+    const cachedWorkouts = sessionCache.read(
         cacheSuffix ? `mustmake_today_workouts${cacheSuffix}` : null
     );
     if (Array.isArray(cachedWorkouts)) {
         displayTodayWorkouts(userContainer, cachedWorkouts);
     }
-    const cachedStreak = readSessionCache(
+    const cachedStreak = sessionCache.read(
         cacheSuffix ? `mustmake_streak${cacheSuffix}` : null
     );
     const streakElement = document.getElementById("userStreak");
@@ -115,7 +97,7 @@ async function loadToday() {
 
         const responseData = await response.json();
         const workouts = Array.isArray(responseData) ? responseData : [];
-        writeSessionCache(
+        sessionCache.write(
             cacheSuffix ? `mustmake_today_workouts${cacheSuffix}` : null,
             workouts
         );
@@ -171,7 +153,7 @@ async function loadStreaks(cacheKey) {
 
         const data = await response.json();
         const streak = Number(data.streak) || 0;
-        writeSessionCache(cacheKey, streak);
+        sessionCache.write(cacheKey, streak);
         streakElement.textContent = streak;
     } catch (error) {
         console.error("Streak error:", error);

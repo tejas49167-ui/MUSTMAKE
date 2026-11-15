@@ -1,4 +1,5 @@
 const { escapeHTML, formatWorkoutDetails } = window.MUSTMAKE.presentation;
+const sessionCache = window.MUSTMAKE.sessionCache;
 
 function hasSignedInUser() {
     try {
@@ -13,8 +14,7 @@ function authHeaders() {
 }
 
 function logout() {
-    window.clearPrivateCaches();
-    localStorage.removeItem("user");
+    window.MUSTMAKE.clearSession();
     window.location.href = "/login";
 }
 
@@ -37,25 +37,12 @@ function getCompetitionCacheKey() {
 }
 
 function readCompetitionCache() {
-    if (!competitionCacheKey) return null;
-
-    try {
-        const cached = JSON.parse(sessionStorage.getItem(competitionCacheKey) || "null");
-        return Array.isArray(cached) ? cached : null;
-    } catch (error) {
-        console.warn("Could not read cached competition data.", error);
-        return null;
-    }
+    const cached = sessionCache.read(competitionCacheKey, "competition data");
+    return Array.isArray(cached) ? cached : null;
 }
 
 function writeCompetitionCache(competitions) {
-    if (!competitionCacheKey) return;
-
-    try {
-        sessionStorage.setItem(competitionCacheKey, JSON.stringify(competitions));
-    } catch (error) {
-        console.warn("Could not cache competition data.", error);
-    }
+    sessionCache.write(competitionCacheKey, competitions, "competition data");
 }
 
 function getCompetitorId(competitor) {

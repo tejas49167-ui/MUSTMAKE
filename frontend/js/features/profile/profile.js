@@ -1,10 +1,10 @@
 function logout() {
-    window.clearPrivateCaches();
-    localStorage.removeItem("user");
+    window.MUSTMAKE.clearSession();
     window.location.href = "/login";
 }
 
 const safeSocialUrl = window.MUSTMAKE.safeSocialUrl;
+const sessionCache = window.MUSTMAKE.sessionCache;
 
 function optimizeCloudinaryImage(url) {
     if (!url) return url;
@@ -30,23 +30,13 @@ function getProfileCacheKey() {
 function readProfileCache() {
     const key = getProfileCacheKey();
     if (!key) return null;
-    try {
-        const data = JSON.parse(sessionStorage.getItem(key) || "null");
-        return data?.user && typeof data.user === "object" ? data : null;
-    } catch (error) {
-        console.warn("Could not read the cached profile.", error);
-        return null;
-    }
+    const data = sessionCache.read(key, "profile");
+    return data?.user && typeof data.user === "object" ? data : null;
 }
 
 function writeProfileCache(data) {
     const key = getProfileCacheKey();
-    if (!key) return;
-    try {
-        sessionStorage.setItem(key, JSON.stringify(data));
-    } catch (error) {
-        console.warn("Could not cache the profile.", error);
-    }
+    sessionCache.write(key, data, "profile");
 }
 
 let profileData = null;
