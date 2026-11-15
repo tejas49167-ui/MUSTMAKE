@@ -48,89 +48,67 @@ The application provides workout tracking, user authentication, and a backend AP
 
 ```text
 MUSTMAKE/
-├── frontend/
-│   ├── index.html
-│   ├── vercel.json
-│   ├── pages/
-│   │   ├── index.html
-│   │   ├── exercises/<slug>.html
-│   │   ├── history.html
-│   │   ├── doit.html
-│   │   ├── login.html
-│   │   ├── signup.html
-│   │   ├── google-callback.html
-│   │   ├── profile.html
-│   │   ├── edit-profile.html
-│   │   ├── user-profile.html
-│   │   ├── competition.html
-│   │   └── firstdetails.html
-│   ├── assets/
-│   │   ├── css/
-│   │   │   ├── style.css
-│   │   │   ├── profiles.css
-│   │   │   ├── exercise-monitor.css
-│   │   │   ├── settings.css
-│   │   │   └── toast.css
-│   │   └── images/
-│   └── js/
-│       ├── core/change_backend_url.js
-│       ├── shared/
-│       │   ├── auth-redirect.js
-│       │   ├── exercise-catalog.js
-│       │   ├── navbar.js
-│       │   └── workout-presentation.js
-│       └── features/
-│           ├── auth/
-│           │   ├── auth.js
-│           │   ├── signup.js
-│           │   └── google-callback.js
-│           ├── exercises/
-│           │   ├── exercise-detail.js
-│           │   └── exercise-library.js
-│           ├── workouts/script.js
-│           ├── profile/
-│           │   ├── profile.js
-│           │   ├── edit-profile.js
-│           │   └── user-profile.js
-│           └── competition/competition.js
 ├── backend/
-│   ├── server.js
 │   ├── app.js
+│   ├── server.js
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── vercel.json
 │   ├── config/
-│   │   ├── database.js
 │   │   ├── cloudinary.js
+│   │   ├── database.js
 │   │   ├── exercises.json
-│   │   └── passport.js
-│   ├── routes/
-│   │   ├── auth.routes.js
-│   │   ├── profile.routes.js
-│   │   ├── users.routes.js
-│   │   ├── workouts.routes.js
-│   │   └── competition.routes.js
+│   │   ├── passport.js
+│   │   └── urls.js
 │   ├── controllers/
 │   │   ├── auth.controller.js
-│   │   ├── profile.controller.js
-│   │   ├── users.controller.js
-│   │   ├── workout.controller.js
-│   │   └── competition.controller.js
-│   ├── services/
-│   │   ├── auth.service.js
-│   │   ├── email.service.js
-│   │   └── workout.service.js
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── OTP.js
-│   │   ├── Workout.js
-│   │   └── Competition.js
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   └── error-handler.js
-│   ├── utils/
-│   │   ├── date.js
-│   │   └── validation.js
+│   │   ├── auth/                 # OAuth, OTP, password/session controllers
+│   │   └── other *.controller.js files
+│   ├── middleware/               # Authentication, origin, OAuth state, errors
+│   ├── models/                   # Mongoose models
+│   ├── routes/                   # API route modules
+│   ├── schemas/
+│   │   └── auth.schemas.js
+│   ├── scripts/
+│   │   └── backfill-user-search-grams.js
+│   ├── services/                 # Auth, email, OTP, Google, and workout services
+│   ├── tests/                    # Backend tests
+│   └── utils/                    # Cookies, dates, logging, search, validation
+├── frontend/
+│   ├── index.html
 │   ├── package.json
-│   └── package-lock.json
+│   ├── vercel.json
+│   ├── serve.json
+│   ├── robots.txt
+│   ├── sitemap.xml
+│   ├── google9323a3bb1ac7a607.html
+│   ├── config/
+│   │   └── exercise-pages.json
+│   ├── pages/
+│   │   ├── exercises/            # Generated exercise pages
+│   │   └── *.html                # App pages, including settings and about-us
+│   ├── assets/
+│   │   ├── css/
+│   │   ├── images/
+│   │   └── *.mp3
+│   ├── js/
+│   │   ├── core/                 # Backend URL and authentication guards
+│   │   ├── shared/               # Shared auth, session, UI, and workout modules
+│   │   └── features/
+│   │       ├── auth/
+│   │       ├── competition/
+│   │       ├── exercises/        # Camera, pose, detection, and workout flows
+│   │       ├── profile/
+│   │       └── workouts/
+│   ├── scripts/
+│   │   └── generate-exercise-pages.mjs
+│   ├── templates/
+│   │   └── exercise-page.html
+│   └── tests/                    # Frontend tests
 ├── .gitignore
+├── LICENSE
 ├── Readme.md
 └── SECURITY.md
 ```
+
+#Feel free to open pull request
