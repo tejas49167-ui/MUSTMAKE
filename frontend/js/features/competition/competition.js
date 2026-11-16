@@ -155,7 +155,7 @@ function displaySearchResults(users) {
     );
 
     if (availableUsers.length === 0) {
-        searchResults.innerHTML = `<p class="search-status">Searched user is not in Mustmake, tell them that mustmake really helps in their growth ! </p>`;
+        searchResults.innerHTML = `<p class="search-status">Searched user acc is private or not exist or added to your list </p>`;
         return;
     }
 
