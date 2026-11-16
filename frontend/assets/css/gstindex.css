@@ -219,13 +219,9 @@
             line-height: 1.75;
         }
 
-        .feature-grid,
-        .steps {
+        .feature-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-        }
-
-        .feature-grid {
             gap: 32px;
         }
 
@@ -234,28 +230,16 @@
             border-top: 1px solid #444;
         }
 
-        .feature-number {
-            color: #777;
-            font-size: .7rem;
-            font-weight: 600;
-            letter-spacing: .12em;
-        }
-
         .feature h3 {
             margin: 28px 0 12px;
             font-size: 1.25rem;
             font-weight: 500;
         }
 
-        .feature p,
-        .step p {
+        .feature p {
             margin: 0;
             color: var(--muted);
             line-height: 1.7;
-        }
-
-        .steps {
-            gap: 40px;
         }
 
         .start-layout {
@@ -276,17 +260,6 @@
 
         .start-layout .section-heading {
             margin: 0;
-        }
-
-        .step {
-            padding-top: 20px;
-            border-top: 1px solid #444;
-        }
-
-        .step h3 {
-            margin: 0 0 12px;
-            font-size: 1.05rem;
-            font-weight: 500;
         }
 
         .download-panel {
@@ -344,233 +317,54 @@
         /* =========================================
            LANDING INTRO
         ========================================= */
+/* =========================================
+   LANDING INTRO (TRUE HANDWRITING EFFECT)
+========================================= */
 
-        .landing-intro {
-            text-align: center;
-            padding: 80px 0 60px;
-            animation: fadeInUp 0.8s ease-out;
-        }
+.landing-intro {
+    text-align: center;
+    padding: 80px 0 60px;
+}
 
-        .landing-intro h1 {
-            font-size: clamp(2.5rem, 5vw, 3.5rem);
-            font-weight: 700;
-            margin: 0 auto 20px;
-            line-height: 1.15;
-            letter-spacing: -0.03em;
-            background: linear-gradient(
-                135deg,
-                #0284c7 0%,
-                #ffffff 100%
-            );
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+.landing-intro h1 {
+    margin: 0 auto 20px;
+    line-height: 1.15;
+}
 
-        .landing-intro p {
-            font-size: 1.25rem;
-            color: var(--text-secondary, var(--muted));
-            max-width: 700px;
-            margin: 0 auto;
-            line-height: 1.7;
-        }
+.handwriting-svg {
+    width: 100%;
+    max-width: 700px;
+    height: auto;
+    overflow: visible;
+}
 
-        /* =========================================
-           LANDING SECTION
-        ========================================= */
+.handwritten-text {
+    font-family: 'Dancing Script', cursive;
+    font-size: 80px;
+    font-weight: 500;
+    fill: url(#goldGradient); /* Fallback or inline fill */
+    letter-spacing: 0;
+    clip-path: inset(0 100% 0 0);
+    animation: writeLine 4.2s linear forwards;
+}
 
-        .landing-section {
-            margin: 60px 0;
-        }
+.landing-intro p {
+    font-size: 1.25rem;
+    color: var(--text-secondary, var(--muted));
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
 
-        .landing-page .exercise-section {
-            margin-bottom: 40px;
-        }
+/* =========================================
+   ANIMATIONS
+========================================= */
 
-        .landing-page .exercise-section-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding: 0 4px;
-        }
-
-        .landing-page .exercise-section-heading h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0;
-            text-transform: capitalize;
-        }
-
-        .landing-page .exercise-card {
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-            box-shadow: none;
-            transition: none;
-            overflow: hidden;
-        }
-
-        .landing-page .exercise-card:hover {
-            transform: none;
-            border: 0;
-            background: transparent;
-            box-shadow: none;
-        }
-
-        .landing-page .exercise-card-media {
-            background: transparent;
-            border-radius: 0;
-        }
-
-        .landing-page .exercise-media {
-            background: transparent;
-        }
-
-        .landing-page .exercise-card-link:hover h3 {
-            color: inherit;
-        }
-
-        .landing-page .exercise-card-content {
-            padding: 16px;
-            min-height: auto;
-        }
-
-        .landing-page .exercise-card h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin: 0;
-            line-height: 1.4;
-            text-align: center;
-        }
-
-        :root body.landing-page .exercise-card,
-        :root body.landing-page .exercise-card:hover {
-            border: 0;
-            background: transparent;
-            box-shadow: none;
-            transform: none;
-        }
-
-        :root body.landing-page .exercise-card-media {
-            background: transparent;
-        }
-
-        /* =========================================
-           SECTION TITLE
-        ========================================= */
-
-        .section-title {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 40px;
-            text-align: center;
-            position: relative;
-        }
-
-        :root .landing-page #exercises > .section-title .just-highlight {
-            color: #9dcae7;
-        }
-
-        .section-title::after {
-            content: "";
-            display: block;
-            width: 60px;
-            height: 3px;
-            background: var(--accent);
-            margin: 15px auto 0;
-            border-radius: 2px;
-        }
-
-        /* =========================================
-           VIDEO CTA
-        ========================================= */
-
-        .cta-section {
-            position: relative;
-            isolation: isolate;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 420px;
-            padding: 80px 24px;
-            margin: 65px 0;
-            text-align: center;
-            background: #07131b;
-        }
-
-        .cta-video {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            pointer-events: none;
-        }
-
-        .cta-section::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            background: linear-gradient(
-                90deg,
-                rgba(4, 10, 18, 0.5),
-                rgba(4, 10, 18, 0.28) 50%,
-                rgba(4, 10, 18, 0.5)
-            );
-            pointer-events: none;
-        }
-
-        .cta-content {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            max-width: 900px;
-            margin: auto;
-            padding: 0 20px;
-        }
-
-        .cta-section h2 {
-            color: #ffffff;
-            font-size: clamp(1.5rem, 3.5vw, 2.3rem);
-            font-weight: 700;
-            line-height: 1.4;
-            margin: 0 0 28px;
-            text-shadow: 0 2px 18px rgba(0, 0, 0, 0.7);
-        }
-
-        .cta-section .main-button {
-            position: relative;
-            z-index: 2;
-            display: inline-flex;
-            margin-bottom: 10px;
-        }
-
-        .cta-section .main-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 9px 28px rgba(56, 189, 248, 0.22);
-        }
-
-        /* =========================================
-           GENERAL ANIMATIONS
-        ========================================= */
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+@keyframes writeLine {
+    to {
+        clip-path: inset(0);
+    }
+}
 
         /* =========================================
            RESPONSIVE DESIGN
@@ -581,42 +375,8 @@
                 padding: 60px 0 40px;
             }
 
-            .landing-intro h1 {
-                font-size: 2rem;
-            }
-
             .landing-intro p {
                 font-size: 1rem;
-            }
-
-            .landing-page .exercise-section {
-                margin-bottom: 32px;
-            }
-
-            .landing-page .exercise-section-heading h2 {
-                font-size: 1.25rem;
-            }
-
-            .landing-page .exercise-card-content {
-                padding: 12px;
-            }
-
-            .landing-page .exercise-card h3 {
-                font-size: 1rem;
-            }
-
-            .cta-section {
-                min-height: 320px;
-                padding: 85px 18px 75px;
-                margin: 45px 0;
-            }
-
-            .cta-content {
-                max-width: 100%;
-            }
-
-            .cta-section h2 {
-                font-size: clamp(1.5rem, 6vw, 1.9rem);
             }
         }
 
@@ -645,8 +405,7 @@
                 padding-block: 72px;
             }
 
-            .feature-grid,
-            .steps {
+            .feature-grid {
                 grid-template-columns: 1fr;
                 gap: 28px;
             }
@@ -702,11 +461,9 @@
                 transition-duration: .01ms !important;
             }
 
-            .landing-intro {
-                animation: none !important;
+            .handwritten-text {
+                animation: none;
+                clip-path: none;
             }
 
-            .cta-section .main-button {
-                transition: none;
-            }
         }

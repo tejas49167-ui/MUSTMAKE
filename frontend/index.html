@@ -62,6 +62,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>MUSTMAKE — You can and you must</title>
 
     <script src="/js/core/change_backend_url.js"></script>
@@ -79,11 +80,23 @@
 
     <main class="container">
 
-
-        <section class="landing-intro wrap">
-            <h1>Hardcome to MUSTMAKE</h1>
-            <p>You can and you must.</p>
-        </section>
+<svg width="0" height="0" style="position: absolute;">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE066" />
+      <stop offset="50%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#AA771C" />
+    </linearGradient>
+  </defs>
+</svg>
+<section class="landing-intro wrap">
+    <h1>
+        <svg viewBox="0 0 700 90" class="handwriting-svg" role="img" aria-label="Hardcome to MUSTMAKE">
+            <text x="0" y="70" class="handwritten-text">Hardcome to MUSTMAKE</text>
+        </svg>
+    </h1>
+    <p>You can and you must.</p>
+</section>
 
 
         <section class="hero wrap" aria-labelledby="hero-title">
@@ -179,9 +192,6 @@
     <script src="/js/shared/toast.js"></script>
     <script src="/js/shared/navbar.js"></script>
     <script src="/js/shared/timezone-config.js"></script>
-    <script src="/js/shared/workout-presentation.js"></script>
-    <script src="/js/shared/exercise-catalog.js"></script>
-    <script src="/js/features/exercises/exercise-library.js"></script>
 
 </body>
 </html>
