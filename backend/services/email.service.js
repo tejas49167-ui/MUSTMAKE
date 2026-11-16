@@ -227,20 +227,18 @@ async function sendExerciseReminderEmail(email, name, localDate, streak, idempot
 <body style="margin:0;padding:0;background-color:#000000;background-image:linear-gradient(#000000,#000000);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#ffffff;-webkit-font-smoothing:antialiased;">
   <div style="max-width:420px;margin:0 auto;padding:36px 24px;background-color:#000000;background-image:linear-gradient(#000000,#000000);">
     
-    <!-- Big Brand Header -->
+    <!-- Text-Only Brand Header at Top -->
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 32px;">
       <tr>
-        <td style="vertical-align:middle;padding-right:14px;">
-          <img src="${logo.src}" alt="MUSTMAKE" width="56" height="56" style="display:block;width:56px;height:56px;border-radius:12px;border:0;">
-        </td>
         <td style="vertical-align:middle;">
           <span style="display:block;color:#ffffff;font-size:18px;font-weight:800;letter-spacing:3.5px;line-height:1;text-transform:uppercase;">MUSTMAKE</span>
         </td>
       </tr>
-    </table>    
-    <h1 style="margin:0 0 14px;font-size:15px;line-height:1.55;color:#a1a1aa;">${greeting}</h1>
-    <h1 style="margin:0 0 14px;font-size:24px;font-weight:700;letter-spacing:-0.4px;line-height:1.25;color:#ffffff;">Don't give up on today.</h1>
-    
+    </table>
+
+    <h1 style="margin:0 0 10px;font-size:32px;font-weight:800;letter-spacing:-0.6px;line-height:1.2;color:#D4AF37;">${greeting}</h1>
+
+    <h2 style="margin:0 0 14px;font-size:20px;font-weight:600;letter-spacing:-0.3px;line-height:1.25;color:#ffffff;">Don't give up on today.</h2>
     
     <p style="margin:0 0 22px;font-size:15px;line-height:1.55;color:#a1a1aa;">
       You haven't logged a workout for <strong style="color:#ffffff;font-weight:600;">${escapeHtml(localDate)}</strong> yet.
@@ -250,9 +248,16 @@ async function sendExerciseReminderEmail(email, name, localDate, streak, idempot
       <p style="margin:0;font-size:15px;line-height:1.5;font-weight:600;color:#ffffff;">${escapeHtml(streakMessage)}</p>
     </div>
 
-    <a href="${todayUrl}" style="display:inline-block;padding:13px 26px;border-radius:10px;background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);color:#000000 !important;font-size:14px;font-weight:700;letter-spacing:0.2px;text-decoration:none;">Log Workout &rarr;</a>
+    <!-- Image Logo Above Button at Bottom -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 38px;">
+      <tr>
+        <td align="center" style="text-align:center;padding:0 0 16px;">
+          <img src="${logo.src}" alt="MUSTMAKE" width="112" height="112" style="display:block;width:112px;height:112px;margin:0 auto;border:0;border-radius:24px;object-fit:contain;">
+        </td>
+      </tr>
+    </table>
 
-   
+    <a href="${todayUrl}" style="display:inline-block;padding:13px 26px;border-radius:10px;background-color:#ffffff;background-image:linear-gradient(#ffffff,#ffffff);color:#000000 !important;font-size:14px;font-weight:700;letter-spacing:0.2px;text-decoration:none;">Log Workout &rarr;</a>
   </div>
 </body>
 </html>`
