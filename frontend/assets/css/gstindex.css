@@ -425,6 +425,10 @@
                 width: min(calc(100% - 28px), 1120px);
             }
 
+            .handwritten-text {
+                font-size: 72px;
+            }
+
             .brand {
                 gap: 8px;
                 font-size: .88rem;
