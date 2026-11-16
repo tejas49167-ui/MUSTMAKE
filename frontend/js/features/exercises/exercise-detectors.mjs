@@ -284,6 +284,18 @@ function visible(landmark, threshold) {
         landmark.visibility >= threshold;
 }
 
+function distance2d(first, second) {
+    return Math.hypot(first.x - second.x, first.y - second.y);
+}
+
+function armLengths(shoulder, elbow, wrist) {
+    const upperArm = distance2d(shoulder, elbow);
+    return {
+        upperArm,
+        total: upperArm + distance2d(elbow, wrist)
+    };
+}
+
 function angleAt(a, vertex, c) {
     const firstX = a.x - vertex.x;
     const firstY = a.y - vertex.y;
@@ -524,10 +536,10 @@ export class PushUpDetector extends RepDetector {
             const armAngle = angleAt3d(shoulder, elbow, wrist);
             if (armAngle == null) continue;
 
-            const upperArmLength = Math.hypot(shoulder.x - elbow.x, shoulder.y - elbow.y);
-            if (upperArmLength < 0.02) continue;
+            const lengths = armLengths(shoulder, elbow, wrist);
+            if (lengths.upperArm < 0.02) continue;
 
-            const armLength = upperArmLength + Math.hypot(elbow.x - wrist.x, elbow.y - wrist.y);
+            const armLength = lengths.total;
             const shoulderWristY = (wrist.y - shoulder.y) / Math.max(armLength, 0.1);
 
             validSides.push({
@@ -647,16 +659,10 @@ export class PushUpDetector extends RepDetector {
             const elbow = landmarks[side.elbow];
             const wrist = landmarks[side.wrist];
             const angle = angleAt(shoulder, elbow, wrist);
-            const upperArmLength = Math.hypot(
-                shoulder.x - elbow.x,
-                shoulder.y - elbow.y
-            );
-            if (angle == null || upperArmLength < 0.02) return null;
+            const lengths = armLengths(shoulder, elbow, wrist);
+            if (angle == null || lengths.upperArm < 0.02) return null;
 
-            const armLength = upperArmLength + Math.hypot(
-                elbow.x - wrist.x,
-                elbow.y - wrist.y
-            );
+            const armLength = lengths.total;
             return {
                 angle,
                 shoulderWristY: wrist.y - shoulder.y,
@@ -754,8 +760,7 @@ function armCycleAngles(landmarks, slug, thresholds) {
         if (!visibleRequirement(landmarks, [required], thresholds.visibility)) continue;
         const angle = angleAt(shoulder, elbow, wrist);
         if (angle == null) continue;
-        const upperArmLength = Math.hypot(shoulder.x - elbow.x, shoulder.y - elbow.y);
-        if (upperArmLength < 0.02) continue;
+        if (distance2d(shoulder, elbow) < 0.02) continue;
         values.push({ side: name, angle });
     }
     return values;
@@ -891,16 +896,10 @@ export class FrontPullUpDetector extends RepDetector {
             const elbow = landmarks[side.elbow];
             const wrist = landmarks[side.wrist];
             const angle = angleAt(shoulder, elbow, wrist);
-            const upperArmLength = Math.hypot(
-                shoulder.x - elbow.x,
-                shoulder.y - elbow.y
-            );
-            if (angle == null || upperArmLength < 0.02) return null;
+            const lengths = armLengths(shoulder, elbow, wrist);
+            if (angle == null || lengths.upperArm < 0.02) return null;
 
-            const armLength = upperArmLength + Math.hypot(
-                elbow.x - wrist.x,
-                elbow.y - wrist.y
-            );
+            const armLength = lengths.total;
             return {
                 angle,
                 shoulderWristY: wrist.y - shoulder.y,
@@ -1089,8 +1088,8 @@ export class SkippingRopeDetector extends RepDetector {
         const rightLeg = angleAt(landmarks[24], landmarks[26], landmarks[28]);
         const hipY = (landmarks[23].y + landmarks[24].y) / 2;
         const torsoLength = (
-            Math.hypot(landmarks[11].x - landmarks[23].x, landmarks[11].y - landmarks[23].y) +
-            Math.hypot(landmarks[12].x - landmarks[24].x, landmarks[12].y - landmarks[24].y)
+            distance2d(landmarks[11], landmarks[23]) +
+            distance2d(landmarks[12], landmarks[24])
         ) / 2;
 
         if (

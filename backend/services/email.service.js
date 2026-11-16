@@ -41,6 +41,15 @@ function getEmailProvider() {
     return configuredProvider || (process.env.RESEND_API_KEY ? "resend" : "gmail");
 }
 
+function getResendConfig() {
+    const apiKey = process.env.RESEND_API_KEY;
+    const from = process.env.EMAIL_FROM;
+    if (!apiKey || !from) {
+        throw new Error("RESEND_API_KEY and EMAIL_FROM are required for Resend.");
+    }
+    return { apiKey, from };
+}
+
 function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, character => ({
         "&": "&amp;",
@@ -109,11 +118,7 @@ async function sendOTPEmail(email, otp, purpose) {
 
     const provider = getEmailProvider();
     if (provider === "resend") {
-        const apiKey = process.env.RESEND_API_KEY;
-        const from = process.env.EMAIL_FROM;
-        if (!apiKey || !from) {
-            throw new Error("RESEND_API_KEY and EMAIL_FROM are required for Resend.");
-        }
+        const { apiKey, from } = getResendConfig();
 
         const payload = {
             from,
@@ -198,11 +203,7 @@ async function sendExerciseReminderEmail(email, name, localDate, streak, idempot
         throw new Error("Exercise reminders require the Resend email provider.");
     }
 
-    const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.EMAIL_FROM;
-    if (!apiKey || !from) {
-        throw new Error("RESEND_API_KEY and EMAIL_FROM are required for Resend.");
-    }
+    const { apiKey, from } = getResendConfig();
 
     const greeting = name ? `Hello ${escapeHtml(name)},` : "Hi there,";
     const todayUrl = APP_BASE_URL;

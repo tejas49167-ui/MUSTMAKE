@@ -115,6 +115,7 @@ test("exercise catalog fetch is shared and the response is cached", async () => 
         },
         console
     };
+    vm.runInNewContext(sessionCacheSource, context);
     vm.runInNewContext(catalogSource, context);
 
     const [first, second] = await Promise.all([

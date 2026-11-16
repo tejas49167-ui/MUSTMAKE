@@ -194,6 +194,10 @@ async function applyProfileData(user, body, requireName) {
     return null;
 }
 
+function sendProfileValidationError(res, error) {
+    return res.status(error.status).json({ message: error.message });
+}
+
 const saveProfile = async (req, res, requireName = false) => {
     try {
         await connectDB();
@@ -204,9 +208,7 @@ const saveProfile = async (req, res, requireName = false) => {
 
         const validationError = await applyProfileData(user, req.body, requireName);
         if (validationError) {
-            return res.status(validationError.status).json({
-                message: validationError.message
-            });
+            return sendProfileValidationError(res, validationError);
         }
 
         await user.save();
@@ -276,9 +278,7 @@ const completeSignup = async (req, res) => {
         });
         const validationError = await applyProfileData(user, req.body, true);
         if (validationError) {
-            return res.status(validationError.status).json({
-                message: validationError.message
-            });
+            return sendProfileValidationError(res, validationError);
         }
 
         await user.save();

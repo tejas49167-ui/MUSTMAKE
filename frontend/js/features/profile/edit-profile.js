@@ -33,14 +33,18 @@ updateContinueButton();
 
 function updateSocialLinksCount() {
     if (!socialLinksContainer || !socialLinksCount || !addSocialLinkButton) return;
-    const count = socialLinksContainer.querySelectorAll(".social-link-item").length;
+    const count = getSocialLinksCount();
     socialLinksCount.textContent = `${count} of ${maxSocialLinks} links`;
     addSocialLinkButton.disabled = count >= maxSocialLinks;
 }
 
+function getSocialLinksCount() {
+    return socialLinksContainer?.querySelectorAll(".social-link-item").length || 0;
+}
+
 function addSocialLink(url = "") {
     if (!socialLinksContainer) return;
-    if (socialLinksContainer.querySelectorAll(".social-link-item").length >= maxSocialLinks) return;
+    if (getSocialLinksCount() >= maxSocialLinks) return;
 
     const item = document.createElement("div");
     item.className = "social-link-item";

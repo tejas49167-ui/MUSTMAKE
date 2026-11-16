@@ -24,6 +24,28 @@ function getPreferenceUserKey() {
     return encodeURIComponent(userKey);
 }
 
+function savePreference(key, value, warning, eventName, detail) {
+    try {
+        localStorage.setItem(key, String(value));
+    } catch (error) {
+        console.warn(warning, error);
+        return false;
+    }
+
+    if (eventName) {
+        window.dispatchEvent(new CustomEvent(eventName, { detail }));
+    }
+    return true;
+}
+
+function readPreference(key, fallback) {
+    try {
+        return localStorage.getItem(key);
+    } catch {
+        return fallback;
+    }
+}
+
 export function getCameraMirrorPreferenceKey() {
     return `${CAMERA_MIRROR_KEY_PREFIX}${getPreferenceUserKey()}`;
 }
@@ -45,126 +67,74 @@ export function getFrontViewPreferenceKey() {
 }
 
 export function getCameraMirrorPreference() {
-    try {
-        return localStorage.getItem(getCameraMirrorPreferenceKey()) !== "false";
-    } catch {
-        return true;
-    }
+    return readPreference(getCameraMirrorPreferenceKey(), null) !== "false";
 }
 
 export function setCameraMirrorPreference(mirrored) {
     const value = Boolean(mirrored);
-
-    try {
-        localStorage.setItem(
-            getCameraMirrorPreferenceKey(),
-            String(value)
-        );
-    } catch (error) {
-        console.warn("Could not save the camera preview preference.", error);
-        return false;
-    }
-
-    window.dispatchEvent(new CustomEvent(CAMERA_PREFERENCE_CHANGE_EVENT, {
-        detail: { mirrored: value }
-    }));
-
-    return true;
+    return savePreference(
+        getCameraMirrorPreferenceKey(),
+        value,
+        "Could not save the camera preview preference.",
+        CAMERA_PREFERENCE_CHANGE_EVENT,
+        { mirrored: value }
+    );
 }
 
 export function getSmartCameraModePreference() {
-    try {
-        return localStorage.getItem(getSmartCameraModePreferenceKey()) === "true";
-    } catch {
-        return false;
-    }
+    return readPreference(getSmartCameraModePreferenceKey(), null) === "true";
 }
 
 export function setSmartCameraModePreference(enabled) {
     const value = Boolean(enabled);
-
-    try {
-        localStorage.setItem(
-            getSmartCameraModePreferenceKey(),
-            String(value)
-        );
-    } catch (error) {
-        console.warn("Could not save the smart camera preference.", error);
-        return false;
-    }
-
-    window.dispatchEvent(new CustomEvent(SMART_CAMERA_MODE_CHANGE_EVENT, {
-        detail: { enabled: value }
-    }));
-
-    return true;
+    return savePreference(
+        getSmartCameraModePreferenceKey(),
+        value,
+        "Could not save the smart camera preference.",
+        SMART_CAMERA_MODE_CHANGE_EVENT,
+        { enabled: value }
+    );
 }
 
 export function getExerciseSoundPreference() {
-    try {
-        return localStorage.getItem(getExerciseSoundPreferenceKey()) !== "false";
-    } catch {
-        return true;
-    }
+    return readPreference(getExerciseSoundPreferenceKey(), null) !== "false";
 }
 
 export function setExerciseSoundPreference(enabled) {
     const value = Boolean(enabled);
-
-    try {
-        localStorage.setItem(getExerciseSoundPreferenceKey(), String(value));
-    } catch (error) {
-        console.warn("Could not save the exercise sound preference.", error);
-        return false;
-    }
-
-    window.dispatchEvent(new CustomEvent(EXERCISE_SOUND_CHANGE_EVENT, {
-        detail: { enabled: value }
-    }));
-
-    return true;
+    return savePreference(
+        getExerciseSoundPreferenceKey(),
+        value,
+        "Could not save the exercise sound preference.",
+        EXERCISE_SOUND_CHANGE_EVENT,
+        { enabled: value }
+    );
 }
 
 export function getStrictAiPreference() {
-    try {
-        return localStorage.getItem(getStrictAiPreferenceKey()) !== "false";
-    } catch {
-        return true;
-    }
+    return readPreference(getStrictAiPreferenceKey(), null) !== "false";
 }
 
 export function setStrictAiPreference(enabled) {
     const value = Boolean(enabled);
-
-    try {
-        localStorage.setItem(getStrictAiPreferenceKey(), String(value));
-    } catch (error) {
-        console.warn("Could not save the Strict AI preference.", error);
-        return false;
-    }
-
-    return true;
+    return savePreference(
+        getStrictAiPreferenceKey(),
+        value,
+        "Could not save the Strict AI preference."
+    );
 }
 
 export function getFrontViewPreference() {
-    try {
-        return localStorage.getItem(getFrontViewPreferenceKey()) === "true";
-    } catch {
-        return false;
-    }
+    return readPreference(getFrontViewPreferenceKey(), null) === "true";
 }
 
 export function setFrontViewPreference(enabled) {
     const value = Boolean(enabled);
-
-    try {
-        localStorage.setItem(getFrontViewPreferenceKey(), String(value));
-    } catch (error) {
-        console.warn("Could not save the Front View preference.", error);
-        return false;
-    }
-
-    return true;
+    return savePreference(
+        getFrontViewPreferenceKey(),
+        value,
+        "Could not save the Front View preference."
+    );
 }
 
 export {

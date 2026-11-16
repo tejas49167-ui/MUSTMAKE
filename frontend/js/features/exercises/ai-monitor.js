@@ -25,7 +25,10 @@ import {
     formatTime,
     roundedDuration
 } from "./ai-monitor-feedback.js";
-import { restoreMonitorSession } from "./ai-monitor-session.js";
+import {
+    MAX_REPETITIONS,
+    restoreMonitorSession
+} from "./ai-monitor-session.js";
 import {
     CAMERA_PREFERENCE_CHANGE_EVENT,
     SMART_CAMERA_MODE_CHANGE_EVENT,
@@ -40,7 +43,6 @@ import {
     getFrontViewPreference
 } from "./camera-preference.js";
 
-const MAX_REPETITIONS = 10000;
 export { getSmartCameraPromptState };
 
 export function mountAiMonitor(

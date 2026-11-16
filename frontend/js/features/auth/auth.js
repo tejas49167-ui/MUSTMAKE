@@ -49,15 +49,7 @@ if (googleLoginLink) {
 
 if (signupLink) {
     signupLink.addEventListener("click", (event) => {
-        if (
-            event.button !== 0 ||
-            event.ctrlKey ||
-            event.metaKey ||
-            event.shiftKey ||
-            event.altKey
-        ) {
-            return;
-        }
+        if (!window.authMechanics.isUnmodifiedPrimaryClick(event)) return;
 
         event.preventDefault();
         window.location.replace(signupLink.href);
@@ -66,15 +58,7 @@ if (signupLink) {
 
 if (googleLoginLink) {
     googleLoginLink.addEventListener("click", (event) => {
-        if (
-            event.button !== 0 ||
-            event.ctrlKey ||
-            event.metaKey ||
-            event.shiftKey ||
-            event.altKey
-        ) {
-            return;
-        }
+        if (!window.authMechanics.isUnmodifiedPrimaryClick(event)) return;
 
         event.preventDefault();
         window.authMechanics.openGoogleAuth(googleLoginLink.href);

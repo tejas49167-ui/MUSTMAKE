@@ -6,6 +6,16 @@ import {
 
 const MAX_REVIEWED_VALUE = 150;
 
+function correctionErrorMessage(parsed, minimum, maximum, isPlank, isJumpCount) {
+    if (parsed < minimum) return "Cannot be zero.";
+    if (parsed > maximum) {
+        return isPlank
+            ? `1–${maximum} sec.`
+            : "Don't lie, enter truth.";
+    }
+    return `${minimum}–${maximum}${isPlank ? " sec" : isJumpCount ? " jumps" : " reps"}.`;
+}
+
 export function createWorkoutReview({
     exercise,
     isPlank,
@@ -140,13 +150,7 @@ export function createWorkoutReview({
 
         correctionError.textContent = valid
             ? ""
-            : parsed < minimum
-                ? "Cannot be zero."
-                : parsed > maximum
-                    ? isPlank
-                        ? `1–${maximum} sec.`
-                        : "Don't lie, enter truth."
-                    : `${minimum}–${maximum}${isPlank ? " sec" : isJumpCount ? " jumps" : " reps"}.`;
+            : correctionErrorMessage(parsed, minimum, maximum, isPlank, isJumpCount);
 
         correction.setAttribute(
             "aria-invalid",

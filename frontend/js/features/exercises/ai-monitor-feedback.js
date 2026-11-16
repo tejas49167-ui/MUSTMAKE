@@ -4,6 +4,18 @@ const SHARED_EXERCISE_FEEDBACK = new Set([
     "Nice rep."
 ]);
 
+function feedbackTone(message) {
+    if (message === "Get set.") return "setup";
+    return /^(Nice rep|Nice jump|Strong form|Great|Perfect)\b/i.test(message)
+        ? "positive"
+        : "negative";
+}
+
+function isSharedExerciseFeedback(message) {
+    return message?.startsWith("Can't see ") ||
+        SHARED_EXERCISE_FEEDBACK.has(message);
+}
+
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remaining = seconds % 60;
@@ -23,11 +35,7 @@ export function createMonitorFeedback({ feedback, timeOutput, detector, isPlank 
         if (feedback.textContent === nextMessage) return;
 
         feedback.textContent = nextMessage;
-        feedback.dataset.tone = nextMessage === "Get set."
-            ? "setup"
-            : /^(Nice rep|Nice jump|Strong form|Great|Perfect)\b/i.test(nextMessage)
-                ? "positive"
-                : "negative";
+        feedback.dataset.tone = feedbackTone(nextMessage);
 
         const now = performance.now();
         if (now - lastAnimationAt < 350) return;
@@ -44,7 +52,7 @@ export function createMonitorFeedback({ feedback, timeOutput, detector, isPlank 
             return;
         }
 
-        if (message?.startsWith("Can't see ") || SHARED_EXERCISE_FEEDBACK.has(message)) {
+        if (isSharedExerciseFeedback(message)) {
             setFeedback(message);
             return;
         }

@@ -43,6 +43,14 @@
         }, 500);
     }
 
+    function isUnmodifiedPrimaryClick(event) {
+        return event.button === 0 &&
+            !event.ctrlKey &&
+            !event.metaKey &&
+            !event.shiftKey &&
+            !event.altKey;
+    }
+
     function createOtpCooldown({
         storageKey,
         button,
@@ -121,6 +129,7 @@
     window.authMechanics = {
         postAuth,
         openGoogleAuth,
+        isUnmodifiedPrimaryClick,
         createOtpCooldown,
         installStorageListener
     };

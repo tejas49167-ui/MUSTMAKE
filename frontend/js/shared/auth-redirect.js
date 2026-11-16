@@ -17,10 +17,9 @@ function getPendingWorkoutPath() {
     return null;
 }
 
-window.redirectAfterAuthentication = function () {
+function redirectToAuthenticatedDestination() {
     window.location.replace(getPendingWorkoutPath() || "/today");
-};
+}
 
-window.redirectAfterFirstDetails = function () {
-    window.location.replace(getPendingWorkoutPath() || "/today");
-};
+window.redirectAfterAuthentication = redirectToAuthenticatedDestination;
+window.redirectAfterFirstDetails = redirectToAuthenticatedDestination;

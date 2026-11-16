@@ -26,19 +26,19 @@
         return id == null ? null : String(id);
     }
 
+    function parseStoredUser(value) {
+        try {
+            return JSON.parse(value || "null");
+        } catch {
+            return null;
+        }
+    }
+
     window.addEventListener("storage", event => {
         if (event.key !== "user") return;
 
-        const parseUser = value => {
-            try {
-                return JSON.parse(value || "null");
-            } catch {
-                return null;
-            }
-        };
-
-        const previousUser = parseUser(event.oldValue);
-        const nextUser = parseUser(event.newValue);
+        const previousUser = parseStoredUser(event.oldValue);
+        const nextUser = parseStoredUser(event.newValue);
         if (
             getUserId(previousUser) !== getUserId(nextUser) ||
             previousUser?.name !== nextUser?.name
@@ -48,14 +48,7 @@
     });
 
     window.saveAuthenticatedSession = function (user) {
-        let previousUserId;
-        try {
-            const previousUser = JSON.parse(localStorage.getItem("user") || "null");
-            previousUserId = getUserId(previousUser);
-        } catch {
-            // A malformed previous identity cannot safely be treated as the same account.
-        }
-
+        const previousUserId = getUserId(parseStoredUser(localStorage.getItem("user")));
         const nextUserId = getUserId(user);
         if (!previousUserId || !nextUserId || previousUserId !== nextUserId) {
             window.clearPrivateCaches();
@@ -66,9 +59,7 @@
     };
 
     function getCurrentPage() {
-        const path = window.location.pathname
-            .replace(/\.html$/, "")
-            .replace(/\/+$/, "") || "/";
+        const path = normalizePath(window.location.pathname);
 
         const legacyRoutes = {
             "/pages/index": "/today",
@@ -84,7 +75,7 @@
     }
 
     function normalizeRoute(href) {
-        const path = href.replace(/\.html$/, "").replace(/\/+$/, "") || "/";
+        const path = normalizePath(href);
 
         const aliases = {
             "/pages/index": "/today",
@@ -92,6 +83,10 @@
         };
 
         return aliases[path] || path;
+    }
+
+    function normalizePath(path) {
+        return path.replace(/\.html$/, "").replace(/\/+$/, "") || "/";
     }
 
     function isRouteActive(href, currentPage) {
@@ -155,11 +150,7 @@
     }
 
     function getAuthenticationState() {
-        try {
-            return Boolean(JSON.parse(localStorage.getItem("user") || "null"));
-        } catch {
-            return false;
-        }
+        return Boolean(parseStoredUser(localStorage.getItem("user")));
     }
 
     function initNavbar() {
@@ -331,9 +322,7 @@
             "/pages/history": "/history",
             "/pages/competition": "/competition"
         };
-        const currentPath = window.location.pathname
-            .replace(/\.html$/, "")
-            .replace(/\/+$/, "") || "/";
+        const currentPath = normalizePath(window.location.pathname);
         const currentRoute = routeAliases[currentPath] || currentPath;
         const prefetchedRoutes = new Set();
         let prefetchTimer = null;
@@ -351,7 +340,7 @@
                 return;
             }
 
-            const path = url.pathname.replace(/\.html$/, "").replace(/\/+$/, "") || "/";
+            const path = normalizePath(url.pathname);
             const route = routeAliases[path] || path;
 
             if (

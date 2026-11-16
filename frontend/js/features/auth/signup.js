@@ -15,15 +15,7 @@ window.authMechanics.installStorageListener();
 if (googleSignupLink) {
     googleSignupLink.href = `${window.backend_url}/api/auth/google`;
     googleSignupLink.addEventListener("click", event => {
-        if (
-            event.button !== 0 ||
-            event.ctrlKey ||
-            event.metaKey ||
-            event.shiftKey ||
-            event.altKey
-        ) {
-            return;
-        }
+        if (!window.authMechanics.isUnmodifiedPrimaryClick(event)) return;
 
         event.preventDefault();
         window.authMechanics.openGoogleAuth(googleSignupLink.href);
@@ -32,15 +24,7 @@ if (googleSignupLink) {
 
 if (loginLink) {
     loginLink.addEventListener("click", (event) => {
-        if (
-            event.button !== 0 ||
-            event.ctrlKey ||
-            event.metaKey ||
-            event.shiftKey ||
-            event.altKey
-        ) {
-            return;
-        }
+        if (!window.authMechanics.isUnmodifiedPrimaryClick(event)) return;
 
         event.preventDefault();
         window.location.replace(loginLink.href);
