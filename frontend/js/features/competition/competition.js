@@ -146,7 +146,7 @@ function displaySearchResults(users) {
     );
 
     if (availableUsers.length === 0) {
-        searchResults.innerHTML = `<p class="search-status">Searched user acc is private or not exist or added to your list </p>`;
+        searchResults.innerHTML = `<p class="search-status">Searched user acc is private or not exist or already added to your list </p>`;
         return;
     }
 
