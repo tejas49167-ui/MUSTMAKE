@@ -338,14 +338,17 @@
     overflow: visible;
 }
 
-.handwritten-text {
+.intro-title-text {
     font-family: 'Dancing Script', cursive;
     font-size: 80px;
     font-weight: 500;
     fill: url(#goldGradient); /* Fallback or inline fill */
     letter-spacing: 0;
+}
+
+.handwritten-text {
     clip-path: inset(0 100% 0 0);
-    animation: writeLine 4.2s linear forwards;
+    animation: writeLine 2.8s linear -1s forwards;
 }
 
 .landing-intro p {
@@ -425,7 +428,7 @@
                 width: min(calc(100% - 28px), 1120px);
             }
 
-            .handwritten-text {
+            .intro-title-text {
                 font-size: 72px;
             }
 
