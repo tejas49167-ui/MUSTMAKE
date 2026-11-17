@@ -1,5 +1,6 @@
 (function () {
     let googleAuthInFlight = false;
+    const GOOGLE_AUTH_PENDING_KEY = "mustmake_google_auth_pending";
 
     async function postAuth(path, payload, fallbackMessage = "Could not complete authentication.") {
         const response = await fetch(`${window.backend_url}${path}`, {
@@ -41,6 +42,16 @@
             googleAuthInFlight = false;
             loadingToast?.dismiss();
         }, 500);
+    }
+
+    function navigateToGoogleAuth(url) {
+        try {
+            window.sessionStorage.setItem(GOOGLE_AUTH_PENDING_KEY, "true");
+        } catch (error) {
+            console.warn("Could not save the pending Google sign-in state.", error);
+        }
+
+        window.location.replace(url);
     }
 
     function isUnmodifiedPrimaryClick(event) {
@@ -102,33 +113,18 @@
 
     function installStorageListener() {
         window.addEventListener("storage", event => {
-            if (event.key === "googleSignupPending" && event.newValue) {
-                localStorage.removeItem("googleSignupPending");
-                sessionStorage.setItem("pendingSignup", "true");
-                window.location.replace("/first-details");
-                return;
-            }
+            if (event.key !== "googleSignupPending" || !event.newValue) return;
 
-            if (event.key !== "googleLoginComplete" || !event.newValue) {
-                return;
-            }
-
-            localStorage.removeItem("googleLoginComplete");
-            const user = localStorage.getItem("user");
-            if (!user) return;
-
-            try {
-                window.redirectAfterAuthentication(JSON.parse(user));
-            } catch (error) {
-                console.error("Could not read the signed-in user.", error);
-                window.location.replace("/today");
-            }
+            localStorage.removeItem("googleSignupPending");
+            sessionStorage.setItem("pendingSignup", "true");
+            window.location.replace("/first-details");
         });
     }
 
     window.authMechanics = {
         postAuth,
         openGoogleAuth,
+        navigateToGoogleAuth,
         isUnmodifiedPrimaryClick,
         createOtpCooldown,
         installStorageListener

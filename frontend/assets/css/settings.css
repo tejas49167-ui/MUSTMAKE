@@ -138,10 +138,6 @@
     text-underline-offset: 4px;
 }
 
-.settings-confirm-actions .secondary-button {
-    color: var(--text-secondary);
-}
-
 @media (max-width: 540px) {
     .settings-row-reminder {
         align-items: stretch;

@@ -35,7 +35,7 @@ router.get(
     "/api/auth/google/callback",
     validateGoogleOAuthState,
     passport.authenticate("google", {
-        failureRedirect: getFrontendRedirect("/pages/login.html"),
+        failureRedirect: getFrontendRedirect("/pages/login.html?googleAuth=failed"),
         session: false
     }),
     authController.googleCallback

@@ -24,7 +24,6 @@ const privacySettingRow = document.getElementById("privacySettingRow");
 const privacyToggle = document.getElementById("privacyToggle");
 const privacyConfirmOverlay = document.getElementById("privacyConfirmOverlay");
 const privacyConfirmMessage = document.getElementById("privacyConfirmMessage");
-const privacyCancelButton = document.getElementById("privacyCancelButton");
 const privacyConfirmButton = document.getElementById("privacyConfirmButton");
 
 let emailPreferences = null;
@@ -174,10 +173,9 @@ privacyToggle.addEventListener("change", () => {
         ? "Other members will no longer be able to find your profile, view your workouts, or see your competition activity. Make your account private?"
         : "Other authenticated members will be able to find your profile and view your workouts and competition activity. Make your account public?";
     privacyConfirmOverlay.hidden = false;
-    privacyCancelButton.focus();
+    privacyConfirmButton.focus();
 });
 
-privacyCancelButton.addEventListener("click", closePrivacyConfirmation);
 privacyConfirmOverlay.addEventListener("click", event => {
     if (event.target === privacyConfirmOverlay) closePrivacyConfirmation();
 });
@@ -191,7 +189,6 @@ privacyConfirmButton.addEventListener("click", async () => {
     if (pendingPrivacyValue === null) return;
     const nextValue = pendingPrivacyValue;
     privacyConfirmButton.disabled = true;
-    privacyCancelButton.disabled = true;
     const saveToast = window.showToast("Saving account privacy…", { type: "loading" });
     try {
         await requestJson("/api/settings/privacy", {
@@ -210,7 +207,6 @@ privacyConfirmButton.addEventListener("click", async () => {
         saveToast?.update(error.message || "Could not update account privacy.", { type: "error" });
     } finally {
         privacyConfirmButton.disabled = false;
-        privacyCancelButton.disabled = false;
     }
 });
 

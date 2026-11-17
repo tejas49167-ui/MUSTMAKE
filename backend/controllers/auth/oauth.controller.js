@@ -24,7 +24,9 @@ const googleCallback = async (req, res) => {
         }
 
         if (!req.user?._id) {
-            return res.redirect(getFrontendRedirect("/pages/login.html"));
+            return res.redirect(getFrontendRedirect(
+                "/pages/login.html?googleAuth=failed"
+            ));
         }
 
         const session = createAuthSession(req.user);
@@ -34,7 +36,9 @@ const googleCallback = async (req, res) => {
         return res.redirect(getFrontendRedirect("/pages/google-callback.html"));
     } catch (error) {
         logFailure("Google callback failed.", error);
-        return res.redirect(getFrontendRedirect("/pages/login.html"));
+        return res.redirect(getFrontendRedirect(
+            "/pages/login.html?googleAuth=failed"
+        ));
     }
 };
 

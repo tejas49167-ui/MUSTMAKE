@@ -38,7 +38,11 @@ function showInvalidCredentialsMessage() {
     setLoginToast("Invalid username/email or password.", "error");
 }
 
-window.authMechanics.installStorageListener();
+if (new URLSearchParams(window.location.search).get("googleAuth") === "failed") {
+    setLoginToast("Google sign-in failed. Please try again.", "error");
+}
+
+sessionStorage.removeItem("mustmake_google_auth_pending");
 
 const googleLoginLink = document.getElementById("googleLoginLink");
 const signupLink = document.getElementById("signupLink");
@@ -61,7 +65,7 @@ if (googleLoginLink) {
         if (!window.authMechanics.isUnmodifiedPrimaryClick(event)) return;
 
         event.preventDefault();
-        window.authMechanics.openGoogleAuth(googleLoginLink.href);
+        window.authMechanics.navigateToGoogleAuth(googleLoginLink.href);
     });
 }
 

@@ -1,8 +1,17 @@
+const googleAuthPending = (() => {
+    try {
+        return sessionStorage.getItem("mustmake_google_auth_pending") === "true";
+    } catch {
+        return false;
+    }
+})();
+
 try {
     const isAuthenticated = Boolean(
         JSON.parse(localStorage.getItem("user") || "null")
     );
     if (isAuthenticated) window.location.replace("/today");
+    else if (googleAuthPending) window.location.replace("/google-callback");
 } catch {
-    // Invalid stored authentication data is treated as a guest session.
+    if (googleAuthPending) window.location.replace("/google-callback");
 }
