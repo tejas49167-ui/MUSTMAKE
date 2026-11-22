@@ -50,6 +50,32 @@ function getResendConfig() {
     return { apiKey, from };
 }
 
+function formatFriendlyDate(localDate) {
+    const [year, month, day] = localDate.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayNum = date.getDate();
+    const monthName = date.toLocaleString("en-US", { month: "long" });
+
+    const suffix =
+        dayNum >= 11 && dayNum <= 13
+            ? "th"
+            : { 1: "st", 2: "nd", 3: "rd" }[dayNum % 10] || "th";
+
+    if (date.getTime() === today.getTime()) {
+        return `today, ${dayNum}${suffix} of ${monthName}`;
+    }
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.getTime() === yesterday.getTime()) {
+        return `yesterday, ${dayNum}${suffix} of ${monthName}`;
+    }
+
+    return `${dayNum}${suffix} of ${monthName}`;
+}
+
 function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, character => ({
         "&": "&amp;",
@@ -241,7 +267,7 @@ async function sendExerciseReminderEmail(email, name, localDate, streak, idempot
     <h2 style="margin:0 0 14px;font-size:20px;font-weight:600;letter-spacing:-0.3px;line-height:1.25;color:#ffffff;">Don't give up on today.</h2>
     
     <p style="margin:0 0 22px;font-size:15px;line-height:1.55;color:#a1a1aa;">
-      You haven't logged a workout for <strong style="color:#ffffff;font-weight:600;">${escapeHtml(localDate)}</strong> yet.
+      You haven't logged a workout for <strong style="color:#ffffff;font-weight:600;">${escapeHtml(formatFriendlyDate(localDate))}</strong> yet.
     </p>
 
     <div style="margin:0 0 24px;padding:16px 18px;background-color:#141417;background-image:linear-gradient(#141417,#141417);border-radius:10px;">
