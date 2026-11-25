@@ -158,3 +158,11 @@ test("competition creation and removal are scoped to the authenticated owner", a
         competitor: competitorId
     });
 });
+
+test("Competition model defines secondary index on competitor", () => {
+    const indexes = Competition.schema.indexes();
+    const competitorIndex = indexes.find(
+        ([fields]) => fields.competitor === 1 && Object.keys(fields).length === 1
+    );
+    assert.ok(competitorIndex, "Index on competitor: 1 should exist");
+});

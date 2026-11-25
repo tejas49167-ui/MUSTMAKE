@@ -130,3 +130,17 @@ test("production responses include secure headers and protected routes reject an
     });
     assert.equal(anonymousDelete.status, 401);
 });
+
+test("backend serverless entry point and vercel routing are properly configured", () => {
+    const apiIndex = require("../api/index");
+    const app = require("../app");
+    assert.equal(apiIndex, app);
+
+    const backendVercel = JSON.parse(fs.readFileSync(
+        path.resolve(__dirname, "../vercel.json"),
+        "utf8"
+    ));
+    assert.ok(Array.isArray(backendVercel.rewrites));
+    assert.ok(backendVercel.rewrites.some(r => r.source === "/(.*)" && r.destination === "/api/index.js"));
+    assert.equal(backendVercel.functions?.["api/index.js"]?.maxDuration, 60);
+});

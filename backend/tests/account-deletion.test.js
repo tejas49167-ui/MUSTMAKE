@@ -14,12 +14,17 @@ function responseStub() {
     return {
         statusCode: 200,
         body: null,
+        clearedCookies: [],
         status(code) {
             this.statusCode = code;
             return this;
         },
         json(body) {
             this.body = body;
+            return this;
+        },
+        clearCookie(name, options) {
+            this.clearedCookies.push({ name, options });
             return this;
         }
     };
@@ -118,6 +123,7 @@ test("account deletion transaction removes owned records, relationships and OTP 
 
     assert.equal(res.statusCode, 200);
     assert.deepEqual(res.body, { success: true });
+    assert.ok(res.clearedCookies.some(cookie => cookie.name === "mustmake_session"));
     assert.equal(session.committed, true);
     assert.equal(session.ended, true);
     assert.deepEqual(calls.map(call => call.modelName), [

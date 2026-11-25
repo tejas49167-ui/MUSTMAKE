@@ -275,11 +275,6 @@ deleteAccountButton.addEventListener("click", async () => {
         }
 
         window.clearPrivateCaches();
-        try {
-            await fetch(`${window.backend_url}/api/auth/logout`, { method: "POST" });
-        } catch (error) {
-            console.warn("Could not clear the session cookie after account deletion.", error);
-        }
         localStorage.removeItem("user");
         deleteToast?.dismiss();
         window.queueToast("Account deleted successfully.", "success");

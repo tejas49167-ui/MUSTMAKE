@@ -12,6 +12,7 @@ const { hashOTP, createAuthSession } = require("../services/auth.service");
 const {
     PENDING_SIGNUP_COOKIE_NAME,
     setSessionCookie,
+    clearSessionCookie,
     clearPendingSignupCookie
 } = require("../utils/auth-cookie");
 const { getCookieValue } = require("../utils/cookie");
@@ -422,6 +423,7 @@ const deleteAccount = async (req, res) => {
             }
         }
 
+        clearSessionCookie(res);
         return res.json({ success: true });
     } catch (error) {
         logFailure("Delete account failed.", error);

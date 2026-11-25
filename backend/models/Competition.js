@@ -30,6 +30,8 @@ competitionSchema.index(
     }
 );
 
+competitionSchema.index({ competitor: 1 });
+
 module.exports =
     mongoose.model(
         "Competition",
