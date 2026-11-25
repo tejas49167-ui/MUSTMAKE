@@ -248,7 +248,7 @@ test("exercise reminder uses Resend and returns its message ID", async t => {
     assert.equal(message.to, "person@example.com");
     assert.equal(message.subject, "Your MUSTMAKE streak is waiting");
     assert.match(message.html, /&lt;Athlete&gt;/);
-    assert.match(message.html, /2026-03-08/);
+    assert.match(message.html, /8th of March/);
     assert.match(message.html, /4-day streak/);
     assert.match(message.html, /Don't give up/);
     assert.match(message.html, /https:\/\/mustmake\.site/);

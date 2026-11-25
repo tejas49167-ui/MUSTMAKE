@@ -32,10 +32,6 @@ function getClientIp(req) {
     return req.ip || req.socket?.remoteAddress || "unknown";
 }
 
-async function initializeOtpModels() {
-    await Promise.all([OTP.init(), OTPGuard.init()]);
-}
-
 function sendIdentityError(res, identity) {
     return res.status(identity.status).json({ message: identity.message });
 }
@@ -307,7 +303,6 @@ const sendOtp = async (req, res) => {
     res.set("Cache-Control", "no-store");
     try {
         await connectDB();
-        await initializeOtpModels();
 
         const identity = parseOtpIdentity(req.body, "Email and OTP purpose are required.");
         if (!identity.valid) {
@@ -395,7 +390,6 @@ const verifyOtp = async (req, res) => {
 
     try {
         await connectDB();
-        await initializeOtpModels();
 
         const identity = parseOtpIdentity(req.body, "Email, OTP and purpose are required.");
         if (!identity.valid) {

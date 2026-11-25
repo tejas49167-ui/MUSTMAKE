@@ -1,5 +1,5 @@
 const { DateTime } = require("luxon");
-const { APP_TIME_ZONE: REMINDER_TIME_ZONE } = require("../../frontend/js/shared/timezone-config");
+const { APP_TIME_ZONE: REMINDER_TIME_ZONE } = require("../config/timezone");
 
 const REMINDER_TIME = "18:00";
 

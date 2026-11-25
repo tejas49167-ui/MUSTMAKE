@@ -1,4 +1,4 @@
-const { APP_TIME_ZONE } = require("../../frontend/js/shared/timezone-config");
+const { APP_TIME_ZONE } = require("../config/timezone");
 
 function getDateString(date = new Date()) {
     const parts = new Intl.DateTimeFormat("en-GB", {

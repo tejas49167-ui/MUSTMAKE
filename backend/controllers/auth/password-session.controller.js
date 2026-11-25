@@ -17,7 +17,6 @@ const { logFailure } = require("../../utils/safe-log");
 
 async function getRateLimitKeys(req, res) {
     await connectDB();
-    await loginRateLimitService.ensureIndexes();
     return loginRateLimitService.getRateLimitKeys(req, res);
 }
 

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 let mongoConnection = null;
+mongoose.connection.on('disconnected', () => { mongoConnection = null; });
 
 async function connectDB() {
     if (!process.env.MONGO_URI) {
