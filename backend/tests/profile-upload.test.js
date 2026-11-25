@@ -38,13 +38,28 @@ test("upload-signature endpoint returns signed Cloudinary upload payload", async
     assert.equal(res.body.apiKey, cloudinary.config().api_key);
     assert.equal(res.body.cloudName, cloudinary.config().cloud_name);
     assert.equal(res.body.folder, "just-do-it/profile-pictures");
+    assert.equal(res.body.public_id, "user_user-1");
+    assert.equal(res.body.overwrite, true);
 
     // Verify signature validity
     const expectedSignature = cloudinary.utils.api_sign_request(
-        { folder: res.body.folder, timestamp: res.body.timestamp },
+        {
+            folder: res.body.folder,
+            overwrite: true,
+            public_id: "user_user-1",
+            timestamp: res.body.timestamp
+        },
         cloudinary.config().api_secret
     );
     assert.equal(res.body.signature, expectedSignature);
+});
+
+test("upload-signature endpoint rejects unauthenticated requests", async () => {
+    const res = responseStub();
+    await profileController.getUploadSignature({}, res);
+
+    assert.equal(res.statusCode, 401);
+    assert.equal(res.body.message, "Authentication required.");
 });
 
 test("profile update rejects base64 photo payloads with 400", async t => {

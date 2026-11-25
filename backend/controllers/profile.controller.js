@@ -21,18 +21,35 @@ const {
 const { getDateString } = require("../utils/date");
 const { logFailure } = require("../utils/safe-log");
 
+function extractCloudinaryPublicId(url) {
+    if (typeof url !== "string") return null;
+    const match = url.match(/\/image\/upload\/(?:v\d+\/)?([^\.\?#]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 const getUploadSignature = async (req, res) => {
     try {
+        if (!req.userId) {
+            return res.status(401).json({ message: "Authentication required." });
+        }
         const timestamp = Math.round(Date.now() / 1000);
         const folder = "just-do-it/profile-pictures";
+        const public_id = `user_${req.userId}`;
         const config = cloudinary.config();
 
         if (!config.api_key || !config.api_secret || !config.cloud_name) {
             return res.status(500).json({ message: "Cloudinary is not configured." });
         }
 
+        const paramsToSign = {
+            folder,
+            overwrite: true,
+            public_id,
+            timestamp
+        };
+
         const signature = cloudinary.utils.api_sign_request(
-            { folder, timestamp },
+            paramsToSign,
             config.api_secret
         );
 
@@ -41,7 +58,10 @@ const getUploadSignature = async (req, res) => {
             timestamp,
             apiKey: config.api_key,
             cloudName: config.cloud_name,
-            folder
+            folder,
+            public_id,
+            publicId: public_id,
+            overwrite: true
         });
     } catch (error) {
         logFailure("Generate upload signature failed.", error);
@@ -383,10 +403,20 @@ const deleteAccount = async (req, res) => {
 
         if (user.profilePicture && user.profilePicture.includes("res.cloudinary.com")) {
             try {
+                const publicId = extractCloudinaryPublicId(user.profilePicture);
+                const targetPublicId = (publicId && publicId.startsWith("just-do-it/profile-pictures/"))
+                    ? publicId
+                    : `just-do-it/profile-pictures/user_${req.userId}`;
                 await cloudinary.uploader.destroy(
-                    `just-do-it/profile-pictures/user_${req.userId}`,
+                    targetPublicId,
                     { resource_type: "image" }
                 );
+                if (targetPublicId !== `just-do-it/profile-pictures/user_${req.userId}`) {
+                    await cloudinary.uploader.destroy(
+                        `just-do-it/profile-pictures/user_${req.userId}`,
+                        { resource_type: "image" }
+                    ).catch(() => {});
+                }
             } catch (error) {
                 logFailure("Could not remove deleted account's profile photo.", error);
             }

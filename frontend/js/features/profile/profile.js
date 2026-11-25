@@ -403,14 +403,21 @@ savePhotoButton.addEventListener("click", async () => {
         if (!signatureResponse.ok) {
             throw new Error("Could not authorize photo upload.");
         }
-        const { signature, timestamp, apiKey, cloudName, folder } = await signatureResponse.json();
+        const { signature, timestamp, apiKey, cloudName, folder, public_id, publicId, overwrite } = await signatureResponse.json();
 
+        const resolvedPublicId = public_id || publicId;
         const formData = new FormData();
         formData.append("file", selectedPhotoFile);
         formData.append("api_key", apiKey);
         formData.append("timestamp", timestamp);
         formData.append("signature", signature);
         formData.append("folder", folder);
+        if (resolvedPublicId) {
+            formData.append("public_id", resolvedPublicId);
+        }
+        if (overwrite) {
+            formData.append("overwrite", "true");
+        }
 
         const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
             method: "POST",

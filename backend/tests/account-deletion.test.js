@@ -7,6 +7,7 @@ const Competition = require("../models/Competition");
 const OTP = require("../models/OTP");
 const OTPGuard = require("../models/OTPGuard");
 const EmailNotificationLog = require("../models/EmailNotificationLog");
+const cloudinary = require("../config/cloudinary");
 const { deleteAccount } = require("../controllers/profile.controller");
 
 function responseStub() {
@@ -24,7 +25,7 @@ function responseStub() {
     };
 }
 
-function stubAccountDeletion(t, { failAt = null, accountExists = true } = {}) {
+function stubAccountDeletion(t, { failAt = null, accountExists = true, profilePicture = null } = {}) {
     const models = [User, Workout, Competition, OTP, OTPGuard, EmailNotificationLog];
     const originalMethods = models.map(model => ({
         model,
@@ -38,7 +39,13 @@ function stubAccountDeletion(t, { failAt = null, accountExists = true } = {}) {
     const originalConnect = mongoose.connect;
     const originalReadyState = mongoose.connection.readyState;
     const originalMongoUri = process.env.MONGO_URI;
+    const originalDestroy = cloudinary.uploader.destroy;
     const calls = [];
+    const destroyedPublicIds = [];
+    cloudinary.uploader.destroy = async (publicId, options) => {
+        destroyedPublicIds.push({ publicId, options });
+        return { result: "ok" };
+    };
     const session = {
         async withTransaction(callback) {
             try {
@@ -55,7 +62,7 @@ function stubAccountDeletion(t, { failAt = null, accountExists = true } = {}) {
     };
     const account = {
         email: "athlete@example.test",
-        profilePicture: null
+        profilePicture
     };
     const deleteMany = modelName => async (filter, options) => {
         calls.push({ modelName, filter, options });
@@ -92,6 +99,7 @@ function stubAccountDeletion(t, { failAt = null, accountExists = true } = {}) {
         originalMethods.forEach(({ model, methods }) => {
             Object.assign(model, methods);
         });
+        cloudinary.uploader.destroy = originalDestroy;
         mongoose.startSession = originalStartSession;
         mongoose.connect = originalConnect;
         mongoose.connection.readyState = originalReadyState;
@@ -99,7 +107,7 @@ function stubAccountDeletion(t, { failAt = null, accountExists = true } = {}) {
         else process.env.MONGO_URI = originalMongoUri;
     });
 
-    return { calls, session };
+    return { calls, session, destroyedPublicIds };
 }
 
 test("account deletion transaction removes owned records, relationships and OTP state", async t => {
@@ -153,4 +161,33 @@ test("account deletion returns 404 without deleting records for an unknown accou
     assert.equal(session.committed, true);
     assert.equal(session.ended, true);
     assert.equal(calls.length, 0);
+});
+
+test("account deletion destroys Cloudinary photo using user ID public_id", async t => {
+    const { session, destroyedPublicIds } = stubAccountDeletion(t, {
+        profilePicture: "https://res.cloudinary.com/demo/image/upload/v12345/just-do-it/profile-pictures/user_user-1.jpg"
+    });
+    const res = responseStub();
+
+    await deleteAccount({ userId: "user-1" }, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(session.committed, true);
+    assert.equal(destroyedPublicIds.length, 1);
+    assert.equal(destroyedPublicIds[0].publicId, "just-do-it/profile-pictures/user_user-1");
+    assert.deepEqual(destroyedPublicIds[0].options, { resource_type: "image" });
+});
+
+test("account deletion destroys legacy random-hash Cloudinary photo extracted from URL", async t => {
+    const { session, destroyedPublicIds } = stubAccountDeletion(t, {
+        profilePicture: "https://res.cloudinary.com/demo/image/upload/v12345/just-do-it/profile-pictures/a8f10b2c3d4e.png"
+    });
+    const res = responseStub();
+
+    await deleteAccount({ userId: "user-1" }, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(session.committed, true);
+    assert.ok(destroyedPublicIds.some(item => item.publicId === "just-do-it/profile-pictures/a8f10b2c3d4e"));
+    assert.ok(destroyedPublicIds.some(item => item.publicId === "just-do-it/profile-pictures/user_user-1"));
 });

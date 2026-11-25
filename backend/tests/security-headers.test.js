@@ -17,6 +17,7 @@ test("production responses include secure headers and protected routes reject an
     assert.match(staticCsp, /https:\/\/cdn\.jsdelivr\.net/);
     assert.match(staticCsp, /https:\/\/fonts\.googleapis\.com/);
     assert.match(staticCsp, /https:\/\/storage\.googleapis\.com/);
+    assert.match(staticCsp, /https:\/\/api\.cloudinary\.com/);
     assert.match(staticCsp, /script-src-attr 'none'/);
     const publicHtmlSource = fs.readFileSync(
         path.resolve(__dirname, "../../frontend/index.html"),
