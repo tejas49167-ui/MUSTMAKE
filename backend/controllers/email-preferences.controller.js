@@ -23,7 +23,8 @@ async function getPreferences(req, res) {
     try {
         await connectDB();
         const user = await User.findById(req.userId)
-            .select("emailVerifiedAt emailPreferences");
+            .select("emailVerifiedAt emailPreferences")
+            .lean();
         if (!user) return res.status(404).json({ message: "User not found." });
 
         return res.json({

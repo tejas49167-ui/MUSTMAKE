@@ -29,7 +29,8 @@ const searchUsers = async (req, res) => {
             isPrivate: { $ne: true }
         })
             .select("name username profilePicture")
-            .limit(20);
+            .limit(20)
+            .lean();
 
         return res.json(users);
     } catch (error) {

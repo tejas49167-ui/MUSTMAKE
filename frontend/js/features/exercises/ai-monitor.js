@@ -117,7 +117,6 @@ export function mountAiMonitor(
     let landmarker = null;
     let landmarkerDelegate = null;
     let animationFrame = null;
-    let resizeObserver = null;
     let disposed = false;
     let lastInferenceAt = 0;
     let lastTimestamp = 0;
@@ -844,7 +843,7 @@ export function mountAiMonitor(
         releaseMonitoring();
 
         listeners.abort();
-        resizeObserver?.disconnect();
+        renderer.destroy();
         smartCameraPreview.dispose();
 
         return saveSnapshot();
@@ -917,10 +916,6 @@ export function mountAiMonitor(
         { signal: listeners.signal }
     );
 
-    if ("ResizeObserver" in window) {
-        resizeObserver = new ResizeObserver(resizeCanvas);
-        resizeObserver.observe(canvas);
-    }
 
     resizeCanvas();
 

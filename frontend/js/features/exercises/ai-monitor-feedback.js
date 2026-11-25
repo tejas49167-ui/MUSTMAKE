@@ -29,6 +29,7 @@ function roundedDuration(milliseconds) {
 
 export function createMonitorFeedback({ feedback, timeOutput, detector, isPlank }) {
     let lastAnimationAt = -Infinity;
+    let lastRenderedSecond = -1;
 
     function setFeedback(message) {
         const nextMessage = String(message ?? "");
@@ -64,7 +65,10 @@ export function createMonitorFeedback({ feedback, timeOutput, detector, isPlank 
 
     function updateClock() {
         if (!isPlank || !timeOutput) return;
-        timeOutput.textContent = formatTime(roundedDuration(detector.elapsedMs));
+        const elapsed = roundedDuration(detector.elapsedMs);
+        if (elapsed === lastRenderedSecond) return;
+        lastRenderedSecond = elapsed;
+        timeOutput.textContent = formatTime(elapsed);
     }
 
     return { setFeedback, setExerciseFeedback, updateClock };

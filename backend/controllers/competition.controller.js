@@ -105,23 +105,13 @@ const getCompetitors = async (req, res) => {
         if (ids.length === 0) return res.json([]);
 
         const today = getDateString();
-        const recentCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
-        const records = await Workout.find({
-            user: { $in: ids },
-            $or: [
-                { date: new RegExp(`^${today}`) },
-                { createdAt: { $gte: recentCutoff } }
-            ]
-        })
+        const records = await Workout.find({ user: { $in: ids }, date: today })
             .select("user exercise reps sets weight amount duration unit date createdAt")
-            .sort({ createdAt: 1 });
+            .sort({ createdAt: 1 })
+            .lean();
 
         const workoutsByUser = new Map();
         for (const record of records) {
-            const dateMatches = String(record.date || "").startsWith(today);
-            const createdToday = record.createdAt && getDateString(record.createdAt) === today;
-            if (!dateMatches && !createdToday) continue;
-
             const id = record.user.toString();
             const workouts = workoutsByUser.get(id) || [];
             workouts.push(record);

@@ -153,7 +153,9 @@ const getTodayWorkouts = async (req, res) => {
         const workouts = await Workout.find({
             user: req.userId,
             date: getDateString()
-        }).sort({ createdAt: -1 });
+        })
+            .sort({ createdAt: -1 })
+            .lean();
 
         return res.json(workouts);
     } catch (error) {

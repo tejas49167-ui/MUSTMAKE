@@ -13,6 +13,20 @@ export function createPoseRenderer({
     isDisposed
 }) {
     const context = canvas.getContext("2d");
+    let cachedBounds = { width: 0, height: 0 };
+
+    const resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+            const { width, height } = entry.contentRect;
+            if (width && height) {
+                cachedBounds = { width, height };
+            }
+        }
+        if (!isDisposed() && !isTransitioning()) {
+            resize();
+        }
+    });
+    resizeObserver.observe(canvas);
 
     function clear() {
         context.setTransform(1, 0, 0, 1, 0, 0);
@@ -22,7 +36,7 @@ export function createPoseRenderer({
     function resize() {
         if (isTransitioning()) return;
 
-        const bounds = canvas.getBoundingClientRect();
+        const bounds = cachedBounds;
         if (!bounds.width || !bounds.height) return;
 
         const ratio = Math.max(1, window.devicePixelRatio || 1);
@@ -63,7 +77,7 @@ export function createPoseRenderer({
 
         if (!landmarks?.length || !video.videoWidth || !video.videoHeight) return;
 
-        const bounds = canvas.getBoundingClientRect();
+        const bounds = cachedBounds;
         if (!bounds.width || !bounds.height || !canvas.width || !canvas.height) return;
 
         const fitScale = preview.classList.contains("is-fullscreen") ? Math.max : Math.min;
@@ -121,5 +135,9 @@ export function createPoseRenderer({
         context.restore();
     }
 
-    return { clear, draw, resize, updateAspectRatio };
+    function destroy() {
+        resizeObserver.disconnect();
+    }
+
+    return { clear, draw, resize, updateAspectRatio, destroy };
 }
