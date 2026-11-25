@@ -209,24 +209,11 @@
     text-align: center;
 }
 
-.settings-danger-zone h2 {
-    margin: 0 0 1rem;
-    color: #ff2800;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    text-decoration: underline;
-    text-decoration-color: #ff2800;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.35rem;
-}
-
 .settings-delete-button {
     display: inline-block;
     padding: 0;
     border: 0;
-    color: #ff2800;
+    color: #dc2626 !important;
     background: transparent;
     font: inherit;
     font-size: 0.9rem;
@@ -234,16 +221,20 @@
     cursor: pointer;
 }
 
-:root body .settings-delete-button {
-    color: #ff2800;
+:root body .settings-delete-button,
+:root body button.settings-delete-button,
+:root body #deleteAccountButton {
+    color: #dc2626 !important;
 }
 
 .settings-delete-button:hover {
+    color: #dc2626 !important;
     text-decoration: underline;
 }
 
 .settings-delete-button:focus-visible {
-    outline: 2px solid #ff0000;
+    color: #dc2626 !important;
+    outline: 2px solid #dc2626;
     outline-offset: 4px;
 }
 

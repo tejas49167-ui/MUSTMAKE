@@ -157,6 +157,27 @@ const addWorkout = async (req, res) => {
     }
 };
 
+const getDashboard = async (req, res) => {
+    try {
+        await connectDB();
+        const today = getDateString();
+        const [workouts, streak] = await Promise.all([
+            Workout.find({
+                user: req.userId,
+                date: today
+            })
+                .sort({ createdAt: -1 })
+                .lean(),
+            getWorkoutStreak(req.userId, today)
+        ]);
+
+        return res.json({ workouts, streak });
+    } catch (error) {
+        logFailure("Load dashboard failed.", error);
+        return res.status(500).json({ message: "Could not load dashboard data." });
+    }
+};
+
 const getTodayWorkouts = async (req, res) => {
     try {
         await connectDB();
@@ -230,6 +251,7 @@ const deleteWorkout = async (req, res) => {
 
 module.exports = {
     addWorkout,
+    getDashboard,
     getTodayWorkouts,
     getStreak,
     getWorkoutHistory,

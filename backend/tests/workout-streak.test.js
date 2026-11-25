@@ -1,12 +1,20 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const User = require("../models/User");
+const Workout = require("../models/Workout");
+const mongoose = require("mongoose");
 const {
     getWorkoutStreak,
     recordWorkoutStreak,
     recalculateUserStreak
 } = require("../services/workout-streak.service");
 const { getDateString, previousDateString } = require("../utils/date");
+
+// Set readyState after models are compiled so connectDB() passes in unit tests
+mongoose.connection.readyState = 1;
+if (!process.env.MONGO_URI) {
+    process.env.MONGO_URI = "mongodb://127.0.0.1:27017/test-workout-streak";
+}
 
 test("User model defines streak and lastWorkoutDate with proper defaults", () => {
     const user = new User({
@@ -286,5 +294,63 @@ test("backfillUserStreaks calculates and writes streaks and lastWorkoutDate for 
             }
         }
     });
+});
+
+test("getDashboard returns today's workouts and cached streak in a single response", async t => {
+    const { getDashboard } = require("../controllers/workout.controller");
+    const Workout = require("../models/Workout");
+
+    const originalFind = Workout.find;
+    const originalUserFindById = User.findById;
+
+    const mockWorkouts = [
+        { _id: "workout-1", exercise: "Squats", reps: 20, sets: 3, date: getDateString() }
+    ];
+
+    Workout.find = query => {
+        assert.equal(query.user, "user-1");
+        assert.equal(query.date, getDateString());
+        return {
+            sort: () => ({
+                lean: async () => mockWorkouts
+            })
+        };
+    };
+
+    User.findById = id => {
+        assert.equal(id, "user-1");
+        return {
+            select: () => ({
+                lean: async () => ({
+                    streak: 5,
+                    lastWorkoutDate: getDateString()
+                })
+            })
+        };
+    };
+
+    t.after(() => {
+        Workout.find = originalFind;
+        User.findById = originalUserFindById;
+    });
+
+    const response = {
+        statusCode: 200,
+        body: null,
+        status(code) {
+            this.statusCode = code;
+            return this;
+        },
+        json(body) {
+            this.body = body;
+            return this;
+        }
+    };
+
+    await getDashboard({ userId: "user-1" }, response);
+
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.body.workouts, mockWorkouts);
+    assert.equal(response.body.streak, 5);
 });
 

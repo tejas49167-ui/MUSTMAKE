@@ -315,11 +315,13 @@ const photoPreview = document.getElementById("profilePhotoPreview");
 const savePhotoButton = document.getElementById("saveProfilePhoto");
 const photoPreviewHistoryKey = "mustmakeProfilePhotoPreview";
 let selectedPhotoData = "";
+let selectedPhotoFile = null;
 
 function closePhotoDialog() {
     photoDialog.hidden = true;
     photoInput.value = "";
     selectedPhotoData = "";
+    selectedPhotoFile = null;
     savePhotoButton.disabled = true;
     document.getElementById("profilePhotoButton").focus();
     if (window.history.state?.[photoPreviewHistoryKey]) {
@@ -352,6 +354,7 @@ photoInput.addEventListener("change", () => {
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
         window.showToast("Choose a JPG, PNG or WebP image.", { type: "warning" });
         selectedPhotoData = "";
+        selectedPhotoFile = null;
         savePhotoButton.disabled = true;
         photoPreview.src = document.getElementById("profilePhoto").src;
         photoInput.value = "";
@@ -360,11 +363,14 @@ photoInput.addEventListener("change", () => {
     if (file.size > 2 * 1024 * 1024) {
         window.showToast("The photo must be smaller than 2 MB.", { type: "warning" });
         selectedPhotoData = "";
+        selectedPhotoFile = null;
         savePhotoButton.disabled = true;
         photoPreview.src = document.getElementById("profilePhoto").src;
         photoInput.value = "";
         return;
     }
+
+    selectedPhotoFile = file;
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -387,12 +393,37 @@ photoInput.addEventListener("change", () => {
 });
 
 savePhotoButton.addEventListener("click", async () => {
-    if (!selectedPhotoData) return;
+    if (!selectedPhotoFile) return;
     savePhotoButton.disabled = true;
-    const saveToast = window.showToast("Saving profile photo…", { type: "loading" });
+    const saveToast = window.showToast("Uploading profile photo…", { type: "loading" });
     try {
-        await updateProfile({ profilePicture: selectedPhotoData });
+        const signatureResponse = await fetch(`${window.backend_url}/api/profile/upload-signature`, {
+            method: "POST"
+        });
+        if (!signatureResponse.ok) {
+            throw new Error("Could not authorize photo upload.");
+        }
+        const { signature, timestamp, apiKey, cloudName, folder } = await signatureResponse.json();
+
+        const formData = new FormData();
+        formData.append("file", selectedPhotoFile);
+        formData.append("api_key", apiKey);
+        formData.append("timestamp", timestamp);
+        formData.append("signature", signature);
+        formData.append("folder", folder);
+
+        const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            method: "POST",
+            body: formData
+        });
+        if (!uploadResponse.ok) {
+            throw new Error("Could not upload photo to Cloudinary.");
+        }
+        const uploadResult = await uploadResponse.json();
+
+        await updateProfile({ profilePicture: uploadResult.secure_url });
         saveToast?.update("Profile photo updated.", { type: "success" });
+        selectedPhotoFile = null;
         closePhotoDialog();
     } catch (error) {
         console.error("Profile photo update error:", error);

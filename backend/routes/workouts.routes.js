@@ -5,6 +5,7 @@ const workoutController = require("../controllers/workout.controller");
 const router = express.Router();
 
 router.post("/api/workouts", auth, workoutController.addWorkout);
+router.get("/api/workouts/dashboard", auth, workoutController.getDashboard);
 router.get("/api/workouts/today", auth, workoutController.getTodayWorkouts);
 router.get("/api/workouts/streaks", auth, workoutController.getStreak);
 router.get("/api/workouts/history", auth, workoutController.getWorkoutHistory);

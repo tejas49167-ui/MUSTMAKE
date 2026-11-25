@@ -21,6 +21,34 @@ const {
 const { getDateString } = require("../utils/date");
 const { logFailure } = require("../utils/safe-log");
 
+const getUploadSignature = async (req, res) => {
+    try {
+        const timestamp = Math.round(Date.now() / 1000);
+        const folder = "just-do-it/profile-pictures";
+        const config = cloudinary.config();
+
+        if (!config.api_key || !config.api_secret || !config.cloud_name) {
+            return res.status(500).json({ message: "Cloudinary is not configured." });
+        }
+
+        const signature = cloudinary.utils.api_sign_request(
+            { folder, timestamp },
+            config.api_secret
+        );
+
+        return res.json({
+            signature,
+            timestamp,
+            apiKey: config.api_key,
+            cloudName: config.cloud_name,
+            folder
+        });
+    } catch (error) {
+        logFailure("Generate upload signature failed.", error);
+        return res.status(500).json({ message: "Could not generate upload signature." });
+    }
+};
+
 const getProfile = async (req, res) => {
     try {
         await connectDB();
@@ -138,33 +166,24 @@ function normalizeProfileFields(body, requireName) {
     };
 }
 
+function isCloudinarySecureUrl(url) {
+    if (typeof url !== "string") return false;
+    const config = cloudinary.config();
+    const cloudName = config.cloud_name;
+    const pattern = cloudName
+        ? new RegExp(`^https://res\\.cloudinary\\.com/${cloudName}/image/upload/.+`, "i")
+        : /^https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/.+/i;
+    return pattern.test(url);
+}
+
 async function resolveProfilePicture(profilePicture, user) {
     if (profilePicture === undefined) return { value: undefined };
     if (!profilePicture) return { value: null };
 
-    if (typeof profilePicture === "string" && profilePicture.startsWith("data:image/")) {
-        const match = profilePicture.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
-        if (!match) {
-            return { error: { status: 400, message: "Profile photo must be a JPG, PNG or WebP image." } };
-        }
-
-        const imageBytes = Buffer.from(match[2], "base64");
-        if (imageBytes.length > 2 * 1024 * 1024) {
-            return { error: { status: 413, message: "Profile photo must be smaller than 2 MB." } };
-        }
-
-        const upload = await cloudinary.uploader.upload(profilePicture, {
-            folder: "just-do-it/profile-pictures",
-            public_id: `user_${user._id}`,
-            overwrite: true,
-            resource_type: "image"
-        });
-        return { value: upload.secure_url };
-    }
-
-    if (typeof profilePicture === "string" && /^https?:\/\//i.test(profilePicture)) {
+    if (isCloudinarySecureUrl(profilePicture)) {
         return { value: profilePicture };
     }
+
     return { error: { status: 400, message: "Invalid profile photo." } };
 }
 
@@ -384,6 +403,7 @@ const deleteAccount = async (req, res) => {
 
 module.exports = {
     getProfile,
+    getUploadSignature,
     updateProfile,
     completeFirstDetails,
     completeSignup,

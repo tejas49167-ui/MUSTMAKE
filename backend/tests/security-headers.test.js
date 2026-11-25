@@ -86,6 +86,8 @@ test("production responses include secure headers and protected routes reject an
 
     const protectedRequests = [
         { method: "GET", path: "/api/profile" },
+        { method: "POST", path: "/api/profile/upload-signature" },
+        { method: "GET", path: "/api/workouts/dashboard" },
         { method: "GET", path: "/api/workouts/today" },
         { method: "GET", path: "/api/competition" },
         { method: "GET", path: "/api/users/0123456789abcdef01234567" },

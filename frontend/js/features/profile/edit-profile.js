@@ -198,12 +198,30 @@ profileForm.addEventListener("submit", async event => {
 
         const selectedPhoto = profilePictureInput?.files?.[0];
         if (selectedPhoto) {
-            payload.profilePicture = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(selectedPhoto);
+            const signatureResponse = await fetch(`${window.backend_url}/api/profile/upload-signature`, {
+                method: "POST"
             });
+            if (!signatureResponse.ok) {
+                throw new Error("Could not authorize photo upload.");
+            }
+            const { signature, timestamp, apiKey, cloudName, folder } = await signatureResponse.json();
+
+            const formData = new FormData();
+            formData.append("file", selectedPhoto);
+            formData.append("api_key", apiKey);
+            formData.append("timestamp", timestamp);
+            formData.append("signature", signature);
+            formData.append("folder", folder);
+
+            const uploadResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: "POST",
+                body: formData
+            });
+            if (!uploadResponse.ok) {
+                throw new Error("Photo upload failed.");
+            }
+            const uploadResult = await uploadResponse.json();
+            payload.profilePicture = uploadResult.secure_url;
         }
 
         const profileEndpoint = pendingSignup

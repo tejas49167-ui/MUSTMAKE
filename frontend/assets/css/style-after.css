@@ -522,7 +522,7 @@ body.mobile-nav-open {
     color: var(--text-muted);
 }
 
-:root body :is(button:not(.main-button), .secondary-button) {
+:root body :is(button:not(.main-button, .settings-delete-button), .secondary-button) {
     color: var(--text-primary);
 }
 

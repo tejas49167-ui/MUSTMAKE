@@ -82,26 +82,31 @@ async function loadToday() {
         streakElement.textContent = cachedStreak;
     }
 
-    const streakPromise = loadStreaks(
-        cacheSuffix ? `mustmake_streak${cacheSuffix}` : null
-    );
     try {
-        const todayPromise = fetch(`${window.backend_url}/api/workouts/today`);
-
-        const [response] = await Promise.all([todayPromise, streakPromise]);
+        const response = await fetch(`${window.backend_url}/api/workouts/dashboard`);
         if (response.status === 401) {
             logout();
             return;
         }
         if (!response.ok) throw new Error("Failed to load workouts");
 
-        const responseData = await response.json();
-        const workouts = Array.isArray(responseData) ? responseData : [];
+        const data = await response.json();
+        const workouts = Array.isArray(data.workouts) ? data.workouts : [];
+        const streak = Number(data.streak) || 0;
+
         sessionCache.write(
             cacheSuffix ? `mustmake_today_workouts${cacheSuffix}` : null,
             workouts
         );
+        sessionCache.write(
+            cacheSuffix ? `mustmake_streak${cacheSuffix}` : null,
+            streak
+        );
+
         displayTodayWorkouts(userContainer, workouts);
+        if (streakElement) {
+            streakElement.textContent = streak;
+        }
     } catch (error) {
         console.error("Today's workouts error:", error);
         if (!Array.isArray(cachedWorkouts)) {

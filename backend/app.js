@@ -71,7 +71,8 @@ app.use(helmet({
                 "'self'",
                 backendOrigin,
                 "https://cdn.jsdelivr.net",
-                "https://storage.googleapis.com"
+                "https://storage.googleapis.com",
+                "https://api.cloudinary.com"
             ],
             workerSrc: ["'self'", "blob:"],
             mediaSrc: ["'self'", "blob:"],
