@@ -91,6 +91,16 @@ const userSchema = new mongoose.Schema(
             default: null
         },
 
+        streak: {
+            type: Number,
+            default: 0
+        },
+
+        lastWorkoutDate: {
+            type: String,
+            default: null
+        },
+
         isPrivate: {
             type: Boolean,
             default: false

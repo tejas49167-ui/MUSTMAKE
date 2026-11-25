@@ -21,6 +21,12 @@ function createFixture(options = {}) {
         name: "Athlete",
         email: "athlete@example.test",
         emailVerifiedAt: new Date("2025-01-01T00:00:00.000Z"),
+        streak: options.streak !== undefined
+            ? options.streak
+            : (options.workoutDates ? options.workoutDates.length : 0),
+        lastWorkoutDate: options.lastWorkoutDate !== undefined
+            ? options.lastWorkoutDate
+            : (options.workoutDates?.[0] || null),
         emailPreferences: {
             enabled: true,
             dailyExerciseReminder: true,

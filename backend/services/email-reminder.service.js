@@ -145,7 +145,7 @@ async function processDueUser(user, now, dependencies = {}) {
         emailService.sendExerciseReminderEmail;
     const nowProvider = dependencies.nowProvider || (() => new Date());
     const getStreak = dependencies.getStreak ||
-        ((userId, localDate) => getWorkoutStreak(userId, localDate, workoutModel));
+        ((userId, localDate) => getWorkoutStreak(userId, localDate, userModel));
 
     if (!isReminderEligible(user)) {
         return { result: "ineligible" };

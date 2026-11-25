@@ -4,7 +4,11 @@ const connectDB = require("../config/database");
 const { getDateString } = require("../utils/date");
 const { isPlainObject, parseWorkoutNumber } = require("../utils/validation");
 const { getWorkoutHistoryPage } = require("../services/workout-history.service");
-const { getWorkoutStreak } = require("../services/workout-streak.service");
+const {
+    getWorkoutStreak,
+    recordWorkoutStreak,
+    recalculateUserStreak
+} = require("../services/workout-streak.service");
 const exercises = require("../config/exercises.json");
 const { logFailure } = require("../utils/safe-log");
 
@@ -133,12 +137,18 @@ const addWorkout = async (req, res) => {
         }
 
         await connectDB();
+        const workoutDate = (typeof req.body.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(req.body.date.trim()))
+            ? req.body.date.trim()
+            : getDateString();
+
         const workout = await Workout.create({
             user: req.userId,
             exercise,
             ...workoutValues,
-            date: getDateString()
+            date: workoutDate
         });
+
+        await recordWorkoutStreak(req.userId, workoutDate);
 
         return res.status(201).json(workout);
     } catch (error) {
@@ -208,6 +218,8 @@ const deleteWorkout = async (req, res) => {
         if (!workout) {
             return res.status(404).json({ message: "Workout not found." });
         }
+
+        await recalculateUserStreak(req.userId);
 
         return res.json({ success: true });
     } catch (error) {
