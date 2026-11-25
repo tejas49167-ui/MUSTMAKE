@@ -115,7 +115,8 @@
     letter-spacing: -0.015em;
 }
 
-.legal-document ul {
+.legal-document ul,
+.about-story ul {
     display: grid;
     gap: 10px;
     margin: 18px 0 0;
@@ -125,10 +126,10 @@
     line-height: 1.8;
 }
 
-.legal-document li {
+.legal-document li,
+.about-story li {
     padding-left: 3px;
 }
-
 .legal-document .service-list {
     gap: 12px;
 }
