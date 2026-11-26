@@ -402,7 +402,15 @@ const deleteAccount = async (req, res) => {
             return res.status(404).json({ message: "Account not found." });
         }
 
-        if (user.profilePicture && user.profilePicture.includes("res.cloudinary.com")) {
+        let isCloudinaryProfilePicture = false;
+        try {
+            isCloudinaryProfilePicture =
+                new URL(user.profilePicture).hostname === "res.cloudinary.com";
+        } catch (error) {
+            // Invalid URLs are not eligible for Cloudinary cleanup.
+        }
+
+        if (isCloudinaryProfilePicture) {
             try {
                 const publicId = extractCloudinaryPublicId(user.profilePicture);
                 const targetPublicId = (publicId && publicId.startsWith("just-do-it/profile-pictures/"))
