@@ -67,7 +67,7 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             styleSrcAttr: ["'unsafe-inline'"],
             fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "blob:", "https:"],
+            imgSrc: ["'self'", "data:", "blob:", "https:", "https://api.cloudinary.com"],
             connectSrc: [
                 "'self'",
                 backendOrigin,
@@ -75,9 +75,7 @@ app.use(helmet({
                 "https://storage.googleapis.com",
                 "https://api.cloudinary.com"
             ],
-            // Allow Cloudinary for image fetches and script execution as well
-            imgSrc: ["'self'", "data:", "blob:", "https:", "https://api.cloudinary.com"],
-            scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "'wasm-unsafe-eval'", "https://api.cloudinary.com"]
+
             workerSrc: ["'self'", "blob:"],
             mediaSrc: ["'self'", "blob:"],
             upgradeInsecureRequests: production ? [] : null
